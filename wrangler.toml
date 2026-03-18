@@ -20,7 +20,7 @@ bucket_name = "yomi-assets-local"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "yomi-db-prod"
-database_id = "actual-prod-db-id-here"
+database_id = "d51a513c-fea7-458c-9c0e-b5f08f474689"
 
 [[env.production.r2_buckets]]
 binding = "ASSETS_BUCKET"
