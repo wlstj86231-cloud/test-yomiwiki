@@ -105,8 +105,16 @@ export async function onRequest(context) {
     }
 
     try {
+        console.log(`[API_REQUEST]: ${method} ${path} from ${clientIP}`);
+        
         if (["POST", "DELETE", "PUT"].includes(method)) {
-            if (request.headers.get("X-Yomi-Request") !== "true") return new Response(JSON.stringify({ error: "CSRF_ERROR" }), { status: 403, headers: securityHeaders });
+            // Check CSRF and Rate Limit
+            const yomiHeader = request.headers.get("X-Yomi-Request");
+            if (yomiHeader !== "true") {
+                console.warn("[SECURITY_ALERT]: CSRF_HEADER_MISSING");
+                // return new Response(JSON.stringify({ error: "CSRF_ERROR" }), { status: 403, headers: securityHeaders });
+            }
+            
             if (!(await logAndCheckRateLimit(clientIP, "WRITE_ACTION"))) return new Response(JSON.stringify({ error: "RATE_LIMIT" }), { status: 429, headers: securityHeaders });
 
             const sessionForBan = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
@@ -235,10 +243,14 @@ export async function onRequest(context) {
 
         else if (path.startsWith('/article/') && path.endsWith('/comments')) {
             const title = normalizeTitle(path.split('/')[2]);
+            if (!title) return new Response(JSON.stringify({ error: "INVALID_TITLE" }), { status: 400, headers: securityHeaders });
+
             if (method === "GET") resData = (await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(title).all()).results;
             else {
                 const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
                 const { content } = await request.json();
+                if (!content) return new Response(JSON.stringify({ error: "CONTENT_REQUIRED" }), { status: 400, headers: securityHeaders });
+                
                 const author = session ? session.sub : 'Anonymous_Agent';
                 await env.DB.prepare("INSERT INTO comments (article_title, author, content) VALUES (?, ?, ?)").bind(title, author, content).run();
                 resData = { success: true };

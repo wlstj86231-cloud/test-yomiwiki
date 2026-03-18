@@ -66,13 +66,21 @@ document.addEventListener('DOMContentLoaded', () => {
     window.postComment = async (title) => {
         const content = document.getElementById('new-comment-content').value;
         if (!content) return;
-        const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/comments`, {
-            method: 'POST', body: JSON.stringify({ content })
-        });
-        if (res.ok) {
-            document.getElementById('new-comment-content').value = '';
-            renderComments(title, document.getElementById('integrated-discussion'));
-            updateSidebarActivity(); // Refresh sidebar log immediately on comment
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/comments`, {
+                method: 'POST', body: JSON.stringify({ content })
+            });
+            if (res.ok) {
+                document.getElementById('new-comment-content').value = '';
+                renderComments(title, document.getElementById('integrated-discussion'));
+                updateSidebarActivity();
+            } else {
+                const data = await res.json();
+                alert(`TRANSMISSION_FAILED: ${data.error || res.status}`);
+            }
+        } catch (e) {
+            console.error("POST_COMMENT_ERROR:", e);
+            alert("CONNECTION_LOST: Check uplink status.");
         }
     };
 
