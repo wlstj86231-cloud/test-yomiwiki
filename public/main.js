@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- [Unified Comment Rendering] ---
     function renderCommentsHTML(title, comments) {
         let html = `<div id="integrated-discussion" class="integrated-discussion">
-            <div class="discussion-header">[COMM_CHANNEL_LOG]</div>
+            <div class="discussion-header">[ARTICLE_DISCUSSION]</div>
             <div class="comment-list">
                 ${comments.map(c => `
                     <div class="comment-item">
@@ -64,10 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
     window.postComment = async (title) => {
         const content = document.getElementById('new-comment-content').value;
         if (!content) return;
-        const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/comments`, {
+        const normalizedTitle = title.replace(/[_\s]+/g, '_');
+        const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}/comments`, {
             method: 'POST', body: JSON.stringify({ content })
         });
-        if (res.ok) { init(); updateSidebarActivity(); }
+        if (res.ok) { 
+            document.getElementById('new-comment-content').value = '';
+            init(); 
+            updateSidebarActivity(); 
+        }
     };
 
     // --- [EDITOR HELPERS] ---

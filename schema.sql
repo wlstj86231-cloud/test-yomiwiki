@@ -49,7 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_articles_author ON articles(author);
 -- comments: 토론 스레드
 CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    article_title TEXT NOT NULL,
+    article_title TEXT NOT NULL COLLATE NOCASE,
     author TEXT NOT NULL,
     content TEXT NOT NULL,
     parent_id INTEGER DEFAULT NULL,

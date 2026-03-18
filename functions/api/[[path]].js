@@ -189,7 +189,7 @@ export async function onRequest(context) {
         }
 
         else if (path === '/history' && method === "GET") {
-            const { results } = await env.DB.prepare("SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author, r.edit_summary as summary FROM revisions r JOIN articles a ON r.article_id = a.id UNION ALL SELECT 'comment' as type, article_title as title, timestamp, author, content as summary FROM comments ORDER BY timestamp DESC LIMIT 40").all();
+            const { results } = await env.DB.prepare("SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author, r.edit_summary as summary FROM revisions r JOIN articles a ON r.article_id = a.id UNION ALL SELECT 'comment' as type, article_title as title, timestamp, author, 'NEW_COMM_TRANSMISSION' as summary FROM comments ORDER BY timestamp DESC LIMIT 40").all();
             resData = results;
         }
 
