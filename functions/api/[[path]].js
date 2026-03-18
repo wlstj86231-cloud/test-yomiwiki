@@ -77,7 +77,10 @@ export async function onRequest(context) {
         return count < limit;
     }
 
-    function normalizeTitle(rawTitle) { return decodeURIComponent(rawTitle || "").replace(/[_\s]+/g, ' ').trim(); }
+    // --- [IMPORTANT: CONSISTENT TITLE NORMALIZATION] ---
+    function normalizeTitle(rawTitle) { 
+        return decodeURIComponent(rawTitle || "").replace(/[_\s]+/g, '_').trim(); 
+    }
 
     async function getAgentTier(username) {
         if (!username) return { level: "I", title: "GUEST", count: 0 };
@@ -133,12 +136,7 @@ export async function onRequest(context) {
         else if (path.startsWith('/article/') && method === "GET") {
             try {
                 const title = normalizeTitle(path.substring(9));
-                const query = `
-                    SELECT a.*, 
-                    (SELECT COUNT(*) FROM revisions WHERE editor_info = a.author) as author_contribution_count
-                    FROM articles a WHERE a.title = ? OR a.title = ?
-                `;
-                const article = await env.DB.prepare(query).bind(title, title.replace(/ /g, '_')).first();
+                const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(title).first();
                 
                 if (!article) { status = 404; resData = { error: "RECORD_NOT_FOUND" }; }
                 else {
@@ -148,20 +146,17 @@ export async function onRequest(context) {
                         fullContent = results.map(r => r.content).join('');
                     }
                     
-                    // --- [Step 4-3. UNIFY DATA: Get Backlinks & Comments in ONE response] ---
+                    // UNIFY DATA with underscore title
                     const { results: backlinks } = await env.DB.prepare("SELECT from_title FROM links WHERE to_title = ? LIMIT 50").bind(article.title).all();
                     const { results: comments } = await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(article.title).all();
 
-                    const count = article.author_contribution_count || 0;
+                    const count = (await env.DB.prepare("SELECT COUNT(*) as count FROM revisions WHERE editor_info = ?").bind(article.author).first()).count;
                     resData = { 
                         ...article, 
                         current_content: fullContent, 
                         backlinks: backlinks.map(b => b.from_title),
-                        comments: comments, // Integrated comments!
-                        author_tier: {
-                            count,
-                            level: count >= 100 ? "IV" : count >= 50 ? "III" : count >= 10 ? "II" : "I"
-                        }
+                        comments: comments,
+                        author_tier: { count, level: count >= 100 ? "IV" : count >= 50 ? "III" : count >= 10 ? "II" : "I" }
                     };
                 }
             } catch (dbErr) { status = 500; resData = { error: "DB_ERR", msg: dbErr.message }; }
@@ -173,7 +168,6 @@ export async function onRequest(context) {
             const { content, summary, classification } = await request.json();
             if (!session) { status = 401; resData = { error: "UNAUTH" }; }
             else {
-                const article = await env.DB.prepare("SELECT author, classification, is_locked FROM articles WHERE title = ?").bind(title).first();
                 const linkRegex = /\[\[(.*?)\]\]/g;
                 let match;
                 const foundLinks = new Set();
