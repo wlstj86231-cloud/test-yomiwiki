@@ -9,13 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const API_ENDPOINT = '/api';
-    const LANG = navigator.language.startsWith('ko') ? 'ko' : 'en';
 
     // --- [Auth & State] ---
     let currentUser = JSON.parse(localStorage.getItem('yomi_user')) || null;
 
     const securedFetch = async (url, options = {}) => {
-        const headers = { ...options.headers, 'X-Yomi-Request': 'true', 'Content-Type': 'application/json' };
+        const headers = { 'X-Yomi-Request': 'true', 'Content-Type': 'application/json', ...options.headers };
         if (currentUser?.token) headers['Authorization'] = `Bearer ${currentUser.token}`;
         return await fetch(url, { ...options, headers });
     };
@@ -42,45 +41,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
-    // --- [Integrated Discussion System] ---
-    async function renderComments(title, container) {
-        container.innerHTML = `<div class="discussion-header">[COMM_CHANNEL_LOG]</div><div id="comment-list">Loading...</div>
-        <div class="comment-form">
-            <textarea id="new-comment-content" placeholder="Enter transmission..."></textarea>
-            <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle">[TRANSMIT]</button>
+    // --- [Unified Comment Rendering] ---
+    function renderCommentsHTML(title, comments) {
+        let html = `<div id="integrated-discussion" class="integrated-discussion">
+            <div class="discussion-header">[COMM_CHANNEL_LOG]</div>
+            <div class="comment-list">
+                ${comments.map(c => `
+                    <div class="comment-item">
+                        <div class="comment-meta">AGENT: ${escapeHTML(c.author)} | ${c.timestamp}</div>
+                        <div class="comment-body">${escapeHTML(c.content)}</div>
+                    </div>
+                `).join('') || '<div style="opacity:0.3; font-style:italic; padding:20px;">No active transmissions.</div>'}
+            </div>
+            <div class="comment-form">
+                <textarea id="new-comment-content" placeholder="Enter transmission..."></textarea>
+                <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle">[TRANSMIT]</button>
+            </div>
         </div>`;
-        
-        try {
-            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/comments`);
-            const comments = await res.json();
-            const listDiv = document.getElementById('comment-list');
-            listDiv.innerHTML = comments.map(c => `
-                <div class="comment-item">
-                    <div class="comment-meta">AGENT: ${escapeHTML(c.author)} | ${c.timestamp}</div>
-                    <div class="comment-body">${escapeHTML(c.content)}</div>
-                </div>
-            `).join('') || '<div style="opacity:0.3; font-style:italic; padding:20px;">No active transmissions.</div>';
-        } catch (e) { document.getElementById('comment-list').textContent = "UPLINK_ERROR"; }
+        return html;
     }
 
     window.postComment = async (title) => {
         const content = document.getElementById('new-comment-content').value;
         if (!content) return;
-        try {
-            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/comments`, {
-                method: 'POST', body: JSON.stringify({ content })
-            });
-            if (res.ok) {
-                document.getElementById('new-comment-content').value = '';
-                renderComments(title, document.getElementById('integrated-discussion'));
-                updateSidebarActivity();
-            } else {
-                const data = await res.json();
-                alert(`TRANSMISSION_FAILED: ${data.error || res.status}`);
-            }
-        } catch (e) {
-            console.error("POST_COMMENT_ERROR:", e);
-            alert("CONNECTION_LOST: Check uplink status.");
+        const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/comments`, {
+            method: 'POST', body: JSON.stringify({ content })
+        });
+        if (res.ok) {
+            // Refresh the whole article to show the new comment in place
+            init(); 
+            updateSidebarActivity();
         }
     };
 
@@ -102,15 +92,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             mainTitle.textContent = data.title;
             metaText.innerHTML = `REV: ${data.updated_at} | AUTH: ${data.author} [SECURE_NODE]`;
-            let html = wikiParse(data.current_content);
             
+            let contentHtml = wikiParse(data.current_content);
+            
+            // Backlinks & Categories
             let footer = '<div class="article-footer">';
             if (data.categories) footer += `<div><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
+            if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
             footer += '</div>';
-            footer += `<div id="integrated-discussion" class="integrated-discussion"></div>`;
+
+            // ATTACH COMMENTS DIRECTLY
+            const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
             
-            articleBody.innerHTML = html + footer;
-            renderComments(data.title, document.getElementById('integrated-discussion'));
+            articleBody.innerHTML = contentHtml + footer + commentsHtml;
 
         } catch (e) { articleBody.innerHTML = "CRITICAL_SYSTEM_ERROR"; }
     }
@@ -119,7 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateSidebarActivity() {
         const sidebarLog = document.getElementById('sidebar-live-activity');
         if (!sidebarLog) return;
-
         try {
             const res = await securedFetch(`${API_ENDPOINT}/history`);
             const logs = await res.json();
@@ -141,10 +134,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         handleInternalLinks();
         await renderArticle(title);
-        updateSidebarActivity(); // Load sidebar activity on every page
+        updateSidebarActivity();
     }
 
     init();
-    // Auto-sync sidebar every 30 seconds
     setInterval(updateSidebarActivity, 30000);
 });
