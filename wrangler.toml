@@ -1,0 +1,33 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "test-yomiwiki"
+pages_build_output_dir = "public"
+compatibility_date = "2024-03-17"
+
+# --- [80. Environment Variable Separation] ---
+
+# Default (Local) Bindings
+[[d1_databases]]
+binding = "DB"
+database_name = "yomi-db-local"
+database_id = "local-db-placeholder"
+
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "yomi-assets-local"
+
+# Production Environment Settings
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "yomi-db-prod"
+database_id = "actual-prod-db-id-here"
+
+[[env.production.r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "yomi-assets-prod"
+
+[vars]
+ENVIRONMENT = "development"
+
+[env.production.vars]
+ENVIRONMENT = "production"

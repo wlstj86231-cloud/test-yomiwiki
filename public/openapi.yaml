@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  title: YomiWiki Archival Uplink API
+  description: |
+    미국 오컬트 매니아를 위한 고성능 보관소 데이터 전송 프로토콜.
+    모든 요청은 기밀로 취급되며, 비인가 접근은 로그에 기록됩니다.
+  version: 2.0.0
+servers:
+  - url: /api
+    description: Local Archival Gateway
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    CustomHeader:
+      type: apiKey
+      in: header
+      name: X-Yomi-Request
+      description: CSRF 방어 및 인간 에이전트 확인용 필수 헤더 (값: "true")
+
+security:
+  - CustomHeader: []
+
+paths:
+  /auth/register:
+    post:
+      summary: 신규 에이전트 신원 생성
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string, minLength: 3 }
+                password: { type: string, minLength: 8 }
+      responses:
+        '200': { description: Identity created successfully }
+        '409': { description: Username already taken }
+
+  /auth/login:
+    post:
+      summary: 아카이브 접속 세션 개시
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Session established
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  username: { type: string }
+                  role: { type: string }
+
+  /article/{title}:
+    get:
+      summary: 특정 기록물 열람
+      tags: [Articles]
+      parameters:
+        - name: title
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Article data retrieved }
+        '404': { description: Record not found }
+    post:
+      summary: 기록물 전송 및 갱신
+      security:
+        - BearerAuth: []
+        - CustomHeader: []
+      tags: [Articles]
+      parameters:
+        - name: title
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content: { type: string }
+                summary: { type: string }
+                base_version: { type: integer }
+      responses:
+        '200': { description: Archive updated }
+        '409': { description: Temporal conflict detected }
+
+  /article/{title}/history:
+    get:
+      summary: 기록물 수정 이력(시간선) 조회
+      tags: [Wiki Core]
+      parameters:
+        - name: title
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Revision logs retrieved }
+
+  /article/{title}/diff/{rev1}/{rev2}:
+    get:
+      summary: 두 리비전 간의 차이점 대조
+      tags: [Wiki Core]
+      parameters:
+        - name: title
+          in: path
+          required: true
+          schema: { type: string }
+        - name: rev1
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: rev2
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Differential data retrieved }
+
+  /search:
+    get:
+      summary: 보관소 전역 전문 검색
+      tags: [Discovery]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Matches found }
+
+  /stats:
+    get:
+      summary: 시스템 가동 및 보관 규모 지표
+      tags: [System]
+      responses:
+        '200': { description: Metrics retrieved }

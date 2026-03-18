@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[ERROR_404]: SIGNAL_LOST | YomiWiki</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 80vh;
+            text-align: center;
+            border: 1px dashed var(--hazard-red);
+            margin: 2rem;
+            background: rgba(255, 68, 68, 0.02);
+        }
+        .error-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 5rem;
+            color: var(--hazard-red);
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            max-width: 600px;
+        }
+        .glitch-text {
+            animation: glitch 2s infinite;
+        }
+        @keyframes glitch {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; transform: translateX(-2px); }
+            51% { opacity: 1; transform: translateX(2px); }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="clinical-dark">
+    <script>
+        if (localStorage.getItem('yomi_reduced_motion') === 'true') {
+            document.body.classList.add('reduced-motion');
+        }
+    </script>
+    <div class="error-container">
+        <div class="error-code glitch-text">404</div>
+        <div class="error-message">
+            <h2 style="color: var(--accent-orange); margin-bottom: 1rem;">[CRITICAL_SIGNAL_LOSS]</h2>
+            <p>The archival record you are attempting to access has been expunged, relocated, or never existed within this node.</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: var(--text-muted);">Unauthorized attempts to bypass this sector are logged by your current IP uplink.</p>
+        </div>
+        <a href="/" class="btn-action" style="padding: 10px 30px;">[RETURN_TO_GATEWAY]</a>
+    </div>
+</body>
+</html>

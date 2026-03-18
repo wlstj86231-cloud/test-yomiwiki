@@ -1,0 +1,14 @@
+{
+  "name": "test-yomiwiki",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "wrangler pages dev public --d1=DB --r2=ASSETS_BUCKET",
+    "deploy": "wrangler pages deploy public",
+    "db:setup": "wrangler d1 execute yomi-db --remote --file=./schema.sql",
+    "backup": "bash tools/backup_database.sh"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "wrangler": "latest"
+  }
+}

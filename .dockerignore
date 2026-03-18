@@ -1,0 +1,8 @@
+node_modules
+.git
+.wrangler
+.idx
+*.log
+Dockerfile
+docker-compose.yml
+README.md

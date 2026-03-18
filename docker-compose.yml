@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8788:8788"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npx wrangler pages dev public --d1=DB --r2=ASSETS_BUCKET --ip 0.0.0.0

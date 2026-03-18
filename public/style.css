@@ -1,0 +1,532 @@
+:root {
+    /* Colors */
+    --bg-main: #0a0a0a;
+    --bg-sidebar: #111111;
+    --bg-card: #161616;
+    --accent-orange: #ff9900;
+    --accent-cyan: #5bc0de;
+    --text-main: #d1d1d1;
+    --text-muted: #888888;
+    --text-dim: #666666;
+    --border-color: #333333;
+    --border-dim: #222222;
+    --hazard-red: #ff4444;
+    --black: #000000;
+    --white: #ffffff;
+
+    /* Fonts */
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+    /* Spacing & Sizes */
+    --radius: 0px; /* Clinical style usually has no radius */
+    --shadow-glow: 0 0 15px rgba(255, 153, 0, 0.2);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body.clinical-dark {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+}
+
+/* --- [27. External Link Styling] --- */
+.external-link {
+    color: var(--accent-cyan);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent-cyan);
+    padding-right: 2px;
+}
+.external-link:hover {
+    background: rgba(91, 192, 222, 0.1);
+}
+.external-link::after {
+    content: ' ↗';
+    font-size: 0.7rem;
+    vertical-align: super;
+    opacity: 0.7;
+}
+
+/* --- [Misc UI] --- */
+.wiki-link { color: var(--accent-orange); text-decoration: none; border-bottom: 1px dotted var(--accent-orange); }
+.wiki-link:hover { background: rgba(255, 153, 0, 0.1); }
+
+/* --- [59. Footnote Styling] --- */
+.footnote-link {
+    color: var(--accent-orange);
+    text-decoration: none;
+    font-size: 0.75rem;
+    padding: 0 2px;
+}
+
+.footnote-link:hover {
+    background: rgba(255, 153, 0, 0.2);
+}
+
+.clinical-quote { border-left: 4px solid var(--accent-orange); background: #1a1a1a; padding: 1rem; margin: 1.5rem 0; font-style: italic; }
+.clinical-code { background: var(--border-dim); color: var(--accent-orange); padding: 0.2rem 0.4rem; font-family: var(--font-mono); }
+.media-container { margin: 2rem 0; text-align: center; border: 1px solid var(--border-dim); padding: 10px; background: rgba(0,0,0,0.2); }
+.wiki-image { max-width: 100%; height: auto; border: 1px solid var(--border-color); filter: grayscale(0.3) contrast(1.1); }
+.media-caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+.header { background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+
+/* --- [48. News Ticker Styling] --- */
+.news-ticker {
+    background: var(--black);
+    border-bottom: 1px solid var(--border-dim);
+    height: 35px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 5000;
+}
+
+.ticker-content {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 40s linear infinite;
+    color: var(--accent-orange);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+.reduced-motion .ticker-content {
+    animation: none !important;
+    padding-left: 1rem;
+    white-space: normal;
+}
+
+.logo { font-family: var(--font-mono); color: var(--accent-orange); font-size: 1.5rem; }
+.container { display: flex; padding: 2rem; gap: 2rem; max-width: 1400px; margin: 0 auto; }
+.sidebar { width: 300px; flex-shrink: 0; }
+.main-content { flex: 1; }
+.article { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2rem; }
+.article-title { font-family: var(--font-mono); color: var(--accent-orange); }
+
+/* --- [57. TOC Styling] --- */
+.toc {
+    display: inline-block;
+    padding: 15px 25px;
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+    min-width: 250px;
+}
+
+.toc-title {
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    font-family: var(--font-mono);
+    color: var(--accent-orange);
+    font-size: 0.9rem;
+}
+
+.toc-toggle {
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-left: 10px;
+}
+
+.toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.toc li {
+    margin: 5px 0;
+    font-size: 0.85rem;
+}
+
+.toc a {
+    color: var(--text-main);
+    text-decoration: none;
+}
+
+.toc a:hover {
+    color: var(--accent-orange);
+    text-decoration: underline;
+}
+
+.toc .toc-level-3 { padding-left: 20px; }
+.toc .toc-level-4 { padding-left: 40px; }
+.toc .toc-level-5 { padding-left: 60px; }
+
+/* --- [50. Floating TOP Button Styling] --- */
+.btn-floating {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(10, 10, 10, 0.8);
+    border: 1px solid var(--accent-orange);
+    color: var(--accent-orange);
+    padding: 10px 15px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    cursor: pointer;
+    z-index: 1000;
+    display: none; /* Hidden by default */
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.btn-floating:hover {
+    background: var(--accent-orange);
+    color: var(--black);
+    box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+}
+
+/* --- [49. Breadcrumb Styling] --- */
+.breadcrumb {
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+}
+
+.breadcrumb a {
+    color: var(--accent-orange);
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+.breadcrumb a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.breadcrumb .separator {
+    margin: 0 8px;
+    color: var(--border-color);
+}
+
+.breadcrumb .current {
+    color: var(--text-main);
+}
+
+/* --- [47. Modal Styling] --- */
+.yomi-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20000;
+    backdrop-filter: blur(4px);
+}
+
+.yomi-modal {
+    background: var(--bg-sidebar);
+    border: 1px solid var(--accent-orange);
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 0 30px rgba(255, 153, 0, 0.1);
+    font-family: var(--font-mono);
+}
+
+.yomi-modal-message {
+    color: var(--text-main);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+.yomi-modal-input {
+    width: 100%;
+    background: var(--black);
+    border: 1px solid var(--border-color);
+    color: var(--accent-orange);
+    padding: 10px;
+    margin-bottom: 1.5rem;
+    font-family: inherit;
+}
+
+.yomi-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* --- [45. Tooltip Styling] --- */
+.clinical-tooltip {
+    position: fixed;
+    z-index: 10000;
+    padding: 8px 12px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid var(--accent-orange);
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    pointer-events: none;
+    box-shadow: var(--shadow-glow);
+    display: none;
+    max-width: 250px;
+    line-height: 1.4;
+}
+
+/* --- [30. Conflict UI Styling] --- */
+:root {
+    --hazard-red: #ff4444;
+}
+
+.btn-action[style*="hazard-red"] {
+    border-color: var(--hazard-red) !important;
+    color: var(--hazard-red) !important;
+}
+
+.btn-action[style*="hazard-red"]:hover {
+    background: rgba(255, 68, 68, 0.1) !important;
+}
+
+/* --- [23. Infobox Styling] --- */
+.infobox {
+    float: right;
+    width: 300px;
+    background: #1a1a1a;
+    border: 1px solid var(--border-color);
+    margin: 0 0 1rem 1rem;
+    padding: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.infobox th {
+    background: var(--border-dim);
+    color: var(--accent-orange);
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.infobox td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-dim);
+}
+
+.infobox .infobox-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-align: center;
+    background: var(--bg-sidebar);
+    margin: -1rem -1rem 1rem -1rem;
+    padding: 0.8rem;
+    border-bottom: 2px solid var(--accent-orange);
+}
+
+.infobox img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .infobox {
+        float: none;
+        width: 100%;
+        margin: 0 0 1.5rem 0;
+    }
+}
+
+/* --- [24. Wiki Table Styling] --- */
+.wikitable {
+    border-collapse: collapse;
+    margin: 1rem 0;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+}
+
+.wikitable th, .wikitable td {
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.wikitable th {
+    background: #1a1a1a;
+    color: var(--accent-orange);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.wikitable caption {
+    padding: 0.5rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+.wikitable tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.wikitable tr:hover {
+    background: rgba(255, 153, 0, 0.03);
+}
+
+/* --- [46. Reduced Motion] --- */
+.reduced-motion *, 
+.reduced-motion *::before, 
+.reduced-motion *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* --- [42. Responsive Adjustments] --- */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .nav {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    .nav-list {
+        display: flex;
+        gap: 1rem;
+        white-space: nowrap;
+    }
+
+    .search-bar {
+        width: 100%;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .container {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .sidebar {
+        width: 100%;
+        order: 2; /* Move sidebar below content */
+    }
+
+    .main-content {
+        width: 100%;
+        order: 1;
+    }
+
+    .article {
+        padding: 1rem;
+    }
+
+    .article-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* --- [85. Clinical Report Block Styling] --- */
+.clinical-report-block {
+    background: #050505;
+    border: 1px solid var(--border-color);
+    margin: 2rem 0;
+    font-family: var(--font-mono);
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.clinical-report-header {
+    background: var(--border-dim);
+    color: var(--accent-orange);
+    padding: 10px 20px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
+    letter-spacing: 2px;
+}
+
+.clinical-report-content {
+    padding: 25px;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    line-height: 1.7;
+}
+
+.clinical-report-footer {
+    padding: 10px 20px;
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    text-align: right;
+    border-top: 1px dashed var(--border-dim);
+    opacity: 0.5;
+}
+
+/* --- [100. Clinical Mode (Distraction-Free) Styling] --- */
+body.clinical-mode-active .header,
+body.clinical-mode-active .news-ticker,
+body.clinical-mode-active .sidebar,
+body.clinical-mode-active .article-actions,
+body.clinical-mode-active .view-tabs,
+body.clinical-mode-active .footer,
+body.clinical-mode-active .interface-controls #btn-reduced-motion {
+    display: none !important;
+}
+
+body.clinical-mode-active .container {
+    padding: 0;
+    max-width: 800px;
+    margin: 40px auto;
+}
+
+body.clinical-mode-active .article {
+    border: none;
+    background: transparent;
+}
+
+body.clinical-mode-active .article-title {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--white);
+}
+
+body.clinical-mode-active .article-meta {
+    text-align: center;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 20px;
+    margin-bottom: 40px;
+}
+
+/* --- [73. Large DOM Rendering Optimization] --- */
+/* skip rendering elements until they are near the viewport */
+.article-body section,
+.comment-item,
+.history-item,
+.search-item {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 100px;
+}
