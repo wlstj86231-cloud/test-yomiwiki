@@ -141,11 +141,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const articleBody = document.querySelector('.article-body');
     const metaText = document.querySelector('.article-meta');
 
-    // 96. Dynamic Title Management
+    // --- [96. Dynamic Title Management] ---
     let currentRecordTitle = "Archival Gateway";
     function setPageTitle(title) {
         currentRecordTitle = title;
         document.title = `YomiWiki | ${title} [SECURE]`;
+    }
+
+    // --- [SPA Routing Engine] ---
+    window.navigateTo = (url, push = true) => {
+        if (push) history.pushState(null, "", url);
+        init();
+    };
+
+    window.onpopstate = () => init();
+
+    function handleInternalLinks() {
+        document.body.onclick = (e) => {
+            const link = e.target.closest('a');
+            if (link && link.href && link.href.startsWith(window.location.origin) && !link.target && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
+                const url = new URL(link.href);
+                // API 경로나 정적 파일 등은 제외
+                if (!url.pathname.startsWith('/api') && !url.pathname.includes('.')) {
+                    e.preventDefault();
+                    window.navigateTo(link.href);
+                }
+            }
+        };
     }
 
     // 96. Browser Tab Activation Listener
@@ -692,7 +714,16 @@ Describe the subject here.
             if (!data.title) { 
                 setPageTitle("Record Not Found");
                 mainTitle.textContent = t('not_found'); 
-                articleBody.innerHTML = `<a href="?mode=edit">[${t('create')}]</a>`; 
+                articleBody.innerHTML = `
+                    <div style="text-align:center; padding:50px 20px; border:1px dashed var(--hazard-red); background:rgba(255,68,68,0.02);">
+                        <div style="font-size:3rem; color:var(--hazard-red); margin-bottom:20px; animation: pulse 2s infinite;">[!]</div>
+                        <h3 style="color:var(--hazard-red); margin-bottom:10px;">SIGNAL_LOST: NODE_NOT_ESTABLISHED</h3>
+                        <p style="margin-bottom:30px; opacity:0.7;">The requested coordinates do not correspond to any known archival record. This area of the grid remains unmapped.</p>
+                        <button onclick="window.navigateTo('?mode=edit')" class="btn-action" style="padding:10px 30px; border-color:var(--accent-orange); color:var(--accent-orange);">
+                            [ESTABLISH_NEW_NODE: ${escapeHTML(title)}]
+                        </button>
+                    </div>
+                `; 
                 return; 
             }
             if (data.redirect) return renderArticle(data.redirect);
@@ -705,7 +736,28 @@ Describe the subject here.
             const lockStr = data.is_locked ? `<span style="color:var(--hazard-red); font-size:0.7rem; margin-left:10px;">[LOCKED]</span>` : '';
             
             metaText.innerHTML = `${classificationStr}REV: ${data.updated_at} | AUTH: <a href="/user/${encodeURIComponent(data.author)}" style="color:inherit;">${escapeHTML(data.author)}</a> ${authTierStr} ${lockStr} | <a href="?mode=edit">[${t('edit')}]</a> | <a href="?mode=history">[${t('history')}]</a>`;
-            articleBody.innerHTML = wikiParse(data.current_content);
+            
+            let html = wikiParse(data.current_content);
+
+            // --- [Step 4-1 & 4-2. Backlinks & Categories UI] ---
+            let footerHtml = '<div class="article-footer" style="margin-top:50px; border-top:1px solid #222; padding-top:20px;">';
+            
+            // Categories
+            if (data.categories) {
+                const cats = data.categories.split(',').filter(c => c.trim());
+                if (cats.length > 0) {
+                    footerHtml += `<div class="categories-box" style="margin-bottom:20px;"><strong style="color:var(--accent-orange); font-size:0.8rem;">[ARCHIVAL_CATEGORIES]:</strong> ${cats.map(c => `<a href="/w/Category:${encodeURIComponent(c.trim().replace(/ /g, '_'))}" style="margin-left:10px; color:#888; text-decoration:underline;">${escapeHTML(c.trim())}]</a>`).join('')}</div>`;
+                }
+            }
+
+            // Backlinks
+            if (data.backlinks && data.backlinks.length > 0) {
+                footerHtml += `<div class="backlinks-box"><strong style="color:var(--accent-orange); font-size:0.8rem;">[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b.replace(/ /g, '_'))}" style="margin-left:10px; color:#666;">[[${escapeHTML(b)}]]</a>`).join('')}</div>`;
+            }
+
+            footerHtml += '</div>';
+            articleBody.innerHTML = html + footerHtml;
+
         } catch (e) { articleBody.innerHTML = t('failed'); }
     }
 
@@ -723,9 +775,20 @@ Describe the subject here.
         syncClearance();
         updateTabs(mode);
         setupSearchAutocomplete();
+        handleInternalLinks();
         const tabV = document.getElementById('tab-view'), tabD = document.getElementById('tab-discuss');
         if (tabV) tabV.href = `/w/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}?mode=view`;
         if (tabD) tabD.href = `/w/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}?mode=discuss`;
+
+        // --- [SPA/SSR Hydration Logic] ---
+        // 만약 서버에서 렌더링된 타이틀과 현재 로드하려는 타이틀이 같고, 
+        // 쿼리 파라미터가 없는 '보기' 모드라면 API 호출을 생략합니다.
+        if (window.isSSR && window.ssrTitle === title && !mode && !user) {
+            console.log("[HYDRATION]: SSR_CONTENT_RETAINED");
+            window.isSSR = false; // 다음 이동부터는 CSR 작동
+            return;
+        }
+        window.isSSR = false; // 명시적 이동 시 플래그 해제
 
         if (mode === 'edit') await loadEditor(title);
         else if (mode === 'history') await loadHistory(title);

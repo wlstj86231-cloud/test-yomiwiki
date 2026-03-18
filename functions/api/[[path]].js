@@ -73,9 +73,13 @@ export async function onRequest(context) {
     }
 
     async function logAndCheckRateLimit(ip, action, limit = SECURITY_CONFIG.MAX_REQUESTS_PER_WINDOW) {
-        await env.DB.prepare("INSERT INTO ip_logs (ip_address, action) VALUES (?, ?)").bind(ip, action).run();
+        // Optimization: Use a single query to check and potentially block
         const { count } = await env.DB.prepare("SELECT COUNT(*) as count FROM ip_logs WHERE ip_address = ? AND action = ? AND timestamp > datetime('now', '-60 seconds')").bind(ip, action).first();
-        return count <= limit;
+        
+        // Log the current request asynchronously to not block the response
+        context.waitUntil(env.DB.prepare("INSERT INTO ip_logs (ip_address, action) VALUES (?, ?)").bind(ip, action).run());
+        
+        return count < limit;
     }
 
     async function executeWithRetry(operation) {
@@ -179,23 +183,46 @@ export async function onRequest(context) {
                 const title = normalizeTitle(path.substring(9));
                 if (!env.DB) throw new Error("DATABASE_BINDING_MISSING");
                 
-                // 37 & 38. Consistent normalization: Search both with space and underscore
-                const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ? OR title = ?").bind(title, title.replace(/ /g, '_')).first();
+                // 37 & 38. Single Query with JOIN & Subquery for contribution count
+                const query = `
+                    SELECT a.*, 
+                    (SELECT COUNT(*) FROM revisions WHERE editor_info = a.author) as author_contribution_count
+                    FROM articles a 
+                    WHERE a.title = ? OR a.title = ?
+                `;
+                const article = await env.DB.prepare(query).bind(title, title.replace(/ /g, '_')).first();
                 
                 if (!article) { 
                     status = 404; 
                     resData = { error: "RECORD_NOT_FOUND", requested_title: title }; 
                 }
                 else {
-                    const authorTier = await getAgentTier(article.author);
-                    resData = { ...article, author_tier: authorTier };
+                    let fullContent = article.current_content;
+                    
+                    // Step 39. Handle Large Document Chunks
+                    if (article.is_chunked) {
+                        const { results } = await env.DB.prepare("SELECT content FROM article_chunks WHERE article_id = ? ORDER BY chunk_order ASC").bind(article.id).all();
+                        fullContent = results.map(r => r.content).join('');
+                    }
+
+                    // Map numeric count to Tier Level (Integrated logic)
+                    const count = article.author_contribution_count || 0;
+                    const authorTier = {
+                        count,
+                        level: count >= 100 ? "IV" : count >= 50 ? "III" : count >= 10 ? "II" : "I",
+                        title: count >= 100 ? "OVERSEER" : count >= 50 ? "FIELD LEAD" : count >= 10 ? "SENIOR AGENT" : "JUNIOR AGENT"
+                    };
+
+                    // Step 4-1. Fetch Backlinks
+                    const { results: backlinks } = await env.DB.prepare("SELECT from_title FROM links WHERE to_title = ? LIMIT 50").bind(article.title).all();
+
+                    resData = { ...article, current_content: fullContent, author_tier: authorTier, backlinks: backlinks.map(b => b.from_title) };
                 }
             } catch (dbErr) {
                 status = 500;
                 resData = { 
                     error: "BACKEND_CRASH", 
                     msg: dbErr.message, 
-                    stack: dbErr.stack,
                     context: "ARTICLE_GET_ROUTE"
                 };
             }
@@ -217,13 +244,39 @@ export async function onRequest(context) {
                     status = 403;
                     resData = { error: "INSUFFICIENT_CLEARANCE", required: requiredLevel, current: userTier.numeric };
                 } else {
-                    await executeWithRetry([
-                        env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, version) VALUES (?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, classification=COALESCE(excluded.classification, articles.classification), version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null),
+                    // --- [Step 4-1 & 4-2. Extract Links & Categories] ---
+                    const linkRegex = /\[\[(.*?)\]\]/g;
+                    let match;
+                    const foundLinks = new Set();
+                    const foundCategories = new Set();
+                    while ((match = linkRegex.exec(content)) !== null) {
+                        const inner = match[1].split('|')[0].trim();
+                        if (inner.toLowerCase().startsWith('category:')) {
+                            foundCategories.add(inner.substring(9).trim());
+                        } else if (inner) {
+                            foundLinks.add(normalizeTitle(inner));
+                        }
+                    }
+                    const categoriesStr = Array.from(foundCategories).join(',');
+
+                    const batch = [
+                        env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, classification=COALESCE(excluded.classification, articles.classification), categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, categoriesStr),
                         env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, session.sub, summary || "", title),
-                        env.DB.prepare("DELETE FROM editing_sessions WHERE article_title = ? AND username = ?").bind(title, session.sub)
-                    ]);
+                        env.DB.prepare("DELETE FROM editing_sessions WHERE article_title = ? AND username = ?").bind(title, session.sub),
+                        env.DB.prepare("DELETE FROM links WHERE from_title = ?").bind(title)
+                    ];
+                    
+                    for (const target of foundLinks) {
+                        batch.push(env.DB.prepare("INSERT OR IGNORE INTO links (from_title, to_title) VALUES (?, ?)").bind(title, target));
+                    }
+
+                    await env.DB.batch(batch);
+                    
                     if (article && article.author !== session.sub) await createNotification(article.author, 'edit', session.sub, title, null, `Your article "${title}" has been updated.`);
                     resData = { success: true };
+                }
+            }
+        }
                 }
             }
         }

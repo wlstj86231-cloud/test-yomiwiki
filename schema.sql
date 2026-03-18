@@ -149,6 +149,16 @@ CREATE TABLE IF NOT EXISTS editing_sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_editing_article ON editing_sessions(article_title);
 
+-- links: 문서 간의 내부 링크 및 역링크 추적용 (Step 4-1)
+CREATE TABLE IF NOT EXISTS links (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    from_title TEXT NOT NULL,
+    to_title TEXT NOT NULL,
+    UNIQUE(from_title, to_title)
+);
+CREATE INDEX IF NOT EXISTS idx_links_to ON links(to_title);
+CREATE INDEX IF NOT EXISTS idx_links_from ON links(from_title);
+
 -- [SEED DATA: Initial Archival Handshake]
 INSERT INTO articles (title, current_content, author, classification, threatLevel)
 VALUES (
@@ -161,7 +171,7 @@ VALUES (
 }}
 
 == WELCOME_AGENT ==
-Welcome to the '''YomiWiki Archival Gateway'''. This is a secure repository for occult, paranormal, and clinical data. All transmissions are monitored.
+Welcome to the ''''''YomiWiki Archival Gateway''''''. This is a secure repository for occult, paranormal, and clinical data. All transmissions are monitored.
 
 == SYSTEM_NOTICE ==
 [CLINICAL]
