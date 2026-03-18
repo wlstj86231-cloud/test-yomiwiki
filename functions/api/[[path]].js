@@ -78,11 +78,6 @@ export async function onRequest(context) {
         return count < limit;
     }
 
-    async function executeWithRetry(operation) {
-        if (Array.isArray(operation)) return await env.DB.batch(operation);
-        return operation.run ? await operation.run() : await operation.all();
-    }
-
     async function createNotification(targetUser, type, sender, articleTitle, commentId, message) {
         if (!targetUser || targetUser === sender) return;
         await env.DB.prepare("INSERT INTO notifications (target_user, type, sender, article_title, comment_id, message) VALUES (?, ?, ?, ?, ?, ?)").bind(targetUser, type, sender, articleTitle || null, commentId || null, message || null).run();
@@ -131,8 +126,6 @@ export async function onRequest(context) {
                 return new Response(JSON.stringify({ error: "RESERVED_USERNAME" }), { status: 400, headers: securityHeaders });
             if (!password || password.length < SECURITY_CONFIG.MIN_PASSWORD_LENGTH) 
                 return new Response(JSON.stringify({ error: "INVALID_PASSWORD_LENGTH" }), { status: 400, headers: securityHeaders });
-            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-                return new Response(JSON.stringify({ error: "INVALID_EMAIL_FORMAT" }), { status: 400, headers: securityHeaders });
 
             const salt = crypto.randomUUID();
             const hash = await hashPassword(password, salt);
@@ -163,18 +156,9 @@ export async function onRequest(context) {
             else resData = { authenticated: false };
         }
 
-        else if (path.startsWith('/user/') && method === "GET") {
-            const username = decodeURIComponent(path.substring(6));
-            const tier = await getAgentTier(username);
-            const { results } = await env.DB.prepare("SELECT a.title, r.timestamp, r.edit_summary FROM revisions r JOIN articles a ON r.article_id = a.id WHERE r.editor_info = ? ORDER BY r.timestamp DESC LIMIT 20").bind(username).all();
-            resData = { contributions: results, tier };
-        }
-
         else if (path.startsWith('/article/') && method === "GET") {
             try {
                 const title = normalizeTitle(path.substring(9));
-                if (!env.DB) throw new Error("DATABASE_BINDING_MISSING");
-                
                 const query = `
                     SELECT a.*, 
                     (SELECT COUNT(*) FROM revisions WHERE editor_info = a.author) as author_contribution_count
@@ -183,32 +167,23 @@ export async function onRequest(context) {
                 `;
                 const article = await env.DB.prepare(query).bind(title, title.replace(/ /g, '_')).first();
                 
-                if (!article) { 
-                    status = 404; 
-                    resData = { error: "RECORD_NOT_FOUND", requested_title: title }; 
-                }
+                if (!article) { status = 404; resData = { error: "RECORD_NOT_FOUND" }; }
                 else {
                     let fullContent = article.current_content;
                     if (article.is_chunked) {
                         const { results } = await env.DB.prepare("SELECT content FROM article_chunks WHERE article_id = ? ORDER BY chunk_order ASC").bind(article.id).all();
                         fullContent = results.map(r => r.content).join('');
                     }
-
                     const count = article.author_contribution_count || 0;
                     const authorTier = {
                         count,
                         level: count >= 100 ? "IV" : count >= 50 ? "III" : count >= 10 ? "II" : "I",
                         title: count >= 100 ? "OVERSEER" : count >= 50 ? "FIELD LEAD" : count >= 10 ? "SENIOR AGENT" : "JUNIOR AGENT"
                     };
-
                     const { results: backlinks } = await env.DB.prepare("SELECT from_title FROM links WHERE to_title = ? LIMIT 50").bind(article.title).all();
-
                     resData = { ...article, current_content: fullContent, author_tier: authorTier, backlinks: backlinks.map(b => b.from_title) };
                 }
-            } catch (dbErr) {
-                status = 500;
-                resData = { error: "BACKEND_CRASH", msg: dbErr.message, context: "ARTICLE_GET_ROUTE" };
-            }
+            } catch (dbErr) { status = 500; resData = { error: "DB_ERR", msg: dbErr.message }; }
         }
 
         else if (path.startsWith('/article/') && method === "POST") {
@@ -218,72 +193,75 @@ export async function onRequest(context) {
             if (!session) { status = 401; resData = { error: "UNAUTH" }; }
             else {
                 const article = await env.DB.prepare("SELECT author, classification, is_locked FROM articles WHERE title = ?").bind(title).first();
-                if (article && article.is_locked && session.role !== 'admin') {
-                    return new Response(JSON.stringify({ error: "LOCKED" }), { status: 403, headers: securityHeaders });
+                if (article && article.is_locked && session.role !== 'admin') return new Response(JSON.stringify({ error: "LOCKED" }), { status: 403, headers: securityHeaders });
+                
+                const linkRegex = /\[\[(.*?)\]\]/g;
+                let match;
+                const foundLinks = new Set();
+                const foundCategories = new Set();
+                while ((match = linkRegex.exec(content)) !== null) {
+                    const inner = match[1].split('|')[0].trim();
+                    if (inner.toLowerCase().startsWith('category:')) foundCategories.add(inner.substring(9).trim());
+                    else if (inner) foundLinks.add(normalizeTitle(inner));
                 }
-                const userTier = await getAgentTier(session.sub);
-                const requiredLevel = getClassificationLevel(article ? article.classification : classification);
-                if (userTier.numeric < requiredLevel) {
-                    status = 403;
-                    resData = { error: "INSUFFICIENT_CLEARANCE", required: requiredLevel, current: userTier.numeric };
-                } else {
-                    const linkRegex = /\[\[(.*?)\]\]/g;
-                    let match;
-                    const foundLinks = new Set();
-                    const foundCategories = new Set();
-                    while ((match = linkRegex.exec(content)) !== null) {
-                        const inner = match[1].split('|')[0].trim();
-                        if (inner.toLowerCase().startsWith('category:')) {
-                            foundCategories.add(inner.substring(9).trim());
-                        } else if (inner) {
-                            foundLinks.add(normalizeTitle(inner));
-                        }
-                    }
-                    const categoriesStr = Array.from(foundCategories).join(',');
+                const categoriesStr = Array.from(foundCategories).join(',');
 
-                    const batch = [
-                        env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, classification=COALESCE(excluded.classification, articles.classification), categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, categoriesStr),
-                        env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, session.sub, summary || "", title),
-                        env.DB.prepare("DELETE FROM editing_sessions WHERE article_title = ? AND username = ?").bind(title, session.sub),
-                        env.DB.prepare("DELETE FROM links WHERE from_title = ?").bind(title)
-                    ];
-                    
-                    for (const target of foundLinks) {
-                        batch.push(env.DB.prepare("INSERT OR IGNORE INTO links (from_title, to_title) VALUES (?, ?)").bind(title, target));
-                    }
-
-                    await env.DB.batch(batch);
-                    
-                    if (article && article.author !== session.sub) await createNotification(article.author, 'edit', session.sub, title, null, `Your article "${title}" has been updated.`);
-                    resData = { success: true };
-                }
-            }
-        }
-
-        else if (path.startsWith('/article/') && path.includes('/heartbeat') && method === "POST") {
-            const parts = path.split('/');
-            const title = normalizeTitle(parts[2]);
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session) { status = 401; resData = { error: "UNAUTH" }; }
-            else {
-                await env.DB.prepare("INSERT INTO editing_sessions (article_title, username, last_heartbeat) VALUES (?, ?, CURRENT_TIMESTAMP) ON CONFLICT(article_title, username) DO UPDATE SET last_heartbeat=CURRENT_TIMESTAMP").bind(title, session.sub).run();
-                const { results } = await env.DB.prepare("SELECT username FROM editing_sessions WHERE article_title = ? AND username != ? AND last_heartbeat > datetime('now', '-30 seconds')").bind(title, session.sub).all();
-                resData = { editors: results.map(r => r.username) };
-            }
-        }
-
-        else if (path === '/search' && method === "GET") {
-            if (!(await logAndCheckRateLimit(clientIP, "SEARCH", SECURITY_CONFIG.MAX_SEARCH_PER_WINDOW))) return new Response(JSON.stringify({ error: "RATE_LIMIT" }), { status: 429, headers: securityHeaders });
-            const query = url.searchParams.get("q");
-            if (!query) resData = [];
-            else {
-                const { results } = await env.DB.prepare("SELECT title FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY title ASC LIMIT 10").bind(`${query}%`).all();
-                resData = results.map(r => r.title);
+                const batch = [
+                    env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, classification=COALESCE(excluded.classification, articles.classification), categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, categoriesStr),
+                    env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, session.sub, summary || "", title),
+                    env.DB.prepare("DELETE FROM editing_sessions WHERE article_title = ? AND username = ?").bind(title, session.sub),
+                    env.DB.prepare("DELETE FROM links WHERE from_title = ?").bind(title)
+                ];
+                for (const target of foundLinks) batch.push(env.DB.prepare("INSERT OR IGNORE INTO links (from_title, to_title) VALUES (?, ?)").bind(title, target));
+                await env.DB.batch(batch);
+                resData = { success: true };
             }
         }
 
         else if (path === '/history' && method === "GET") {
-            resData = (await env.DB.prepare("SELECT r.id, a.title, r.timestamp, r.editor_info, r.edit_summary FROM revisions r JOIN articles a ON r.article_id = a.id ORDER BY r.timestamp DESC LIMIT 20").all()).results;
+            // Unified Activity Log: Edits + Comments
+            const query = `
+                SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author, r.edit_summary as summary
+                FROM revisions r 
+                JOIN articles a ON r.article_id = a.id 
+                UNION ALL 
+                SELECT 'comment' as type, article_title as title, timestamp, author, content as summary
+                FROM comments 
+                ORDER BY timestamp DESC LIMIT 40
+            `;
+            const { results } = await env.DB.prepare(query).all();
+            resData = results;
+        }
+
+        else if (path.startsWith('/article/') && path.endsWith('/comments')) {
+            const title = normalizeTitle(path.split('/')[2]);
+            if (method === "GET") resData = (await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(title).all()).results;
+            else {
+                const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+                const { content } = await request.json();
+                const author = session ? session.sub : 'Anonymous_Agent';
+                await env.DB.prepare("INSERT INTO comments (article_title, author, content) VALUES (?, ?, ?)").bind(title, author, content).run();
+                resData = { success: true };
+            }
+        }
+
+        else if (path.startsWith('/article/') && path.includes('/comments/')) {
+            const parts = path.split('/');
+            const commentId = parts[parts.indexOf('comments') + 1];
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (method === "DELETE" && session) {
+                const comment = await env.DB.prepare("SELECT author FROM comments WHERE id = ?").bind(commentId).first();
+                if (comment && (comment.author === session.sub || session.role === 'admin')) {
+                    await env.DB.prepare("DELETE FROM comments WHERE id = ?").bind(commentId).run();
+                    resData = { success: true };
+                } else { status = 403; resData = { error: "FORBIDDEN" }; }
+            }
+        }
+
+        else if (path === '/search' && method === "GET") {
+            const query = url.searchParams.get("q");
+            const { results } = await env.DB.prepare("SELECT title FROM articles WHERE title LIKE ? AND is_deleted = 0 LIMIT 10").bind(`${query}%`).all();
+            resData = results.map(r => r.title);
         }
 
         else if (path === '/notifications' && method === "GET") {
@@ -296,116 +274,9 @@ export async function onRequest(context) {
             }
         }
 
-        else if (path === '/notifications/read' && method === "POST") {
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session) { status = 401; resData = { error: "UNAUTH" }; }
-            else {
-                const { id } = await request.json();
-                if (id) await env.DB.prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND target_user = ?").bind(id, session.sub).run();
-                else await env.DB.prepare("UPDATE notifications SET is_read = 1 WHERE target_user = ?").bind(session.sub).run();
-                resData = { success: true };
-            }
-        }
-
-        else if (path === '/report' && method === "POST") {
-            const { target_type, target_id, reason } = await request.json();
-            await env.DB.prepare("INSERT INTO reports (target_type, target_id, reason, reporter_ip) VALUES (?, ?, ?, ?)").bind(target_type, target_id, reason, clientIP).run();
-            resData = { success: true };
-        }
-
-        else if (path === '/admin/reports' && method === "GET") {
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session || session.role !== 'admin') { status = 403; resData = { error: "ADMIN_ONLY" }; }
-            else resData = (await env.DB.prepare("SELECT * FROM reports ORDER BY timestamp DESC").all()).results;
-        }
-
-        else if (path === '/admin/locked' && method === "GET") {
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session || session.role !== 'admin') { status = 403; resData = { error: "ADMIN_ONLY" }; }
-            else resData = (await env.DB.prepare("SELECT title FROM articles WHERE is_locked = 1").all()).results;
-        }
-
-        else if (path.startsWith('/article/') && path.endsWith('/lock') && method === "PUT") {
-            const title = normalizeTitle(path.split('/')[2]);
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session || session.role !== 'admin') { status = 403; resData = { error: "ADMIN_ONLY" }; }
-            else {
-                const { locked } = await request.json();
-                await env.DB.prepare("UPDATE articles SET is_locked = ? WHERE title = ?").bind(locked ? 1 : 0, title).run();
-                resData = { success: true };
-            }
-        }
-
-        else if (path === '/admin/bans' && method === "GET") {
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session || session.role !== 'admin') { status = 403; resData = { error: "ADMIN_ONLY" }; }
-            else resData = (await env.DB.prepare("SELECT * FROM bans ORDER BY timestamp DESC").all()).results;
-        }
-
-        else if (path === '/admin/bans' && method === "POST") {
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session || session.role !== 'admin') { status = 403; resData = { error: "ADMIN_ONLY" }; }
-            else {
-                const { target_type, target_value, reason } = await request.json();
-                await env.DB.prepare("INSERT INTO bans (target_type, target_value, reason, banned_by) VALUES (?, ?, ?, ?) ON CONFLICT(target_type, target_value) DO UPDATE SET reason=excluded.reason, banned_by=excluded.banned_by, timestamp=CURRENT_TIMESTAMP").bind(target_type, target_value, reason || "", session.sub).run();
-                resData = { success: true };
-            }
-        }
-
-        else if (path === '/admin/bans' && method === "DELETE") {
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session || session.role !== 'admin') { status = 403; resData = { error: "ADMIN_ONLY" }; }
-            else {
-                const { id } = await request.json();
-                await env.DB.prepare("DELETE FROM bans WHERE id = ?").bind(id).run();
-                resData = { success: true };
-            }
-        }
-
-        else if (path.startsWith('/article/') && path.includes('/comments/')) {
-            const parts = path.split('/');
-            const commentId = parts[parts.indexOf('comments') + 1];
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (!session) { status = 401; resData = { error: "UNAUTH" }; }
-            else {
-                const comment = await env.DB.prepare("SELECT author FROM comments WHERE id = ?").bind(commentId).first();
-                if (!comment) { status = 404; resData = { error: "NOT_FOUND" }; }
-                else if (comment.author !== session.sub && session.role !== 'admin') { status = 403; resData = { error: "FORBIDDEN" }; }
-                else if (method === "PUT") {
-                    const { content } = await request.json();
-                    await env.DB.prepare("UPDATE comments SET content = ? WHERE id = ?").bind(content, commentId).run();
-                    resData = { success: true };
-                } else if (method === "DELETE") {
-                    await env.DB.prepare("DELETE FROM comments WHERE id = ?").bind(commentId).run();
-                    resData = { success: true };
-                }
-            }
-        }
-
-        else if (path.startsWith('/article/') && path.endsWith('/comments')) {
-            const title = normalizeTitle(path.split('/')[2]);
-            if (method === "GET") resData = (await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp ASC").bind(title).all()).results;
-            else {
-                const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-                const { content, parent_id } = await request.json();
-                const author = session ? session.sub : 'Anonymous';
-                await env.DB.prepare("INSERT INTO comments (article_title, author, content, parent_id) VALUES (?, ?, ?, ?)").bind(title, author, content, parent_id || null).run();
-                if (parent_id) {
-                    const parent = await env.DB.prepare("SELECT author FROM comments WHERE id = ?").bind(parent_id).first();
-                    if (parent && parent.author !== author) await createNotification(parent.author, 'reply', author, title, null, `New reply to your comment on "${title}".`);
-                } else {
-                    const article = await env.DB.prepare("SELECT author FROM articles WHERE title = ?").bind(title).first();
-                    if (article && article.author !== author) await createNotification(article.author, 'comment', author, title, null, `New comment on your article "${title}".`);
-                }
-                resData = { success: true };
-            }
-        }
-
         else { status = 404; resData = { error: "NOT_FOUND" }; }
 
         return new Response(JSON.stringify(resData), { status, headers: securityHeaders });
 
-    } catch (err) {
-        return new Response(JSON.stringify({ error: "ERR", msg: err.message }), { status: 500, headers: securityHeaders });
-    }
+    } catch (err) { return new Response(JSON.stringify({ error: "ERR", msg: err.message }), { status: 500, headers: securityHeaders }); }
 }

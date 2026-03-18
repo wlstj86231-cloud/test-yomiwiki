@@ -5,22 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YomiWiki | Archival Gateway [SECURE]</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <!-- FORCE REFRESH v1.0.6 -->
-    <link rel="stylesheet" href="/style.css?v=1.0.6">
-    
-    <!-- 83. KaTeX Support -->
+    <!-- FORCE REFRESH v1.0.7 -->
+    <link rel="stylesheet" href="/style.css?v=1.0.7">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-
-    <!-- 84. Syntax Highlighting (Highlight.js) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body class="clinical-dark">
-    <!-- Scanline Overlay -->
     <div class="scanlines"></div>
-
-    <!-- 2. Landing Page UI: Boot Terminal -->
     <div id="boot-terminal" class="boot-terminal">
         <div class="terminal-output" id="terminal-output">
             [BOOT_PROTOCOL_INITIATED]<br>
@@ -31,111 +24,53 @@
         </div>
         <div class="terminal-cursor">_</div>
     </div>
-
-    <div class="news-ticker" id="news-ticker" role="status" aria-live="polite">
+    <div class="news-ticker" id="news-ticker">
         <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED TO NODE_772. [WARNING]: SENSITIVE_DATA_EXPOSURE_DETECTED_IN_SECTOR_4. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT.</div>
     </div>
-
-    <header class="header" role="banner">
+    <header class="header">
         <div class="logo-group">
             <div class="logo">YomiWiki</div>
             <div class="status-indicator"><span class="blink">●</span> SECURE_UPLINK</div>
         </div>
-        <nav class="nav" aria-label="Main Archive Navigation">
+        <nav class="nav">
             <ul class="nav-list">
                 <li><a href="/w/Main_Page">Archive</a></li>
                 <li><a href="/?mode=recent">Recent</a></li>
-                <li><a href="/?mode=assets">Assets</a></li>
                 <li><a href="/?mode=help">Protocols</a></li>
             </ul>
         </nav>
-        <div class="search-bar" role="search">
-            <input type="text" placeholder="Query database..." class="search-input" aria-label="Search archival records">
+        <div class="search-bar">
+            <input type="text" placeholder="Query database..." class="search-input">
         </div>
     </header>
-
     <div class="container">
-        <aside class="sidebar" role="complementary" aria-label="Sidebar Activity Log">
-            <!-- Regional Sectors -->
+        <aside class="sidebar">
             <section class="sidebar-box">
                 <h3 class="sidebar-title">[REGIONAL_ARCHIVE_SECTORS]</h3>
-                <nav class="sidebar-nav">
-                    <ul style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.8rem;">
-                        <li><a href="/w/Sector:South_Korea" style="color:var(--text-main);">▶ SOUTH_KOREA</a></li>
-                        <li><a href="/w/Sector:USA" style="color:var(--text-main);">▶ USA</a></li>
-                        <li><a href="/w/Sector:Japan" style="color:var(--text-main);">▶ JAPAN</a></li>
-                        <li><a href="/w/Sector:India" style="color:var(--text-main);">▶ INDIA</a></li>
-                        <li><a href="/w/Sector:France" style="color:var(--text-main);">▶ FRANCE</a></li>
-                        <li><a href="/w/Sector:North_Korea" style="color:#ff0000 !important; font-weight:bold; text-shadow: 0 0 5px rgba(255,0,0,0.3);">▶ NORTH_KOREA [RESTRICTED]</a></li>
-                    </ul>
-                </nav>
+                <ul style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.8rem;">
+                    <li><a href="/w/Sector:South_Korea">▶ SOUTH_KOREA</a></li>
+                    <li><a href="/w/Sector:USA">▶ USA</a></li>
+                    <li><a href="/w/Sector:Japan">▶ JAPAN</a></li>
+                    <li><a href="/w/Sector:India">▶ INDIA</a></li>
+                    <li><a href="/w/Sector:France">▶ FRANCE</a></li>
+                    <li><a href="/w/Sector:North_Korea" style="color:#ff0000 !important; font-weight:bold;">▶ NORTH_KOREA [RESTRICTED]</a></li>
+                </ul>
             </section>
-
-            <section class="sidebar-box">
-                <h3 class="sidebar-title">[GLOBAL_ACTIVITY]</h3>
-                <div class="sidebar-content" id="sidebar-activity" aria-live="polite">
-                    <p class="loading">Establishing link...</p>
-                </div>
-            </section>
-            
             <section class="sidebar-box">
                 <h3 class="sidebar-title">[SYSTEM_STATUS]</h3>
-                <div class="sidebar-content" style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono);">
-                    CORE: STABLE<br>
-                    UPTIME: 99.9%<br>
-                    NODES: 4,092<br>
-                    GATEWAY: CF-WORKERS
-                </div>
+                <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono);">CORE: STABLE<br>UPTIME: 99.9%<br>GATEWAY: CF-WORKERS</div>
             </section>
         </aside>
-
-        <main class="main-content" id="main-content" role="main">
-            <div class="interface-controls" style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button class="btn-clinical-toggle" id="btn-clinical" onclick="window.toggleClinicalMode()" aria-pressed="false">[ENTER_CLINICAL_MODE]</button>
-                <button class="btn-clinical-toggle" id="btn-reduced-motion" onclick="window.toggleReducedMotion()" aria-pressed="false">[SUPPRESS_VISUAL_FLUX]</button>
-            </div>
-            
-            <article class="article" aria-labelledby="article-title">
-                <nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb"></nav>
-                <header class="article-header">
-                    <nav class="article-actions" style="float:right;" aria-label="Article Actions">
-                        <a href="?mode=backlinks" id="link-backlinks" class="mono">[Backlinks]</a>
-                        <a href="?mode=history" id="link-history" class="mono">[History]</a>
-                    </nav>
-                    <h1 class="article-title" id="article-title">DECRYPTING...</h1>
-                    <div class="article-meta">REVISION: STABLE | AUTH: Admin</div>
-                    
-                    <div class="view-tabs" style="margin-top:20px; display:flex; gap:2px;">
-                        <a href="?mode=view" id="tab-view" class="tab-btn active">[RECORD]</a>
-                        <a href="?mode=discuss" id="tab-discuss" class="tab-btn">[DISCUSS]</a>
-                    </div>
-                </header>
-                <div class="article-body" aria-live="polite">
-                    <p class="loading-text">Archival records are loading. Please maintain clinical detachment.</p>
+        <main class="main-content">
+            <article class="article">
+                <h1 class="article-title" id="article-title">DECRYPTING...</h1>
+                <div class="article-body">
+                    <p class="loading-text">Archival records are loading...</p>
                 </div>
             </article>
         </main>
     </div>
-
-    <footer class="footer" role="contentinfo">
-        <div id="site-stats" style="margin-bottom: 10px; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
-            [ARCHIVAL_METRICS: SCANNING...]
-        </div>
-        <div class="footer-links" style="margin-bottom: 10px; font-size: 0.7rem; font-family: var(--font-mono);">
-            <a href="/w/Help:Privacy_Policy">[PRIVACY_PROTOCOLS]</a>
-            <a href="/w/Help:Terms_of_Service">[TERMS_OF_ACCESS]</a>
-            <a href="/w/Help:Contact">[GATEWAY_INQUIRY]</a>
-        </div>
-        <div class="license-notice" style="margin-bottom: 15px; font-size: 0.65rem; color: #444; line-height: 1.4; border-top: 1px solid #222; padding-top: 10px;">
-            Content is available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> unless otherwise noted.<br>
-            All archival transmissions are synchronized across secure gateway nodes.
-        </div>
-        <p>&copy; 2026 YomiWiki Archival Gateway. unauthorized access is logged by IP.</p>
-    </footer>
-
-    <button id="btn-back-to-top" class="btn-floating" onclick="window.scrollToTop()" aria-label="Scroll to top of record">[TOP]</button>
-
-    <script src="/parser.js?v=1.0.6"></script>
-    <script src="/main.js?v=1.0.6"></script>
+    <script src="/parser.js?v=1.0.7"></script>
+    <script src="/main.js?v=1.0.7"></script>
 </body>
 </html>
