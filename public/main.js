@@ -124,6 +124,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- [Core Wiki Engine] ---
+    window.toggleTOC = () => {
+        const list = document.getElementById('toc-list');
+        const btn = document.querySelector('.toc-toggle');
+        if (list.style.display === 'none') {
+            list.style.display = 'block';
+            btn.textContent = '[hide]';
+        } else {
+            list.style.display = 'none';
+            btn.textContent = '[show]';
+        }
+    };
+
     window.establishNewNode = (sectorTitle) => {
         const postName = prompt("Enter the name of the new archival transmission:");
         if (!postName) return;
@@ -149,13 +161,14 @@ document.addEventListener('DOMContentLoaded', () => {
             mainTitle.textContent = data.title;
             metaText.innerHTML = `REV: ${data.updated_at} | AUTH: ${data.author} [SECURE_NODE] | <a href="?mode=edit" style="color:var(--accent-orange); text-decoration:underline;">[EDIT]</a>`;
             
+            const isSector = data.title.startsWith('Sector:');
             let contentHtml = wikiParse(data.current_content);
 
-            // BOARD RENDERING: If title starts with Sector:, show sub-articles
+            // BOARD RENDERING: If title starts with Sector:, show sub-articles list first
             let boardHtml = "";
-            if (data.title.startsWith('Sector:')) {
-                boardHtml = `<div class="sector-board" style="margin-top:40px; border-top:1px solid var(--border-color); padding-top:20px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            if (isSector) {
+                boardHtml = `<div class="sector-board" style="margin-bottom:40px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px;">
                         <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
                         <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[ESTABLISH_NEW_NODE]</button>
                     </div>
@@ -163,25 +176,37 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
                             <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
                                 <div>
-                                    <a href="/w/${encodeURIComponent(sub.title.replace(/ /g, '_'))}" style="font-weight:bold; color:var(--text-main);">${escapeHTML(sub.title.split('/').pop())}</a>
-                                    <div style="font-size:0.7rem; color:var(--text-dim);">${sub.author} | ${sub.updated_at}</div>
+                                    <a href="/w/${encodeURIComponent(sub.title.replace(/ /g, '_'))}" style="font-weight:bold; color:var(--accent-cyan); font-family:var(--font-mono); text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
+                                    <div style="font-size:0.7rem; color:var(--text-dim); margin-top:4px;">AGENT: ${sub.author} | ${sub.updated_at}</div>
                                 </div>
-                                <div style="font-family:var(--font-mono); font-size:0.7rem; color:var(--accent-cyan);">[ACCESS_GRANTED]</div>
+                                <div style="font-family:var(--font-mono); font-size:0.7rem; color:var(--accent-cyan); opacity:0.6;">[UPLINK_STABLE]</div>
                             </div>
-                        `).join('') : '<div style="opacity:0.3; font-style:italic;">No transmissions detected in this sector.</div>'}
+                        `).join('') : '<div style="opacity:0.3; font-style:italic; padding:20px; border:1px solid #222;">No transmissions detected in this sector. [AWAITING_DATA]</div>'}
                     </div>
                 </div>`;
+                
+                // For sectors, wrap original content in a collapsible or just hide it if requested
+                // User said: "포스팅으로 들어가야지 본문이 보이는 형태로 만들어줘 전체 게시판 전부 다"
+                // This means the sector's own content should be hidden or separated. 
+                // Let's put it in a details tag so it's accessible but not taking up board space.
+                contentHtml = `<details style="margin-bottom:20px; color:var(--text-dim);"><summary style="cursor:pointer; font-size:0.8rem; font-family:var(--font-mono);">[VIEW_SECTOR_PROTOCOL]</summary><div style="padding-top:15px;">${contentHtml}</div></details>`;
             }
 
-            let footer = '<div class="article-footer">';
-            if (data.categories) footer += `<div><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
-            if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
+            let footer = '<div class="article-footer" style="margin-top:40px; border-top:1px solid var(--border-color); padding-top:20px;">';
+            if (data.categories) footer += `<div style="margin-bottom:10px;"><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}" style="color:var(--accent-orange); margin-right:8px;">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
+            if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}" style="color:var(--accent-cyan); margin-right:8px;">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
             footer += '</div>';
 
             const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
-            articleBody.innerHTML = contentHtml + boardHtml + footer + commentsHtml;
+            
+            // Assemble final view
+            if (isSector) {
+                articleBody.innerHTML = boardHtml + contentHtml + footer + commentsHtml;
+            } else {
+                articleBody.innerHTML = contentHtml + footer + commentsHtml;
+            }
 
-        } catch (e) { articleBody.innerHTML = "CRITICAL_SYSTEM_ERROR"; }
+        } catch (e) { articleBody.innerHTML = "CRITICAL_SYSTEM_ERROR"; console.error(e); }
     }
 
     // --- [Live Sidebar Activity Log] ---

@@ -201,6 +201,88 @@ html, body {
 .comment-form { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; }
 .comment-form textarea { background: #000; border: 1px solid var(--border-color); color: #0f0; padding: 15px; font-family: var(--font-mono); height: 100px; resize: none; outline: none; }
 
+/* --- [Table of Contents Styling] --- */
+.toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 1.2rem;
+    display: inline-block;
+    min-width: 250px;
+    margin-bottom: 2rem;
+    font-size: 0.85rem;
+}
+.toc-title {
+    font-family: var(--font-mono);
+    color: var(--accent-orange);
+    font-weight: 800;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+}
+.toc-toggle { cursor: pointer; color: var(--text-dim); font-size: 0.7rem; }
+.toc ul { margin-top: 10px; }
+.toc li { margin-bottom: 5px; }
+.toc-level-2 { padding-left: 0; }
+.toc-level-3 { padding-left: 15px; }
+.toc-level-4 { padding-left: 30px; }
+.toc a:hover { color: var(--accent-orange); text-decoration: underline !important; }
+
+/* --- [Wiki Table Styling] --- */
+.wikitable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+.wikitable th, .wikitable td {
+    border: 1px solid var(--border-color);
+    padding: 10px 15px;
+    text-align: left;
+}
+.wikitable th {
+    background: #151515;
+    color: var(--accent-orange);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+}
+
+/* --- [Clinical Report Block] --- */
+.clinical-report-block {
+    background: #000;
+    border: 1px solid var(--accent-cyan-dim);
+    margin: 2rem 0;
+    padding: 20px;
+    position: relative;
+}
+.clinical-report-header {
+    background: var(--accent-cyan-dim);
+    color: #000;
+    font-family: var(--font-mono);
+    font-weight: 900;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    position: absolute;
+    top: -12px;
+    left: 20px;
+}
+.clinical-report-footer {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--accent-cyan-dim);
+    margin-top: 10px;
+    opacity: 0.6;
+}
+
+/* --- [Links Styling] --- */
+.wiki-link { color: var(--accent-cyan); border-bottom: 1px solid transparent; }
+.wiki-link:hover { border-bottom-color: var(--accent-cyan); }
+.external-link { color: var(--accent-orange-dim); }
+.external-link:after { content: ' ↗'; font-size: 0.7rem; }
+
 /* --- [Sidebar] --- */
 .container { display: flex; flex: 1; width: 100%; max-width: var(--max-content-width); margin: 0 auto; padding: 2rem; gap: 2rem; }
 .sidebar { width: var(--sidebar-width); flex-shrink: 0; }
