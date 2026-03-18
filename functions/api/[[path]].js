@@ -122,17 +122,33 @@ export async function onRequest(context) {
         let resData, status = 200;
 
         if (path === '/auth/register' && method === "POST") {
-            const { username, password } = await request.json();
-            if (!username || username.length < SECURITY_CONFIG.MIN_USERNAME_LENGTH || username.length > SECURITY_CONFIG.MAX_USERNAME_LENGTH) return new Response(JSON.stringify({ error: "INVALID_USERNAME_LENGTH" }), { status: 400, headers: securityHeaders });
-            if (!/^[a-zA-Z0-9_\-]+$/.test(username)) return new Response(JSON.stringify({ error: "INVALID_USERNAME_FORMAT" }), { status: 400, headers: securityHeaders });
-            if (RESERVED_USERNAMES.includes(username.toLowerCase())) return new Response(JSON.stringify({ error: "RESERVED_USERNAME" }), { status: 400, headers: securityHeaders });
-            if (!password || password.length < SECURITY_CONFIG.MIN_PASSWORD_LENGTH) return new Response(JSON.stringify({ error: "INVALID_PASSWORD_LENGTH" }), { status: 400, headers: securityHeaders });
+            const { username, password, email } = await request.json();
+            
+            // 92. Server-side Validation
+            if (!username || username.length < SECURITY_CONFIG.MIN_USERNAME_LENGTH || username.length > SECURITY_CONFIG.MAX_USERNAME_LENGTH) 
+                return new Response(JSON.stringify({ error: "INVALID_USERNAME_LENGTH" }), { status: 400, headers: securityHeaders });
+            if (!/^[a-zA-Z0-9_\-]+$/.test(username)) 
+                return new Response(JSON.stringify({ error: "INVALID_USERNAME_FORMAT" }), { status: 400, headers: securityHeaders });
+            if (RESERVED_USERNAMES.includes(username.toLowerCase())) 
+                return new Response(JSON.stringify({ error: "RESERVED_USERNAME" }), { status: 400, headers: securityHeaders });
+            if (!password || password.length < SECURITY_CONFIG.MIN_PASSWORD_LENGTH) 
+                return new Response(JSON.stringify({ error: "INVALID_PASSWORD_LENGTH" }), { status: 400, headers: securityHeaders });
+            
+            // Basic Email Validation if provided
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                return new Response(JSON.stringify({ error: "INVALID_EMAIL_FORMAT" }), { status: 400, headers: securityHeaders });
+
             const salt = crypto.randomUUID();
             const hash = await hashPassword(password, salt);
             try {
-                await env.DB.prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)").bind(username, `${salt}:${hash}`).run();
+                await env.DB.prepare("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)").bind(username, email || null, `${salt}:${hash}`).run();
                 resData = { success: true };
-            } catch (e) { resData = { error: "TAKEN" }; status = 409; }
+            } catch (e) { 
+                if (e.message.includes("users.username")) resData = { error: "USERNAME_TAKEN" };
+                else if (e.message.includes("users.email")) resData = { error: "EMAIL_TAKEN" };
+                else resData = { error: "REGISTRATION_FAILED" };
+                status = 409; 
+            }
         }
 
         else if (path === '/auth/login' && method === "POST") {

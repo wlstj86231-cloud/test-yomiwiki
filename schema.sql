@@ -75,6 +75,7 @@ CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_id)
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT CHECK(role IN ('admin', 'editor', 'viewer')) DEFAULT 'viewer',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -148,14 +149,36 @@ CREATE TABLE IF NOT EXISTS editing_sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_editing_article ON editing_sessions(article_title);
 
--- visitor_logs: 사용자 방문 패턴 분석 (Step 63)
-...
-CREATE TABLE IF NOT EXISTS visitor_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    path TEXT NOT NULL,
-    referrer TEXT,
-    user_agent TEXT,
-    ip_address TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_visitor_path ON visitor_logs(path);
+-- [SEED DATA: Initial Archival Handshake]
+INSERT INTO articles (title, current_content, author, classification, threatLevel)
+VALUES (
+    'Main_Page',
+    '{{infobox
+| title = YomiWiki Archival Gateway
+| image = https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=300
+| caption = GATEWAY_TERMINAL_NODE_7
+| type = SYSTEM_CORE
+}}
+
+== WELCOME_AGENT ==
+Welcome to the '''YomiWiki Archival Gateway'''. This is a secure repository for occult, paranormal, and clinical data. All transmissions are monitored.
+
+== SYSTEM_NOTICE ==
+[CLINICAL]
+The archival grid is currently operating at 99.9% efficiency. Unauthorized attempts to decrypt Tier IV records will result in immediate IP termination.
+[/CLINICAL]
+
+== ARCHIVAL_PROTOCOLS ==
+* [[Help:Protocols|Maintain Clinical Detachment]]
+* [[Help:Taboos|Avoid Emotional Bias]]
+* [[Help:Editing|Report Anomalies Immediately]]
+
+[[Category:CORE_SYSTEM]]',
+    'Archive_System',
+    'CONFIDENTIAL',
+    'GREEN'
+) ON CONFLICT(title) DO NOTHING;
+
+INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary)
+SELECT id, current_content, author, 'INITIAL_HANDSHAKE' FROM articles WHERE title = 'Main_Page'
+ON CONFLICT DO NOTHING;

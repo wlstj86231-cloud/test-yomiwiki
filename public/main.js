@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- [2. Boot Terminal Animation] ---
+    const bootTerminal = document.getElementById('boot-terminal');
+    if (bootTerminal) {
+        setTimeout(() => {
+            bootTerminal.classList.add('fade-out');
+            setTimeout(() => {
+                bootTerminal.style.display = 'none';
+            }, 1000);
+        }, 2500);
+    }
+
     const API_ENDPOINT = '/api';
     const PAGE_SIZE = 15;
 
@@ -197,11 +208,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
     // --- [Modals] ---
-    window.yomiModal = ({ type, message, defaultValue = "" }) => {
+    window.yomiModal = ({ type, message, defaultValue = "", inputType = "text" }) => {
         return new Promise((resolve) => {
             const overlay = document.createElement('div'); overlay.className = 'yomi-modal-overlay';
-            let inputHtml = type === 'prompt' ? `<input type="text" class="yomi-modal-input" id="yomi-modal-input" value="${escapeHTML(defaultValue)}">` : '';
-            overlay.innerHTML = `<div class="yomi-modal"><div class="yomi-modal-message">${message}</div>${inputHtml}<div class="yomi-modal-actions">${type !== 'alert' ? '<button class="btn-action" id="y-cancel">[CANCEL]</button>' : ''}<button class="btn-action" id="y-confirm">[CONFIRM]</button></div></div>`;
+            let inputHtml = type === 'prompt' ? `<input type="${inputType}" class="yomi-modal-input" id="yomi-modal-input" value="${escapeHTML(defaultValue)}" autocomplete="off">` : '';
+            overlay.innerHTML = `
+                <div class="yomi-modal">
+                    <div class="modal-header-clinical">[SECURE_COMM_CHANNEL]</div>
+                    <div class="yomi-modal-message">${message}</div>
+                    ${inputHtml}
+                    <div class="yomi-modal-actions">
+                        ${type !== 'alert' ? '<button class="btn-action modal-btn-cancel" id="y-cancel">[ABORT]</button>' : ''}
+                        <button class="btn-action modal-btn-confirm" id="y-confirm">[AUTHORIZE]</button>
+                    </div>
+                </div>`;
             document.body.appendChild(overlay);
             const inputEl = overlay.querySelector('#yomi-modal-input'); if (inputEl) inputEl.focus();
             overlay.querySelector('#y-confirm').onclick = () => { const val = inputEl ? inputEl.value : true; document.body.removeChild(overlay); resolve(val); };
@@ -210,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.yomiAlert = (msg) => window.yomiModal({ type: 'alert', message: msg });
     window.yomiConfirm = (msg) => window.yomiModal({ type: 'confirm', message: msg });
-    window.yomiPrompt = (msg, def) => window.yomiModal({ type: 'prompt', message: msg, defaultValue: def });
+    window.yomiPrompt = (msg, def, inputType = "text") => window.yomiModal({ type: 'prompt', message: msg, defaultValue: def, inputType });
 
     // --- [Wiki Core] ---
     function updateTabs(mode) {

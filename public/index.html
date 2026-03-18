@@ -16,14 +16,31 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body class="clinical-dark">
+    <!-- Scanline Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- 2. Landing Page UI: Boot Terminal -->
+    <div id="boot-terminal" class="boot-terminal">
+        <div class="terminal-output" id="terminal-output">
+            [BOOT_PROTOCOL_INITIATED]<br>
+            [CONNECTING_TO_ARCHIVAL_GRID_7...] OK<br>
+            [DECRYPTING_GATEWAY_HANDSHAKE...] OK<br>
+            [VERIFYING_CLEARANCE_CREDENTIALS...] OK<br>
+            [LOADING_CLINICAL_INTERFACE...]
+        </div>
+        <div class="terminal-cursor">_</div>
+    </div>
+
     <header class="header" role="banner">
-        <div class="logo">YomiWiki</div>
+        <div class="logo-group">
+            <div class="logo">YomiWiki</div>
+            <div class="status-indicator"><span class="blink">●</span> SECURE_UPLINK</div>
+        </div>
         <nav class="nav" aria-label="Main Archive Navigation">
             <ul class="nav-list">
-                <li><a href="/">Archive</a></li>
+                <li><a href="/w/Main_Page">Archive</a></li>
                 <li><a href="/?mode=recent">Recent</a></li>
                 <li><a href="/?mode=assets">Assets</a></li>
-                <li><a href="/?mode=favorites">Favorites</a></li>
                 <li><a href="/?mode=help">Protocols</a></li>
             </ul>
         </nav>
@@ -33,42 +50,52 @@
     </header>
 
     <div class="news-ticker" id="news-ticker" role="status" aria-live="polite">
-        <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...]</div>
+        <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED TO NODE_772. [WARNING]: SENSITIVE_DATA_EXPOSURE_DETECTED_IN_SECTOR_4. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT.</div>
     </div>
 
     <div class="container">
         <aside class="sidebar" role="complementary" aria-label="Sidebar Activity Log">
             <section class="sidebar-box">
-                <h3 class="sidebar-title">Global Activity</h3>
+                <h3 class="sidebar-title">[GLOBAL_ACTIVITY]</h3>
                 <div class="sidebar-content" id="sidebar-activity" aria-live="polite">
                     <p class="loading">Establishing link...</p>
+                </div>
+            </section>
+            
+            <section class="sidebar-box" style="margin-top:20px;">
+                <h3 class="sidebar-title">[SYSTEM_STATUS]</h3>
+                <div class="sidebar-content" style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono);">
+                    CORE: STABLE<br>
+                    UPTIME: 99.9%<br>
+                    NODES: 4,092<br>
+                    GATEWAY: CF-WORKERS
                 </div>
             </section>
         </aside>
 
         <main class="main-content" id="main-content" role="main">
-            <div class="interface-controls" style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <div class="interface-controls" style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <button class="btn-clinical-toggle" id="btn-clinical" onclick="window.toggleClinicalMode()" aria-pressed="false">[ENTER_CLINICAL_MODE]</button>
-                <button class="btn-clinical-toggle" id="btn-reduced-motion" onclick="window.toggleReducedMotion()" aria-pressed="false">[SUPPRESS_GLITCH_EFFECTS]</button>
+                <button class="btn-clinical-toggle" id="btn-reduced-motion" onclick="window.toggleReducedMotion()" aria-pressed="false">[SUPPRESS_VISUAL_FLUX]</button>
             </div>
+            
             <article class="article" aria-labelledby="article-title">
                 <nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb"></nav>
                 <header class="article-header">
                     <nav class="article-actions" style="float:right;" aria-label="Article Actions">
-                        <a href="?mode=backlinks" id="link-backlinks">[Backlinks]</a>
-                        <a href="?mode=history" id="link-history">[History]</a>
+                        <a href="?mode=backlinks" id="link-backlinks" class="mono">[Backlinks]</a>
+                        <a href="?mode=history" id="link-history" class="mono">[History]</a>
                     </nav>
                     <h1 class="article-title" id="article-title">DECRYPTING...</h1>
                     <div class="article-meta">REVISION: STABLE | AUTH: Admin</div>
                     
-                    <!-- 76. Tabbed View Navigation -->
                     <div class="view-tabs" style="margin-top:20px; display:flex; gap:2px;">
-                        <a href="?mode=view" id="tab-view" class="tab-btn active" style="padding:8px 20px; background:#1a1a1a; border:1px solid #333; border-bottom:none; color:var(--accent-orange); text-decoration:none; font-family:var(--font-mono); font-size:0.75rem;">[RECORD]</a>
-                        <a href="?mode=discuss" id="tab-discuss" class="tab-btn" style="padding:8px 20px; background:#0a0a0a; border:1px solid #222; border-bottom:none; color:#666; text-decoration:none; font-family:var(--font-mono); font-size:0.75rem;">[DISCUSS]</a>
+                        <a href="?mode=view" id="tab-view" class="tab-btn active">[RECORD]</a>
+                        <a href="?mode=discuss" id="tab-discuss" class="tab-btn">[DISCUSS]</a>
                     </div>
                 </header>
                 <div class="article-body" aria-live="polite">
-                    <p>Archival records are loading. Please maintain clinical detachment.</p>
+                    <p class="loading-text">Archival records are loading. Please maintain clinical detachment.</p>
                 </div>
             </article>
         </main>
@@ -79,12 +106,12 @@
             [ARCHIVAL_METRICS: SCANNING...]
         </div>
         <div class="footer-links" style="margin-bottom: 10px; font-size: 0.7rem; font-family: var(--font-mono);">
-            <a href="/w/Help:Privacy_Policy" style="color:#666; text-decoration:none; margin-right:15px;">[PRIVACY_PROTOCOLS]</a>
-            <a href="/w/Help:Terms_of_Service" style="color:#666; text-decoration:none; margin-right:15px;">[TERMS_OF_ACCESS]</a>
-            <a href="/w/Help:Contact" style="color:#666; text-decoration:none;">[GATEWAY_INQUIRY]</a>
+            <a href="/w/Help:Privacy_Policy">[PRIVACY_PROTOCOLS]</a>
+            <a href="/w/Help:Terms_of_Service">[TERMS_OF_ACCESS]</a>
+            <a href="/w/Help:Contact">[GATEWAY_INQUIRY]</a>
         </div>
         <div class="license-notice" style="margin-bottom: 15px; font-size: 0.65rem; color: #444; line-height: 1.4; border-top: 1px solid #222; padding-top: 10px;">
-            Content is available under <a href="https://creativecommons.org/licenses/by-sa/4.0/" style="color:#555;">CC BY-SA 4.0</a> unless otherwise noted.<br>
+            Content is available under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> unless otherwise noted.<br>
             All archival transmissions are synchronized across secure gateway nodes.
         </div>
         <p>&copy; 2026 YomiWiki Archival Gateway. unauthorized access is logged by IP.</p>
