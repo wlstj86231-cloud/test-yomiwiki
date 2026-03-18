@@ -95,10 +95,13 @@ function wikiParse(content) {
     html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
 
     // 93. Markdown Headers: # Header
+    const headers = [];
     html = html.replace(/^(#{1,6})\s+(.*?)$/gm, (match, hashes, title) => {
         const level = hashes.length;
-        const id = title.trim().replace(/[_\s]+/g, '_');
-        return `<h${level} id="${id}">${title.trim()}</h${level}>`;
+        const cleanTitle = title.trim();
+        const id = cleanTitle.replace(/[_\s]+/g, '_').toLowerCase();
+        headers.push({ level, title: cleanTitle, id });
+        return `<h${level} id="${id}">${cleanTitle}</h${level}>`;
     });
 
     // 59. Footnotes collection [* text]
@@ -110,11 +113,10 @@ function wikiParse(content) {
     });
 
     // 57. Headers and TOC collection (Wiki Syntax)
-    const headers = [];
     html = html.replace(/^(={2,})\s*(.*?)\s*\1$/gm, (match, p1, p2) => {
         const level = p1.length;
         const title = p2.trim();
-        const id = title.replace(/[_\s]+/g, '_');
+        const id = title.replace(/[_\s]+/g, '_').toLowerCase();
         headers.push({ level, title, id });
         return `<h${level} id="${id}">${title}</h${level}>`;
     });
@@ -287,13 +289,30 @@ function wikiParse(content) {
 
     // 57. TOC Injection
     if (headers.length >= 3) {
+        const counts = [0, 0, 0, 0, 0, 0, 0];
+        let lastLevel = 1;
+        
         let tocHtml = `
             <div class="toc">
                 <div class="toc-title">
                     CONTENTS <span class="toc-toggle" onclick="window.toggleTOC()">[hide]</span>
                 </div>
                 <ul id="toc-list">
-                    ${headers.map(h => `<li class="toc-level-${h.level}"><a href="#${h.id}">${escapeHTML(h.title)}</a></li>`).join('')}
+                    ${headers.map(h => {
+                        const level = h.level;
+                        if (level > lastLevel) {
+                            // Reset lower levels
+                            for (let i = level; i < counts.length; i++) counts[i] = 0;
+                        } else if (level < lastLevel) {
+                            // Reset lower levels
+                            for (let i = level + 1; i < counts.length; i++) counts[i] = 0;
+                        }
+                        counts[level]++;
+                        lastLevel = level;
+                        
+                        const numberStr = counts.slice(2, level + 1).join('.');
+                        return `<li class="toc-level-${level}"><a href="#${h.id}"><span class="toc-number">${numberStr}</span> ${escapeHTML(h.title)}</a></li>`;
+                    }).join('')}
                 </ul>
             </div>
         `;

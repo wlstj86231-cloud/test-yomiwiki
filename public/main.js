@@ -29,7 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.onclick = (e) => {
             const link = e.target.closest('a');
             if (link && link.href && link.href.startsWith(window.location.origin) && !link.target && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
-                if (link.getAttribute('href')?.startsWith('#')) return;
+                const hrefAttr = link.getAttribute('href');
+                if (hrefAttr?.startsWith('#')) {
+                    e.preventDefault();
+                    const targetId = hrefAttr.substring(1).toLowerCase();
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth' });
+                        history.pushState(null, "", hrefAttr);
+                    }
+                    return;
+                }
                 const url = new URL(link.href);
                 if (!url.pathname.startsWith('/api') && !url.pathname.includes('.')) {
                     e.preventDefault();
@@ -278,6 +288,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 articleBody.innerHTML = boardHtml + contentHtml + footer + commentsHtml;
             } else {
                 articleBody.innerHTML = contentHtml + footer + commentsHtml;
+            }
+
+            // --- [SCROLL ANCHORING: Phase 2 FIX] ---
+            if (window.location.hash) {
+                const targetId = window.location.hash.substring(1).toLowerCase();
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    setTimeout(() => {
+                        targetEl.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                }
+            } else {
+                window.scrollTo(0, 0);
             }
 
         } catch (e) { articleBody.innerHTML = "CRITICAL_SYSTEM_ERROR"; console.error(e); }
