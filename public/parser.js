@@ -248,13 +248,13 @@ function wikiParse(content) {
         if (!info) return match;
         let table = `<aside class="infobox">
             <div class="infobox-title">${escapeHTML(info.title)}</div>
-            <table style="width:100%;">`;
+            <table>`;
         
         info.data.forEach(item => {
             if (item.key.toLowerCase() === 'image') {
-                table += `<tr><td colspan="2" style="text-align:center; padding:10px;"><img src="${encodeURI(item.val)}" class="wiki-image" style="max-width:100%; height:auto; border:1px solid var(--border-color);"></td></tr>`;
+                table += `<tr><td colspan="2" style="text-align:center; padding:15px; border-bottom:1px solid #222;"><img src="${encodeURI(item.val)}" class="wiki-image" style="max-width:100%; height:auto; border:1px solid #333;"></td></tr>`;
             } else if (item.key.toLowerCase() === 'caption') {
-                table += `<tr><td colspan="2" style="text-align:center; font-size:0.75rem; color:var(--text-muted); padding-bottom:10px; border-bottom:1px solid var(--border-dim);">${escapeHTML(item.val)}</td></tr>`;
+                table += `<tr><td colspan="2" style="text-align:center; font-size:0.75rem; color:var(--text-muted); padding:5px 15px 15px 15px; border-bottom:1px solid #222;">${escapeHTML(item.val)}</td></tr>`;
             } else {
                 table += `<tr><th>${escapeHTML(item.key)}</th><td>${wikiParse(item.val)}</td></tr>`;
             }
