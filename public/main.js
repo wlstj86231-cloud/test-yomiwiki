@@ -124,6 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- [Core Wiki Engine] ---
+    window.establishNewNode = (sectorTitle) => {
+        const postName = prompt("Enter the name of the new archival transmission:");
+        if (!postName) return;
+        const fullTitle = `${sectorTitle}/${postName.replace(/[_\s]+/g, '_')}`;
+        window.navigateTo(`/w/${encodeURIComponent(fullTitle)}?mode=edit`);
+    };
+
     async function renderArticle(title) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
@@ -143,13 +150,36 @@ document.addEventListener('DOMContentLoaded', () => {
             metaText.innerHTML = `REV: ${data.updated_at} | AUTH: ${data.author} [SECURE_NODE] | <a href="?mode=edit" style="color:var(--accent-orange); text-decoration:underline;">[EDIT]</a>`;
             
             let contentHtml = wikiParse(data.current_content);
+
+            // BOARD RENDERING: If title starts with Sector:, show sub-articles
+            let boardHtml = "";
+            if (data.title.startsWith('Sector:')) {
+                boardHtml = `<div class="sector-board" style="margin-top:40px; border-top:1px solid var(--border-color); padding-top:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                        <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
+                        <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[ESTABLISH_NEW_NODE]</button>
+                    </div>
+                    <div class="node-list" style="display:flex; flex-direction:column; gap:10px;">
+                        ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
+                            <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <a href="/w/${encodeURIComponent(sub.title.replace(/ /g, '_'))}" style="font-weight:bold; color:var(--text-main);">${escapeHTML(sub.title.split('/').pop())}</a>
+                                    <div style="font-size:0.7rem; color:var(--text-dim);">${sub.author} | ${sub.updated_at}</div>
+                                </div>
+                                <div style="font-family:var(--font-mono); font-size:0.7rem; color:var(--accent-cyan);">[ACCESS_GRANTED]</div>
+                            </div>
+                        `).join('') : '<div style="opacity:0.3; font-style:italic;">No transmissions detected in this sector.</div>'}
+                    </div>
+                </div>`;
+            }
+
             let footer = '<div class="article-footer">';
             if (data.categories) footer += `<div><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
             if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
             footer += '</div>';
 
             const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
-            articleBody.innerHTML = contentHtml + footer + commentsHtml;
+            articleBody.innerHTML = contentHtml + boardHtml + footer + commentsHtml;
 
         } catch (e) { articleBody.innerHTML = "CRITICAL_SYSTEM_ERROR"; }
     }

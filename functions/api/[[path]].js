@@ -150,12 +150,20 @@ export async function onRequest(context) {
                     const { results: backlinks } = await env.DB.prepare("SELECT from_title FROM links WHERE to_title = ? LIMIT 50").bind(article.title).all();
                     const { results: comments } = await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(article.title).all();
 
+                    // BOARD LOGIC: Get sub-articles starting with this title/
+                    let subArticles = [];
+                    if (title.startsWith('Sector:')) {
+                        const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(`${title}/%`).all();
+                        subArticles = results;
+                    }
+
                     const count = (await env.DB.prepare("SELECT COUNT(*) as count FROM revisions WHERE editor_info = ?").bind(article.author).first()).count;
                     resData = { 
                         ...article, 
                         current_content: fullContent, 
                         backlinks: backlinks.map(b => b.from_title),
                         comments: comments,
+                        sub_articles: subArticles,
                         author_tier: { count, level: count >= 100 ? "IV" : count >= 50 ? "III" : count >= 10 ? "II" : "I" }
                     };
                 }
