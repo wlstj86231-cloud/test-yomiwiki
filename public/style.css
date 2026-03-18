@@ -6,45 +6,146 @@ ul, ol { list-style: none !important; padding: 0; margin: 0; }
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 :root {
+    /* --- [1. Color Palette: Clinical Dark] --- */
     --bg-main: #0a0a0a;
     --bg-sidebar: #111111;
     --bg-card: #141414;
     --bg-input: #050505;
+    
     --accent-orange: #ff9900;
+    --accent-orange-dim: #cc7a00;
     --accent-cyan: #5bc0de;
+    --accent-cyan-dim: #4696ad;
     --hazard-red: #ff4444;
+    
     --text-main: #d1d1d1;
     --text-muted: #888888;
+    --text-dim: #555555;
+    --text-critical: #ff4444;
+    
     --border-color: #222222;
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-sans: 'Inter', sans-serif;
-    --shadow-glow: 0 0 15px rgba(255, 153, 0, 0.15);
+    --border-bright: #333333;
+    --border-hazard: #444444;
+
+    /* --- [2. Typography] --- */
+    --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+    --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+    /* --- [3. UI Constants] --- */
+    --radius: 0px; 
+    --header-height: 70px;
+    --sidebar-width: 300px;
+    --max-content-width: 1400px;
+    --shadow-glow: 0 0 15px rgba(255, 153, 0, 0.1);
 }
 
-html, body { height: 100%; background-color: var(--bg-main); color: var(--text-main); font-family: var(--font-sans); }
+html, body {
+    height: 100%;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* --- [Scanlines Overlay] --- */
+.scanlines {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(18, 16, 16, 0) 50%,
+        rgba(0, 0, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0.15;
+}
 
 /* --- [News Ticker] --- */
-.news-ticker { background: var(--accent-orange); color: #000; height: 30px; display: flex; align-items: center; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; overflow: hidden; position: sticky; top: 0; z-index: 1100; }
-.ticker-content { display: inline-block; white-space: nowrap; padding-left: 100%; animation: ticker 30s linear infinite; }
-@keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+.news-ticker {
+    background: var(--accent-orange);
+    color: #000;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    overflow: hidden;
+    position: sticky;
+    top: 0;
+    z-index: 1100;
+}
+
+.ticker-content {
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    animation: ticker 30s linear infinite;
+}
+
+@keyframes ticker {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
+}
 
 /* --- [Header] --- */
-.header { height: 70px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 30px; z-index: 1000; }
-.logo { font-family: var(--font-mono); color: var(--accent-orange); font-size: 1.5rem; font-weight: 900; }
+.header {
+    height: var(--header-height);
+    background: var(--bg-sidebar);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 30px;
+    z-index: 1000;
+}
+
+.logo {
+    font-family: var(--font-mono);
+    color: var(--accent-orange);
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+.status-indicator { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
+.blink { animation: blink 1s infinite; color: var(--accent-orange); }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
 .nav-list { display: flex; gap: 1.5rem; }
-.nav-list a { font-family: var(--font-mono); color: var(--accent-orange) !important; font-size: 0.85rem; padding: 5px 10px; border: 1px solid transparent; }
-.nav-list a:hover { background: rgba(255, 153, 0, 0.1); border-color: var(--accent-orange); }
+.nav-list li a {
+    font-family: var(--font-mono);
+    color: var(--accent-orange) !important;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.nav-list li a:hover {
+    background: rgba(255, 153, 0, 0.1);
+    border-color: var(--accent-orange);
+    box-shadow: var(--shadow-glow);
+}
 
 /* --- [Integrated Discussion Styling] --- */
 .integrated-discussion { margin-top: 60px; border-top: 2px solid var(--border-color); padding-top: 30px; }
 .discussion-header { font-family: var(--font-mono); color: var(--accent-orange); font-weight: bold; margin-bottom: 20px; font-size: 0.9rem; }
-.comment-item { background: rgba(255,255,255,0.02); border-left: 3px solid var(--border-color); padding: 15px 20px; margin-bottom: 15px; transition: border-color 0.3s; }
-.comment-item:hover { border-color: var(--accent-orange); }
+.comment-item { background: rgba(255,255,255,0.02); border-left: 3px solid var(--border-color); padding: 15px 20px; margin-bottom: 15px; }
 .comment-meta { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; }
 .comment-body { font-size: 0.95rem; line-height: 1.6; }
 .comment-form { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; }
 .comment-form textarea { background: #000; border: 1px solid var(--border-color); color: #0f0; padding: 15px; font-family: var(--font-mono); height: 100px; resize: none; }
-.comment-form textarea:focus { border-color: var(--accent-orange); outline: none; }
 
 /* --- [Recent Activity Log Styling] --- */
 .activity-log { font-family: var(--font-mono); display: flex; flex-direction: column; gap: 8px; padding: 20px; background: #050505; border: 1px solid #111; }
@@ -53,21 +154,31 @@ html, body { height: 100%; background-color: var(--bg-main); color: var(--text-m
 .tag-edit { color: var(--accent-cyan); font-weight: bold; }
 .tag-comment { color: var(--accent-orange); font-weight: bold; }
 .log-node { color: #fff; text-decoration: underline !important; }
-.log-agent { color: var(--text-muted); }
-.log-summary { color: #666; font-style: italic; margin-left: 10px; }
 
-/* --- [Layout & Article] --- */
-.container { display: flex; max-width: 1400px; margin: 0 auto; padding: 2rem; gap: 2rem; }
-.sidebar { width: 300px; flex-shrink: 0; }
+/* --- [Layout] --- */
+.container { display: flex; flex: 1; width: 100%; max-width: var(--max-content-width); margin: 0 auto; padding: 2rem; gap: 2rem; }
+.sidebar { width: var(--sidebar-width); flex-shrink: 0; }
 .main-content { flex: 1; min-width: 0; }
+
+.sidebar-box { background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; }
+.sidebar-title { font-family: var(--font-mono); color: var(--accent-orange); font-size: 0.8rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+
 .article { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2.5rem; }
-.article-title { font-family: var(--font-mono); color: var(--accent-orange); font-size: 2.2rem; }
-.article-footer { margin-top: 40px; font-size: 0.8rem; color: var(--text-muted); }
+.article-title { font-family: var(--font-mono); color: var(--accent-orange); font-size: 2.2rem; margin-bottom: 0.5rem; font-weight: 700; }
+.article-meta { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 2rem; }
 
-/* --- [UI Buttons] --- */
-.btn-clinical-toggle { background: transparent; border: 1px solid var(--accent-orange); color: var(--accent-orange); font-family: var(--font-mono); font-size: 0.7rem; padding: 8px 16px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-.btn-clinical-toggle:hover { background: var(--accent-orange); color: #000; }
+/* --- [UI Elements] --- */
+.btn-clinical-toggle {
+    background: transparent; border: 1px solid var(--accent-orange); color: var(--accent-orange);
+    font-family: var(--font-mono); font-size: 0.7rem; padding: 6px 12px; cursor: pointer; text-transform: uppercase;
+}
+.btn-clinical-toggle:hover { background: var(--accent-orange); color: #000; box-shadow: 0 0 15px rgba(255, 153, 0, 0.4); }
 
-/* --- [Boot Terminal] --- */
-.boot-terminal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100000; display: flex; align-items: center; justify-content: center; flex-direction: column; font-family: var(--font-mono); color: var(--accent-orange); }
+.boot-terminal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 100000; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; font-family: var(--font-mono); color: var(--accent-orange);
+}
 .boot-terminal.fade-out { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
+
+.footer { background: var(--bg-sidebar); border-top: 1px solid var(--border-color); padding: 2rem; text-align: center; font-size: 0.8rem; color: var(--text-dim); }

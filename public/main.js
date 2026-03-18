@@ -13,8 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- [Auth & State] ---
     let currentUser = JSON.parse(localStorage.getItem('yomi_user')) || null;
-    let currentTier = null;
-    window.unreadNotificationsCount = 0;
 
     const securedFetch = async (url, options = {}) => {
         const headers = { ...options.headers, 'X-Yomi-Request': 'true', 'Content-Type': 'application/json' };
@@ -32,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.onclick = (e) => {
             const link = e.target.closest('a');
             if (link && link.href && link.href.startsWith(window.location.origin) && !link.target && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
-                if (link.getAttribute('href').startsWith('#')) return;
+                if (link.getAttribute('href')?.startsWith('#')) return;
                 const url = new URL(link.href);
                 if (!url.pathname.startsWith('/api') && !url.pathname.includes('.')) {
                     e.preventDefault();
@@ -46,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- [Integrated Discussion System] ---
     async function renderComments(title, container) {
-        container.innerHTML = `<div class="discussion-header">[COMM_CHANNEL_LOG]</div><div id="comment-list" class="comment-list">Loading...</div>
+        container.innerHTML = `<div class="discussion-header">[COMM_CHANNEL_LOG]</div><div id="comment-list">Loading...</div>
         <div class="comment-form">
             <textarea id="new-comment-content" placeholder="Enter transmission..."></textarea>
             <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle">[TRANSMIT]</button>
@@ -61,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="comment-meta">AGENT: ${escapeHTML(c.author)} | ${c.timestamp}</div>
                     <div class="comment-body">${escapeHTML(c.content)}</div>
                 </div>
-            `).join('') || '<div style="opacity:0.3; font-style:italic;">No active transmissions found in this sector.</div>';
+            `).join('') || '<div style="opacity:0.3; font-style:italic; padding:20px;">No active transmissions.</div>';
         } catch (e) { document.getElementById('comment-list').textContent = "UPLINK_ERROR"; }
     }
 
@@ -81,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function renderArticle(title) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
+        const metaText = document.querySelector('.article-meta');
         
         try {
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`);
@@ -93,15 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             mainTitle.textContent = data.title;
+            metaText.innerHTML = `REV: ${data.updated_at} | AUTH: ${data.author} [SECURE_NODE]`;
             let html = wikiParse(data.current_content);
             
-            // Append Footnotes/Backlinks/Categories...
             let footer = '<div class="article-footer">';
-            if (data.categories) footer += `<div class="categories-box"><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
-            if (data.backlinks?.length > 0) footer += `<div class="backlinks-box"><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
+            if (data.categories) footer += `<div><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
             footer += '</div>';
 
-            // --- [INTEGRATE DISCUSSION AT BOTTOM] ---
+            // --- [INTEGRATE DISCUSSION] ---
             footer += `<div id="integrated-discussion" class="integrated-discussion"></div>`;
             
             articleBody.innerHTML = html + footer;
@@ -114,40 +112,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         mainTitle.textContent = "SYSTEM_ACTIVITY_LOG";
-        articleBody.innerHTML = `<div id="activity-log" class="activity-log">Establishing secure link...</div>`;
+        articleBody.innerHTML = `<div id="activity-log" class="activity-log">Establishing link...</div>`;
         
         try {
             const res = await securedFetch(`${API_ENDPOINT}/history`);
             const logs = await res.json();
             const logDiv = document.getElementById('activity-log');
             logDiv.innerHTML = logs.map(l => {
-                const time = l.timestamp.split(' ')[1] || l.timestamp;
                 const actionTag = l.type === 'edit' ? '<span class="tag-edit">[NEW_DATA]</span>' : '<span class="tag-comment">[DISCUSSING]</span>';
-                const summary = l.summary ? `<span class="log-summary">"${escapeHTML(l.summary.substring(0, 50))}"</span>` : '';
                 return `<div class="log-entry">
-                    <span class="log-time">[${time}]</span> 
+                    <span class="log-time">[${l.timestamp.split(' ')[1] || ""}]</span> 
                     ${actionTag} in 
                     <a href="/w/${encodeURIComponent(l.title.replace(/ /g, '_'))}" class="log-node">${escapeHTML(l.title)}</a> 
                     by <span class="log-agent">Agent_${escapeHTML(l.author)}</span>
-                    ${summary}
                 </div>`;
             }).join('');
         } catch (e) { articleBody.innerHTML = "LOG_UPLINK_FAILED"; }
     }
 
-    function getParams() {
+    async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         const path = window.location.pathname;
         let title = path.startsWith('/w/') ? decodeURIComponent(path.substring(3)).replace(/[_\s]+/g, ' ').trim() : 'Main_Page';
-        return { title, mode: urlParams.get('mode') };
-    }
+        const mode = urlParams.get('mode');
 
-    async function init() {
-        const { title, mode } = getParams();
         handleInternalLinks();
-        
         if (mode === 'recent') await loadRecentChanges();
-        else if (mode === 'edit') { /* Load Editor Logic... */ }
         else await renderArticle(title);
     }
 
