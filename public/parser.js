@@ -91,6 +91,8 @@ function wikiParse(content) {
     // Italic: *text* or _text_
     html = html.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<i>$1</i>');
     html = html.replace(/(?<!_)_(?!_)(.*?)(?<!_)_(?!_)/g, '<i>$1</i>');
+    // Strikethrough: ~~text~~
+    html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
 
     // 93. Markdown Headers: # Header
     html = html.replace(/^(#{1,6})\s+(.*?)$/gm, (match, hashes, title) => {
@@ -170,6 +172,7 @@ function wikiParse(content) {
     // 3. Tables and Lists
     const lines = html.split('\n');
     let inTable = false;
+    let inQuote = false;
     let tableHtml = "";
     let finalHtml = [];
     let listStack = [];
@@ -181,11 +184,20 @@ function wikiParse(content) {
         }
     }
 
+    function closeQuote() {
+        if (inQuote) {
+            finalHtml.push('</blockquote>');
+            inQuote = false;
+        }
+    }
+
     lines.forEach(line => {
         const trimmed = line.trim();
         const listMatch = line.match(/^([\*\#]+)\s*(.*)$/);
+        const quoteMatch = line.match(/^>\s*(.*)$/);
 
         if (listMatch) {
+            closeQuote();
             const prefix = listMatch[1];
             const itemContent = listMatch[2];
             const depth = prefix.length;
@@ -208,8 +220,16 @@ function wikiParse(content) {
                 }
             }
             finalHtml.push(`<li>${itemContent}</li>`);
+        } else if (quoteMatch) {
+            closeLists();
+            if (!inQuote) {
+                finalHtml.push('<blockquote>');
+                inQuote = true;
+            }
+            finalHtml.push(quoteMatch[1] + '<br>');
         } else {
             closeLists();
+            closeQuote();
 
             if (trimmed.startsWith('{|')) {
                 inTable = true;
@@ -239,6 +259,7 @@ function wikiParse(content) {
         }
     });
     closeLists();
+    closeQuote();
 
     let parsedContent = finalHtml.join('');
 

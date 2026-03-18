@@ -136,12 +136,21 @@ export async function onRequest(context) {
         else if (path.startsWith('/article/') && method === "GET") {
             try {
                 const title = normalizeTitle(path.substring(9));
-                const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(title).first();
+                const revId = url.searchParams.get('rev');
+                
+                let article;
+                if (revId) {
+                    // Fetch specific revision
+                    article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, r.edit_summary FROM revisions r JOIN articles a ON r.article_id = a.id WHERE a.title = ? AND r.id = ?").bind(title, revId).first();
+                    if (article) article.is_revision = true;
+                } else {
+                    article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(title).first();
+                }
                 
                 if (!article) { status = 404; resData = { error: "RECORD_NOT_FOUND" }; }
                 else {
                     let fullContent = article.current_content;
-                    if (article.is_chunked) {
+                    if (article.is_chunked && !revId) {
                         const { results } = await env.DB.prepare("SELECT content FROM article_chunks WHERE article_id = ? ORDER BY chunk_order ASC").bind(article.id).all();
                         fullContent = results.map(r => r.content).join('');
                     }
@@ -168,6 +177,12 @@ export async function onRequest(context) {
                     };
                 }
             } catch (dbErr) { status = 500; resData = { error: "DB_ERR", msg: dbErr.message }; }
+        }
+
+        else if (path.startsWith('/article/') && path.endsWith('/history') && method === "GET") {
+            const title = normalizeTitle(path.split('/')[2]);
+            const { results } = await env.DB.prepare("SELECT r.id, r.editor_info as author, r.timestamp, r.edit_summary FROM revisions r JOIN articles a ON r.article_id = a.id WHERE a.title = ? ORDER BY r.timestamp DESC").bind(title).all();
+            resData = results;
         }
 
         else if (path.startsWith('/article/') && method === "POST") {

@@ -100,7 +100,18 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`);
             const data = await res.json();
-            const content = data.current_content || "";
+            const originalContent = data.current_content || "";
+            
+            // Draft Logic
+            const draftKey = `yomi_draft_${title.replace(/[_\s]+/g, '_')}`;
+            const savedDraft = localStorage.getItem(draftKey);
+            let content = originalContent;
+
+            if (savedDraft && savedDraft !== originalContent) {
+                if (confirm("[SYSTEM_NOTICE]: A saved draft was found for this node. Load it?")) {
+                    content = savedDraft;
+                }
+            }
 
             articleBody.innerHTML = `
                 <div class="editor-toolbar" style="margin-bottom:10px; display:flex; gap:5px;">
@@ -108,10 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button onclick="window.insertEditorTag('footnote')" class="btn-clinical-toggle" style="font-size:0.6rem;">[+FOOTNOTE]</button>
                 </div>
                 <textarea id="editor-textarea" style="width:100%; height:500px; background:#000; color:#0f0; font-family:var(--font-mono); padding:15px; border:1px solid #333;">${escapeHTML(content)}</textarea>
-                <div style="margin-top:10px;">
-                    <button onclick="window.submitEdit('${escapeHTML(title)}')" class="btn-clinical-toggle" style="width:100%; padding:15px;">[TRANSMIT_TO_ARCHIVE]</button>
+                <div style="margin-top:10px; display:flex; gap:10px;">
+                    <button onclick="window.submitEdit('${escapeHTML(title)}')" class="btn-clinical-toggle" style="flex:1; padding:15px;">[TRANSMIT_TO_ARCHIVE]</button>
+                    <button onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}')" class="btn-clinical-toggle" style="padding:15px;">[ABORT]</button>
                 </div>
             `;
+
+            const textarea = document.getElementById('editor-textarea');
+            textarea.addEventListener('input', () => {
+                localStorage.setItem(draftKey, textarea.value);
+            });
+
         } catch (e) { articleBody.innerHTML = "EDITOR_LOAD_FAILED"; }
     }
 
@@ -120,7 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`, {
             method: 'POST', body: JSON.stringify({ content })
         });
-        if (res.ok) window.navigateTo(`/w/${encodeURIComponent(title.replace(/ /g, '_'))}`);
+        if (res.ok) {
+            localStorage.removeItem(`yomi_draft_${title.replace(/[_\s]+/g, '_')}`);
+            window.navigateTo(`/w/${encodeURIComponent(title.replace(/ /g, '_'))}`);
+        }
     };
 
     // --- [Core Wiki Engine] ---
@@ -143,13 +164,58 @@ document.addEventListener('DOMContentLoaded', () => {
         window.navigateTo(`/w/${encodeURIComponent(fullTitle)}?mode=edit`);
     };
 
+    async function loadHistory(title) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        mainTitle.textContent = `HISTORY: ${title}`;
+        
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/history`);
+            const logs = await res.json();
+            
+            articleBody.innerHTML = `
+                <div class="history-container">
+                    <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:20px;">[ARCHIVAL_LOG_FOUND: ${logs.length} ENTRIES]</p>
+                    <div class="node-list" style="display:flex; flex-direction:column; gap:10px;">
+                        ${logs.map(log => `
+                            <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-orange);">REV_${log.id}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+                                        AGENT: ${escapeHTML(log.author)} | ${log.timestamp}
+                                    </div>
+                                    <div style="font-size:0.85rem; margin-top:8px; color:var(--text-main); font-style:italic;">
+                                        ${escapeHTML(log.edit_summary || "NO_SUMMARY_PROVIDED")}
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}?rev=${log.id}" class="btn-clinical-toggle" style="text-decoration:none; display:inline-block;">[VIEW]</a>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="margin-top:30px;">
+                        <button onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}')" class="btn-clinical-toggle">[BACK_TO_LIVE_NODE]</button>
+                    </div>
+                </div>
+            `;
+        } catch (e) { articleBody.innerHTML = "HISTORY_LOAD_FAILED"; }
+    }
+
     async function renderArticle(title) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
         
+        const urlParams = new URLSearchParams(window.location.search);
+        const revId = urlParams.get('rev');
+
         try {
-            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`);
+            const url = revId 
+                ? `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}?rev=${revId}`
+                : `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`;
+            
+            const res = await securedFetch(url);
             const data = await res.json();
             
             if (data.error === "RECORD_NOT_FOUND") {
@@ -158,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            mainTitle.textContent = data.title;
+            mainTitle.textContent = revId ? `REV_${revId}: ${data.title}` : data.title;
             
             // NAMU_STYLE: Hide meta from top for cleaner look
             metaText.innerHTML = ""; 
@@ -167,9 +233,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const isBoard = data.title.startsWith('Sector:') && !data.title.includes('/');
             let contentHtml = wikiParse(data.current_content);
 
+            if (revId) {
+                contentHtml = `<div class="revision-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:0.85rem;">
+                    [WARNING]: YOU ARE VIEWING A HISTORICAL SNAPSHOT (ID: ${revId}). 
+                    <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}" style="color:#fff; text-decoration:underline; margin-left:10px;">[RETURN_TO_LIVE_NODE]</a>
+                </div>` + contentHtml;
+            }
+
             // 1. BOARD VIEW (Post List)
             let boardHtml = "";
-            if (isBoard) {
+            if (isBoard && !revId) {
                 boardHtml = `<div class="sector-board" style="margin-bottom:40px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px;">
                         <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
@@ -192,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. FOOTER (Metadata, Categories, Backlinks)
             let footer = `<div class="article-footer" style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:20px; font-size:0.85rem;">
                 <div style="color:var(--text-dim); margin-bottom:15px; font-family:var(--font-mono);">
-                    REV: ${data.updated_at} | AUTH: ${data.author} [SECURE_NODE] | <a href="?mode=edit" style="color:var(--accent-orange);">[EDIT]</a>
+                    REV: ${data.updated_at} | AUTH: ${data.author} [SECURE_NODE] | <a href="?mode=edit" style="color:var(--accent-orange);">[EDIT]</a> | <a href="?mode=history" style="color:var(--accent-orange);">[HISTORY]</a>
                 </div>`;
             if (data.categories) footer += `<div style="margin-bottom:10px;"><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}" style="color:var(--accent-orange); margin-right:8px;">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
             if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}" style="color:var(--accent-cyan); margin-right:8px;">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
@@ -201,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
             
             // Assemble: Content -> Footer -> Comments
-            if (isBoard) {
+            if (isBoard && !revId) {
                 articleBody.innerHTML = boardHtml + contentHtml + footer + commentsHtml;
             } else {
                 articleBody.innerHTML = contentHtml + footer + commentsHtml;
@@ -236,6 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         handleInternalLinks();
         if (mode === 'edit') await loadEditor(title);
+        else if (mode === 'history') await loadHistory(title);
         else await renderArticle(title);
         updateSidebarActivity();
     }
