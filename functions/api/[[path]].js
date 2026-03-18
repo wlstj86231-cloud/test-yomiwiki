@@ -175,10 +175,30 @@ export async function onRequest(context) {
         }
 
         else if (path.startsWith('/article/') && method === "GET") {
-            const title = normalizeTitle(path.substring(9));
-            const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(title).first();
-            if (!article) { status = 404; resData = {}; }
-            else resData = { ...article, author_tier: await getAgentTier(article.author) };
+            try {
+                const title = normalizeTitle(path.substring(9));
+                if (!env.DB) throw new Error("DATABASE_BINDING_MISSING");
+                
+                // 37 & 38. Consistent normalization: Search both with space and underscore
+                const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ? OR title = ?").bind(title, title.replace(/ /g, '_')).first();
+                
+                if (!article) { 
+                    status = 404; 
+                    resData = { error: "RECORD_NOT_FOUND", requested_title: title }; 
+                }
+                else {
+                    const authorTier = await getAgentTier(article.author);
+                    resData = { ...article, author_tier: authorTier };
+                }
+            } catch (dbErr) {
+                status = 500;
+                resData = { 
+                    error: "BACKEND_CRASH", 
+                    msg: dbErr.message, 
+                    stack: dbErr.stack,
+                    context: "ARTICLE_GET_ROUTE"
+                };
+            }
         }
 
         else if (path.startsWith('/article/') && method === "POST") {

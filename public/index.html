@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YomiWiki | Archival Gateway [SECURE]</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/style.css">
     
     <!-- 83. KaTeX Support -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -83,6 +83,7 @@
                 <nav class="breadcrumb" id="breadcrumb" aria-label="Breadcrumb"></nav>
                 <header class="article-header">
                     <nav class="article-actions" style="float:right;" aria-label="Article Actions">
+                        <a href="javascript:void(0)" id="btn-share" class="mono">[Share]</a>
                         <a href="?mode=backlinks" id="link-backlinks" class="mono">[Backlinks]</a>
                         <a href="?mode=history" id="link-history" class="mono">[History]</a>
                     </nav>
@@ -117,9 +118,23 @@
         <p>&copy; 2026 YomiWiki Archival Gateway. unauthorized access is logged by IP.</p>
     </footer>
 
+    <!-- Share Modal -->
+    <div id="share-modal" class="yomi-modal-overlay" style="display:none;">
+        <div class="yomi-modal">
+            <div class="modal-header-clinical">[SHARE_RECORD_LINK]</div>
+            <div class="yomi-modal-message">Record URL has been generated for external uplink.</div>
+            <input type="text" id="share-url-input" class="yomi-modal-input" readonly style="width: calc(100% - 4rem); margin: 0 2rem 2rem 2rem;">
+            <div class="yomi-modal-actions">
+                <button class="btn-action modal-btn-confirm" id="btn-share-copy">[COPY_LINK]</button>
+                <button class="btn-action modal-btn-cancel" id="btn-share-close">[CLOSE]</button>
+            </div>
+        </div>
+    </div>
+
     <button id="btn-back-to-top" class="btn-floating" onclick="window.scrollToTop()" aria-label="Scroll to top of record">[TOP]</button>
 
-    <script src="parser.js"></script>
-    <script src="main.js"></script>
+    <script src="/parser.js"></script>
+    <script src="/main.js"></script>
+    <script src="/share-modal.js"></script>
 </body>
 </html>
