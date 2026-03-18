@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res.ok) {
             document.getElementById('new-comment-content').value = '';
             renderComments(title, document.getElementById('integrated-discussion'));
+            updateSidebarActivity(); // Refresh sidebar log immediately on comment
         }
     };
 
@@ -98,8 +99,6 @@ document.addEventListener('DOMContentLoaded', () => {
             let footer = '<div class="article-footer">';
             if (data.categories) footer += `<div><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
             footer += '</div>';
-
-            // --- [INTEGRATE DISCUSSION] ---
             footer += `<div id="integrated-discussion" class="integrated-discussion"></div>`;
             
             articleBody.innerHTML = html + footer;
@@ -108,38 +107,36 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { articleBody.innerHTML = "CRITICAL_SYSTEM_ERROR"; }
     }
 
-    async function loadRecentChanges() {
-        const mainTitle = document.getElementById('article-title');
-        const articleBody = document.querySelector('.article-body');
-        mainTitle.textContent = "SYSTEM_ACTIVITY_LOG";
-        articleBody.innerHTML = `<div id="activity-log" class="activity-log">Establishing link...</div>`;
-        
+    // --- [Live Sidebar Activity Log] ---
+    async function updateSidebarActivity() {
+        const sidebarLog = document.getElementById('sidebar-live-activity');
+        if (!sidebarLog) return;
+
         try {
             const res = await securedFetch(`${API_ENDPOINT}/history`);
             const logs = await res.json();
-            const logDiv = document.getElementById('activity-log');
-            logDiv.innerHTML = logs.map(l => {
-                const actionTag = l.type === 'edit' ? '<span class="tag-edit">[NEW_DATA]</span>' : '<span class="tag-comment">[DISCUSSING]</span>';
-                return `<div class="log-entry">
-                    <span class="log-time">[${l.timestamp.split(' ')[1] || ""}]</span> 
-                    ${actionTag} in 
-                    <a href="/w/${encodeURIComponent(l.title.replace(/ /g, '_'))}" class="log-node">${escapeHTML(l.title)}</a> 
-                    by <span class="log-agent">Agent_${escapeHTML(l.author)}</span>
+            sidebarLog.innerHTML = logs.map(l => {
+                const time = l.timestamp.split(' ')[1]?.substring(0, 5) || "";
+                const tag = l.type === 'edit' ? '<span class="tag-edit">[DATA]</span>' : '<span class="tag-comment">[DISC]</span>';
+                return `<div style="margin-bottom:8px; line-height:1.2; border-bottom:1px solid #151515; padding-bottom:4px;">
+                    <span style="color:#444;">${time}</span> ${tag} 
+                    <a href="/w/${encodeURIComponent(l.title.replace(/ /g, '_'))}" style="color:#aaa; text-decoration:none;">${escapeHTML(l.title)}</a>
                 </div>`;
             }).join('');
-        } catch (e) { articleBody.innerHTML = "LOG_UPLINK_FAILED"; }
+        } catch (e) { sidebarLog.textContent = "SYNC_OFFLINE"; }
     }
 
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         const path = window.location.pathname;
         let title = path.startsWith('/w/') ? decodeURIComponent(path.substring(3)).replace(/[_\s]+/g, ' ').trim() : 'Main_Page';
-        const mode = urlParams.get('mode');
-
+        
         handleInternalLinks();
-        if (mode === 'recent') await loadRecentChanges();
-        else await renderArticle(title);
+        await renderArticle(title);
+        updateSidebarActivity(); // Load sidebar activity on every page
     }
 
     init();
+    // Auto-sync sidebar every 30 seconds
+    setInterval(updateSidebarActivity, 30000);
 });
