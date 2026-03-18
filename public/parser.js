@@ -104,12 +104,13 @@ function wikiParse(content) {
         return `<h${level} id="${id}">${cleanTitle}</h${level}>`;
     });
 
-    // 59. Footnotes collection [* text]
+    // 59. Footnotes collection [* text] - High Precision Implementation
     const footnotes = [];
     html = html.replace(/\[\* (.*?)\]/g, (match, fnContent) => {
         const num = footnotes.length + 1;
-        footnotes.push(fnContent.trim());
-        return `<sup><a href="#fn-${num}" id="fnref-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${escapeHTML(fnContent.trim())}">[${num}]</a></sup>`;
+        const cleanContent = fnContent.trim();
+        footnotes.push(cleanContent);
+        return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${escapeHTML(cleanContent)}">[${num}]</a></sup>`;
     });
 
     // 57. Headers and TOC collection (Wiki Syntax)
@@ -319,18 +320,20 @@ function wikiParse(content) {
         parsedContent = tocHtml + parsedContent;
     }
 
-    // 59. Footnote List Injection
+    // 59. Footnote List Injection (Wiki V3 Advanced)
     if (footnotes.length > 0) {
         let fnHtml = `
-            <div class="footnotes-section" style="margin-top:50px; border-top:1px solid #333; padding-top:20px;">
+            <div class="wiki-footnotes" style="margin-top:50px; border-top:1px solid #333; padding-top:20px;">
                 <div style="font-size:0.8rem; color:#666; margin-bottom:10px; font-family:var(--font-mono);">[ARCHIVAL_FOOTNOTES]</div>
                 <ol style="font-size:0.85rem; color:var(--text-main); line-height:1.6;">
-                    ${footnotes.map((content, i) => `
-                        <li id="fn-${i+1}">
+                    ${footnotes.map((content, i) => {
+                        const num = i + 1;
+                        return `
+                        <li id="fn-${num}">
                             ${wikiParse(content)} 
-                            <a href="#fnref-${i+1}" style="color:var(--accent-orange); text-decoration:none; margin-left:5px;">↩</a>
-                        </li>
-                    `).join('')}
+                            <a href="#fn-ref-${num}" style="color:var(--accent-orange); text-decoration:none; margin-left:5px;">↩</a>
+                        </li>`;
+                    }).join('')}
                 </ol>
             </div>
         `;
