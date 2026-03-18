@@ -174,7 +174,7 @@ html, body {
 .infobox {
     float: right;
     width: 320px;
-    background: #111;
+    background: #000;
     border: 1px solid var(--accent-orange);
     margin: 0 0 1.5rem 1.5rem;
     padding: 0;
@@ -196,66 +196,36 @@ html, body {
 }
 
 .infobox table { width: 100%; border-collapse: collapse; }
-.infobox th { background: rgba(255,153,0,0.1); color: var(--accent-orange); padding: 8px 12px; text-align: left; width: 35%; border-bottom: 1px solid #222; }
-.infobox td { padding: 8px 12px; border-bottom: 1px solid #222; }
+.infobox th { background: rgba(255,153,0,0.05); color: var(--accent-orange); padding: 10px 12px; text-align: left; width: 35%; border-bottom: 1px solid #111; font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; }
+.infobox td { padding: 10px 12px; border-bottom: 1px solid #111; }
 
-/* --- [Integrated Discussion Styling] --- */
-.integrated-discussion { margin-top: 60px; border-top: 2px solid var(--border-color); padding-top: 30px; }
-.discussion-header { font-family: var(--font-mono); color: var(--accent-orange); font-weight: bold; margin-bottom: 20px; font-size: 0.9rem; }
-.comment-item { background: rgba(255,255,255,0.02); border-left: 3px solid var(--border-color); padding: 15px 20px; margin-bottom: 15px; }
-.comment-meta { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; }
-.comment-body { font-size: 0.95rem; line-height: 1.6; }
-.comment-form { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; }
-.comment-form textarea { background: #000; border: 1px solid var(--border-color); color: #0f0; padding: 15px; font-family: var(--font-mono); height: 100px; resize: none; outline: none; }
-
-/* --- [Table of Contents Styling] --- */
-.toc {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    padding: 1.2rem;
-    display: inline-block;
-    min-width: 250px;
-    margin-bottom: 2rem;
-    font-size: 0.85rem;
-}
-.toc-title {
-    font-family: var(--font-mono);
-    color: var(--accent-orange);
-    font-weight: 800;
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 5px;
-    display: flex;
-    justify-content: space-between;
-}
-.toc-toggle { cursor: pointer; color: var(--text-dim); font-size: 0.7rem; }
-.toc ul { margin-top: 10px; }
-.toc li { margin-bottom: 5px; }
-.toc-level-2 { padding-left: 0; }
-.toc-level-3 { padding-left: 15px; }
-.toc-level-4 { padding-left: 30px; }
-.toc-number { color: var(--text-dim); margin-right: 8px; font-family: var(--font-mono); font-size: 0.75rem; }
-.toc a:hover { color: var(--accent-orange); text-decoration: underline !important; }
+.infobox-image-cell { padding: 0 !important; border-bottom: 1px solid var(--accent-orange) !important; }
+.infobox-image-cell img { display: block; width: 100%; height: auto; }
+.infobox-caption-cell { padding: 8px 12px !important; background: #050505; font-size: 0.75rem; color: var(--text-muted); text-align: center; border-bottom: 1px solid var(--accent-orange) !important; font-style: italic; }
 
 /* --- [Wiki Table Styling] --- */
 .wikitable {
     width: 100%;
     border-collapse: collapse;
-    margin: 1.5rem 0;
+    margin: 2rem 0;
     font-size: 0.9rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid var(--border-color);
 }
 .wikitable th, .wikitable td {
     border: 1px solid var(--border-color);
-    padding: 10px 15px;
+    padding: 12px 15px;
     text-align: left;
 }
 .wikitable th {
-    background: #151515;
+    background: #111;
     color: var(--accent-orange);
     font-family: var(--font-mono);
     text-transform: uppercase;
+    font-size: 0.8rem;
+    border-bottom: 2px solid var(--accent-orange);
 }
+.wikitable tr:hover { background: rgba(255, 153, 0, 0.02); }
 
 /* --- [Clinical Report Block] --- */
 .clinical-report-block {
