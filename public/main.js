@@ -161,6 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const link = e.target.closest('a');
             if (link && link.href && link.href.startsWith(window.location.origin) && !link.target && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
                 const url = new URL(link.href);
+                
+                // --- [FIX: Anchor Links Exception] ---
+                // '#'으로 시작하거나 현재 페이지 내의 앵커 링크인 경우 라우팅을 가로채지 않음
+                if (link.getAttribute('href').startsWith('#')) {
+                    return; // 브라우저 기본 스크롤 동작 허용
+                }
+
                 // API 경로나 정적 파일 등은 제외
                 if (!url.pathname.startsWith('/api') && !url.pathname.includes('.')) {
                     e.preventDefault();
