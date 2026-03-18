@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YomiWiki | Archival Gateway [SECURE]</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <!-- FORCE REFRESH v1.0.4 -->
-    <link rel="stylesheet" href="/style.css?v=1.0.4">
+    <!-- FORCE REFRESH v1.0.5 -->
+    <link rel="stylesheet" href="/style.css?v=1.0.5">
     
     <!-- 83. KaTeX Support -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -32,6 +32,10 @@
         <div class="terminal-cursor">_</div>
     </div>
 
+    <div class="news-ticker" id="news-ticker" role="status" aria-live="polite">
+        <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED TO NODE_772. [WARNING]: SENSITIVE_DATA_EXPOSURE_DETECTED_IN_SECTOR_4. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT.</div>
+    </div>
+
     <header class="header" role="banner">
         <div class="logo-group">
             <div class="logo">YomiWiki</div>
@@ -49,10 +53,6 @@
             <input type="text" placeholder="Query database..." class="search-input" aria-label="Search archival records">
         </div>
     </header>
-
-    <div class="news-ticker" id="news-ticker" role="status" aria-live="polite">
-        <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED TO NODE_772. [WARNING]: SENSITIVE_DATA_EXPOSURE_DETECTED_IN_SECTOR_4. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT.</div>
-    </div>
 
     <div class="container">
         <aside class="sidebar" role="complementary" aria-label="Sidebar Activity Log">
@@ -139,7 +139,7 @@
         <div class="yomi-modal">
             <div class="modal-header-clinical">[SHARE_RECORD_LINK]</div>
             <div class="yomi-modal-message">Record URL has been generated for external uplink.</div>
-            <input type="text" id="share-url-input" class="yomi-modal-input" readonly style="width: calc(100% - 4rem); margin: 0 2rem 2rem 2rem;">
+            <input type="text" id="share-url-input" class="yomi-modal-input" readonly>
             <div class="yomi-modal-actions">
                 <button class="btn-action modal-btn-confirm" id="btn-share-copy">[COPY_LINK]</button>
                 <button class="btn-action modal-btn-cancel" id="btn-share-close">[CLOSE]</button>
@@ -149,8 +149,8 @@
 
     <button id="btn-back-to-top" class="btn-floating" onclick="window.scrollToTop()" aria-label="Scroll to top of record">[TOP]</button>
 
-    <script src="/parser.js?v=1.0.4"></script>
-    <script src="/main.js?v=1.0.4"></script>
-    <script src="/share-modal.js?v=1.0.4"></script>
+    <script src="/parser.js?v=1.0.5"></script>
+    <script src="/main.js?v=1.0.5"></script>
+    <script src="/share-modal.js?v=1.0.5"></script>
 </body>
 </html>

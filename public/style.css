@@ -6,7 +6,7 @@ ul, ol { list-style: none !important; padding: 0; margin: 0; }
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 :root {
-    /* --- [1. Color Palette: Clinical Dark] --- */
+    /* --- [1. Color Palette] --- */
     --bg-main: #0a0a0a;
     --bg-sidebar: #111111;
     --bg-card: #141414;
@@ -21,27 +21,24 @@ ul, ol { list-style: none !important; padding: 0; margin: 0; }
     --text-main: #d1d1d1;
     --text-muted: #888888;
     --text-dim: #555555;
-    --text-critical: #ff4444;
     
     --border-color: #222222;
     --border-bright: #333333;
     --border-hazard: #444444;
 
-    /* --- [2. Typography] --- */
     --font-mono: 'JetBrains Mono', 'Courier New', monospace;
-    --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-sans: 'Inter', 'Segoe UI', sans-serif;
 
-    /* --- [3. UI Constants] --- */
-    --radius: 0px; 
     --header-height: 70px;
     --sidebar-width: 300px;
     --max-content-width: 1400px;
-    --shadow-glow: 0 0 15px rgba(255, 153, 0, 0.1);
+    --shadow-glow: 0 0 15px rgba(255, 153, 0, 0.15);
 }
 
-/* --- [CSS Reset] --- */
 html, body {
     height: 100%;
+    margin: 0;
+    padding: 0;
     background-color: var(--bg-main);
     color: var(--text-main);
     font-family: var(--font-sans);
@@ -49,7 +46,7 @@ html, body {
     overflow-x: hidden;
 }
 
-/* --- [News Ticker Styling] --- */
+/* --- [News Ticker] --- */
 .news-ticker {
     background: var(--accent-orange);
     color: #000;
@@ -61,8 +58,8 @@ html, body {
     font-weight: 800;
     text-transform: uppercase;
     overflow: hidden;
-    position: relative;
-    border-bottom: 1px solid #000;
+    position: sticky;
+    top: 0;
     z-index: 1100;
 }
 
@@ -78,7 +75,7 @@ html, body {
     100% { transform: translate3d(-100%, 0, 0); }
 }
 
-/* --- [Header & Navigation] --- */
+/* --- [Header] --- */
 .header {
     height: var(--header-height);
     background: var(--bg-sidebar);
@@ -88,104 +85,93 @@ html, body {
     align-items: center;
     justify-content: space-between;
     position: sticky;
-    top: 0;
+    top: 30px; /* Below ticker */
     z-index: 1000;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
 }
 
-.nav {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-
-.nav-list {
-    display: flex;
-    gap: 1.5rem;
-}
-
-.nav-list li a {
-    font-family: var(--font-mono);
-    color: var(--accent-orange) !important;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 5px 10px;
-    border: 1px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.nav-list li a:hover {
-    background: rgba(255, 153, 0, 0.1);
-    border-color: var(--accent-orange);
-    box-shadow: var(--shadow-glow);
-}
-
-/* --- [Boot Terminal UI Overlay] --- */
-.boot-terminal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: #000 !important; /* Total black for overlay */
-    z-index: 100000; /* Highest z-index */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    font-family: var(--font-mono);
-}
-
-.terminal-output {
-    max-width: 700px;
-    width: 90%;
-    font-size: 1rem;
-    line-height: 1.8;
-    color: var(--accent-orange);
-    text-shadow: 0 0 5px rgba(255, 153, 0, 0.5);
-}
-
-/* --- [Other Styles - Preserved & Cleaned] --- */
-.logo-group { display: flex; flex-direction: column; }
-.logo {
-    font-family: var(--font-mono);
-    color: var(--accent-orange);
-    font-size: 1.5rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    line-height: 1;
-}
+.logo { font-family: var(--font-mono); color: var(--accent-orange); font-size: 1.5rem; font-weight: 900; text-transform: uppercase; }
 .status-indicator { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
 .blink { animation: blink 1s infinite; color: var(--accent-orange); }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-.search-bar { position: relative; }
-.search-input {
-    background: var(--bg-input);
-    border: 1px solid var(--border-color);
-    color: var(--accent-orange);
-    padding: 8px 15px;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    width: 250px;
-    outline: none;
+.nav-list { display: flex; gap: 1rem; }
+.nav-list a { font-family: var(--font-mono); color: var(--accent-orange) !important; font-size: 0.85rem; padding: 5px 10px; border: 1px solid transparent; }
+.nav-list a:hover { background: rgba(255, 153, 0, 0.1); border-color: var(--accent-orange); }
+
+/* --- [YOMI MODAL - IMPORTANT FIX] --- */
+.yomi-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex !important; /* Ensure it shows as flex when active */
+    align-items: center;
+    justify-content: center;
+    z-index: 99999; /* Top of everything */
+    backdrop-filter: blur(10px);
 }
-.search-input:focus { border-color: var(--accent-orange); box-shadow: var(--shadow-glow); }
 
-.container { display: flex; flex: 1; width: 100%; max-width: var(--max-content-width); margin: 0 auto; padding: 2rem; gap: 2rem; }
-.main-content { flex: 1; min-width: 0; }
-.sidebar { width: var(--sidebar-width); flex-shrink: 0; }
+.yomi-modal {
+    background: var(--bg-sidebar);
+    border: 1px solid var(--accent-orange);
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 0 50px rgba(0,0,0,1), var(--shadow-glow);
+    font-family: var(--font-mono);
+    animation: modal-slide-up 0.3s ease-out;
+}
 
-.article { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2.5rem; }
-.article-title { font-family: var(--font-mono); color: var(--accent-orange); font-size: 2.2rem; margin-bottom: 0.5rem; }
-.article-meta { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 2rem; }
+@keyframes modal-slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
 
-/* 404 Custom UI */
-.article-body .not-found-container { text-align: center; padding: 50px; border: 1px dashed var(--hazard-red); background: rgba(255,68,68,0.02); }
+.modal-header-clinical {
+    background: #222;
+    color: var(--accent-orange);
+    padding: 10px 15px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    border-bottom: 1px solid var(--accent-orange);
+    text-transform: uppercase;
+}
 
-/* --- [Transitions] --- */
+.yomi-modal-message { padding: 30px; font-size: 0.9rem; color: #fff; line-height: 1.6; }
+.yomi-modal-input { width: calc(100% - 60px); margin: 0 30px 30px 30px; background: #000; border: 1px solid #333; color: var(--accent-orange); padding: 10px; font-family: inherit; }
+.yomi-modal-actions { display: flex; border-top: 1px solid #222; }
+.btn-action { flex: 1; padding: 15px; background: transparent; border: none; color: var(--accent-orange); cursor: pointer; text-transform: uppercase; font-weight: bold; }
+.btn-action:hover { background: rgba(255, 153, 0, 0.1); }
+.modal-btn-cancel { border-right: 1px solid #222 !important; color: var(--text-muted); }
+
+/* --- [Floating Elements] --- */
+.btn-floating {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid var(--accent-orange);
+    color: var(--accent-orange);
+    padding: 10px 15px;
+    font-family: var(--font-mono);
+    z-index: 5000;
+    cursor: pointer;
+}
+
+.btn-floating:hover { background: var(--accent-orange); color: #000; }
+
+/* --- [Boot Terminal] --- */
+.boot-terminal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #000;
+    z-index: 100000;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; font-family: var(--font-mono); color: var(--accent-orange);
+}
 .boot-terminal.fade-out { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
 
-/* --- [Interface Control Buttons] --- */
+/* --- [Interface Controls] --- */
 .btn-clinical-toggle {
     background: transparent;
     border: 1px solid var(--accent-orange);
@@ -194,29 +180,27 @@ html, body {
     font-size: 0.7rem;
     padding: 6px 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    position: relative;
-    overflow: hidden;
 }
+.btn-clinical-toggle:hover { background: var(--accent-orange); color: #000; }
 
-.btn-clinical-toggle:hover {
-    background: var(--accent-orange);
-    color: #000;
-    box-shadow: 0 0 15px rgba(255, 153, 0, 0.4);
+/* --- [Layout] --- */
+.container { display: flex; max-width: var(--max-content-width); margin: 0 auto; padding: 2rem; gap: 2rem; min-height: calc(100vh - 100px); }
+.sidebar { width: var(--sidebar-width); flex-shrink: 0; }
+.main-content { flex: 1; min-width: 0; }
+.article { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2.5rem; }
+.article-title { font-family: var(--font-mono); color: var(--accent-orange); font-size: 2.2rem; }
+
+/* --- [Footnotes & Footer] --- */
+.footnotes-section { margin-top: 50px; border-top: 1px solid #333; padding-top: 20px; }
+.article-footer { margin-top: 50px; border-top: 1px solid #222; padding-top: 20px; }
+.footer { background: var(--bg-sidebar); border-top: 1px solid var(--border-color); padding: 2rem; text-align: center; font-size: 0.8rem; color: var(--text-dim); }
+
+/* --- [Search Suggestions] --- */
+#search-suggestions {
+    position: absolute; top: 100%; left: 0; width: 100%;
+    background: var(--bg-sidebar); border: 1px solid var(--border-color);
+    z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
-
-/* Toggle Active State */
-.btn-clinical-toggle[aria-pressed="true"] {
-    background: rgba(255, 153, 0, 0.1);
-    border-style: double;
-    border-width: 3px;
-    font-weight: bold;
-}
-
-/* Existing components preserved... */
-.toc { display: inline-block; padding: 15px 25px; background: var(--bg-sidebar); border: 1px solid var(--border-color); margin-bottom: 2rem; }
-.toc-title { font-weight: bold; color: var(--accent-orange); font-family: var(--font-mono); }
-.wikitable { border-collapse: collapse; width: 100%; border: 1px solid var(--border-color); }
-.wikitable th { background: #1a1a1a; color: var(--accent-orange); font-family: var(--font-mono); }
+.suggestion-item { padding: 10px; border-bottom: 1px solid #222; cursor: pointer; color: var(--accent-orange); }
+.suggestion-item:hover { background: #1a1a1a; }
