@@ -185,6 +185,36 @@ html, body {
 /* --- [Transitions] --- */
 .boot-terminal.fade-out { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
 
+/* --- [Interface Control Buttons] --- */
+.btn-clinical-toggle {
+    background: transparent;
+    border: 1px solid var(--accent-orange);
+    color: var(--accent-orange);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-clinical-toggle:hover {
+    background: var(--accent-orange);
+    color: #000;
+    box-shadow: 0 0 15px rgba(255, 153, 0, 0.4);
+}
+
+/* Toggle Active State */
+.btn-clinical-toggle[aria-pressed="true"] {
+    background: rgba(255, 153, 0, 0.1);
+    border-style: double;
+    border-width: 3px;
+    font-weight: bold;
+}
+
 /* Existing components preserved... */
 .toc { display: inline-block; padding: 15px 25px; background: var(--bg-sidebar); border: 1px solid var(--border-color); margin-bottom: 2rem; }
 .toc-title { font-weight: bold; color: var(--accent-orange); font-family: var(--font-mono); }
