@@ -73,12 +73,8 @@ export async function onRequest(context) {
     }
 
     async function logAndCheckRateLimit(ip, action, limit = SECURITY_CONFIG.MAX_REQUESTS_PER_WINDOW) {
-        // Optimization: Use a single query to check and potentially block
         const { count } = await env.DB.prepare("SELECT COUNT(*) as count FROM ip_logs WHERE ip_address = ? AND action = ? AND timestamp > datetime('now', '-60 seconds')").bind(ip, action).first();
-        
-        // Log the current request asynchronously to not block the response
         context.waitUntil(env.DB.prepare("INSERT INTO ip_logs (ip_address, action) VALUES (?, ?)").bind(ip, action).run());
-        
         return count < limit;
     }
 
@@ -127,8 +123,6 @@ export async function onRequest(context) {
 
         if (path === '/auth/register' && method === "POST") {
             const { username, password, email } = await request.json();
-            
-            // 92. Server-side Validation
             if (!username || username.length < SECURITY_CONFIG.MIN_USERNAME_LENGTH || username.length > SECURITY_CONFIG.MAX_USERNAME_LENGTH) 
                 return new Response(JSON.stringify({ error: "INVALID_USERNAME_LENGTH" }), { status: 400, headers: securityHeaders });
             if (!/^[a-zA-Z0-9_\-]+$/.test(username)) 
@@ -137,8 +131,6 @@ export async function onRequest(context) {
                 return new Response(JSON.stringify({ error: "RESERVED_USERNAME" }), { status: 400, headers: securityHeaders });
             if (!password || password.length < SECURITY_CONFIG.MIN_PASSWORD_LENGTH) 
                 return new Response(JSON.stringify({ error: "INVALID_PASSWORD_LENGTH" }), { status: 400, headers: securityHeaders });
-            
-            // Basic Email Validation if provided
             if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
                 return new Response(JSON.stringify({ error: "INVALID_EMAIL_FORMAT" }), { status: 400, headers: securityHeaders });
 
@@ -183,7 +175,6 @@ export async function onRequest(context) {
                 const title = normalizeTitle(path.substring(9));
                 if (!env.DB) throw new Error("DATABASE_BINDING_MISSING");
                 
-                // 37 & 38. Single Query with JOIN & Subquery for contribution count
                 const query = `
                     SELECT a.*, 
                     (SELECT COUNT(*) FROM revisions WHERE editor_info = a.author) as author_contribution_count
@@ -198,14 +189,11 @@ export async function onRequest(context) {
                 }
                 else {
                     let fullContent = article.current_content;
-                    
-                    // Step 39. Handle Large Document Chunks
                     if (article.is_chunked) {
                         const { results } = await env.DB.prepare("SELECT content FROM article_chunks WHERE article_id = ? ORDER BY chunk_order ASC").bind(article.id).all();
                         fullContent = results.map(r => r.content).join('');
                     }
 
-                    // Map numeric count to Tier Level (Integrated logic)
                     const count = article.author_contribution_count || 0;
                     const authorTier = {
                         count,
@@ -213,18 +201,13 @@ export async function onRequest(context) {
                         title: count >= 100 ? "OVERSEER" : count >= 50 ? "FIELD LEAD" : count >= 10 ? "SENIOR AGENT" : "JUNIOR AGENT"
                     };
 
-                    // Step 4-1. Fetch Backlinks
                     const { results: backlinks } = await env.DB.prepare("SELECT from_title FROM links WHERE to_title = ? LIMIT 50").bind(article.title).all();
 
                     resData = { ...article, current_content: fullContent, author_tier: authorTier, backlinks: backlinks.map(b => b.from_title) };
                 }
             } catch (dbErr) {
                 status = 500;
-                resData = { 
-                    error: "BACKEND_CRASH", 
-                    msg: dbErr.message, 
-                    context: "ARTICLE_GET_ROUTE"
-                };
+                resData = { error: "BACKEND_CRASH", msg: dbErr.message, context: "ARTICLE_GET_ROUTE" };
             }
         }
 
@@ -244,7 +227,6 @@ export async function onRequest(context) {
                     status = 403;
                     resData = { error: "INSUFFICIENT_CLEARANCE", required: requiredLevel, current: userTier.numeric };
                 } else {
-                    // --- [Step 4-1 & 4-2. Extract Links & Categories] ---
                     const linkRegex = /\[\[(.*?)\]\]/g;
                     let match;
                     const foundLinks = new Set();
@@ -274,9 +256,6 @@ export async function onRequest(context) {
                     
                     if (article && article.author !== session.sub) await createNotification(article.author, 'edit', session.sub, title, null, `Your article "${title}" has been updated.`);
                     resData = { success: true };
-                }
-            }
-        }
                 }
             }
         }
@@ -410,7 +389,7 @@ export async function onRequest(context) {
                 const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
                 const { content, parent_id } = await request.json();
                 const author = session ? session.sub : 'Anonymous';
-                const result = await env.DB.prepare("INSERT INTO comments (article_title, author, content, parent_id) VALUES (?, ?, ?, ?)").bind(title, author, content, parent_id || null).run();
+                await env.DB.prepare("INSERT INTO comments (article_title, author, content, parent_id) VALUES (?, ?, ?, ?)").bind(title, author, content, parent_id || null).run();
                 if (parent_id) {
                     const parent = await env.DB.prepare("SELECT author FROM comments WHERE id = ?").bind(parent_id).first();
                     if (parent && parent.author !== author) await createNotification(parent.author, 'reply', author, title, null, `New reply to your comment on "${title}".`);
