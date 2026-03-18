@@ -183,7 +183,7 @@ html, body {
 .article-body .not-found-container { text-align: center; padding: 50px; border: 1px dashed var(--hazard-red); background: rgba(255,68,68,0.02); }
 
 /* --- [Transitions] --- */
-.boot-terminal.fade-out { opacity: 0; transition: opacity 1.5s ease; pointer-events: none; }
+.boot-terminal.fade-out { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
 
 /* Existing components preserved... */
 .toc { display: inline-block; padding: 15px 25px; background: var(--bg-sidebar); border: 1px solid var(--border-color); margin-bottom: 2rem; }

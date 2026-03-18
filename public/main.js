@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
             bootTerminal.classList.add('fade-out');
             setTimeout(() => {
                 bootTerminal.style.display = 'none';
-            }, 1000);
-        }, 2500);
+            }, 400);
+        }, 800);
     }
 
     const API_ENDPOINT = '/api';
