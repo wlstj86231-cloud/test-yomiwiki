@@ -53,7 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!authContainer) return;
 
         if (currentUser) {
+            const adminBtn = currentUser.role === 'admin' ? `<button onclick="window.navigateTo('/admin')" class="auth-btn" style="border-color:var(--accent-cyan); color:var(--accent-cyan); margin-right:5px;">[ADMIN]</button>` : "";
             authContainer.innerHTML = `
+                ${adminBtn}
                 <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-right:10px;">[AGENT: ${escapeHTML(currentUser.username)}]</span>
                 <button onclick="window.logout()" class="auth-btn logout">[LOGOUT]</button>
             `;
@@ -99,11 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
         function buildCommentItem(c, indexStr, depth = 0) {
             const isReply = depth > 0;
             const subComments = children.filter(child => child.parent_id === c.id);
+            const deleteBtn = currentUser?.role === 'admin' ? `<button onclick="window.adminDeleteComment('${escapeHTML(title)}', '${c.id}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem;">[PURGE]</button>` : "";
+            
             return `
                 <div class="comment-item" style="margin-left:${depth * 20}px; border-left:2px solid ${isReply ? '#222' : 'var(--accent-orange)'}; padding:10px 15px; margin-bottom:2px; background:rgba(255,255,255,0.005);">
                     <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-bottom:5px; display:flex; justify-content:space-between;">
                         <span><span style="color:var(--accent-orange); font-weight:bold;">${indexStr}</span> AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span></span>
-                        <span>[${c.timestamp}]</span>
+                        <span>${deleteBtn} [${c.timestamp}]</span>
                     </div>
                     <div style="font-size:0.9rem; color:var(--text-main); line-height:1.4;">${escapeHTML(c.content).replace(/\n/g, '<br>')}</div>
                 </div>
@@ -139,6 +143,29 @@ document.addEventListener('DOMContentLoaded', () => {
         finally { btn.disabled = false; }
     };
 
+    window.adminPurgeCurrentNode = async (title) => {
+        if (!confirm(`[ULTIMATE_WARNING]: PURGE node "${title}" from the archival grid? This action is irreversible.`)) return;
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/article/purge`, {
+                method: 'DELETE', body: JSON.stringify({ title })
+            });
+            if (res.ok) { 
+                alert(`[SYSTEM]: Node "${title}" has been successfully expunged.`);
+                window.navigateTo('/w/Main_Page');
+            }
+        } catch (e) { alert("[CRITICAL]: Purge sequence failed."); }
+    };
+
+    window.adminDeleteComment = async (title, commentId) => {
+        if (!confirm("[SYSTEM_CONFIRMATION]: PURGE this comment from archival records?")) return;
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}/comments/${commentId}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) { init(); }
+        } catch (e) { alert("[CRITICAL]: Command sequence interrupted."); }
+    };
+
     async function renderArticle(title) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
@@ -166,7 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             mainTitle.textContent = data.title || title;
-            metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"}`;
+            const purgeBtn = currentUser?.role === 'admin' ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
+            metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${purgeBtn}`;
 
             const isBoard = data.title && data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;

@@ -282,6 +282,23 @@ export async function onRequest(context) {
             } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
         }
 
+        // 11.1 ADMIN: DELETE COMMENT
+        else if (path.includes('/comments/') && method === "DELETE") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const parts = path.split('/');
+            const titlePart = parts[2];
+            const commentId = parts[4];
+            const title = normalizeTitle(titlePart);
+
+            const article = await env.DB.prepare("SELECT id, comments_data FROM articles WHERE title = ?").bind(title).first();
+            if (article) {
+                let comments = JSON.parse(article.comments_data || '[]');
+                comments = comments.filter(c => String(c.id) !== String(commentId));
+                await env.DB.prepare("UPDATE articles SET comments_data = ? WHERE id = ?").bind(JSON.stringify(comments), article.id).run();
+                resData = { success: true };
+            } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
+        }
+
         // 12. ASSETS (Upload & Serve)
         else if (path === '/assets/upload' && method === "POST") {
             if (!user) return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 401, headers: securityHeaders });
