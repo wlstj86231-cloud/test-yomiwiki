@@ -780,6 +780,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    async function loadHistory(titleOrId) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        
+        mainTitle.textContent = `ARCHIVAL_LOGS: ${titleOrId}`;
+        articleBody.innerHTML = '<div class="loading">[AWAITING_CHRONOLOGICAL_DATA...]</div>';
+
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(titleOrId)}/history`);
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            articleBody.innerHTML = `
+                <div class="history-container">
+                    <div style="background:rgba(255,153,0,0.05); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; font-family:var(--font-mono); font-size:0.90rem; color:var(--accent-orange);">
+                        [REVISION_HISTORY_PROTOCOL]: Displaying all recorded states for this node.
+                    </div>
+                    <div class="revision-list" style="display:flex; flex-direction:column; gap:10px;">
+                        ${data.map((rev, index) => `
+                            <div class="revision-item" style="background:#0a0a0a; border:1px solid #222; padding:15px; border-left:4px solid ${index === 0 ? 'var(--accent-orange)' : '#444'};">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                    <span style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-cyan);">REV_ID: ${rev.id}</span>
+                                    <span style="font-size:0.80rem; color:var(--text-dim); font-family:var(--font-mono);">[${rev.timestamp}]</span>
+                                </div>
+                                <div style="font-size:0.90rem; margin-bottom:10px; color:var(--text-main);">
+                                    <span style="color:var(--text-dim);">AGENT:</span> ${escapeHTML(rev.author)} | 
+                                    <span style="color:var(--text-dim);">LOG:</span> "${escapeHTML(rev.edit_summary || 'No summary provided')}"
+                                </div>
+                                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                                    <a href="/w/${encodeURIComponent(titleOrId)}?rev=${rev.id}" class="btn-clinical-toggle" style="font-size:0.75rem; padding:4px 10px;">[INSPECT_SNAPSHOT]</a>
+                                </div>
+                            </div>
+                        `).join('') || '<div style="text-align:center; padding:50px; opacity:0.5;">[NULL_DATA]: No revisions found.</div>'}
+                    </div>
+                    <div style="margin-top:30px;">
+                        <button onclick="window.navigateTo('/w/${encodeURIComponent(titleOrId)}')" class="btn-clinical-toggle">[BACK_TO_LIVE_NODE]</button>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            articleBody.innerHTML = `<div style="color:var(--hazard-red); border:1px solid var(--hazard-red); padding:30px;">[SIGNAL_ERROR]: Failed to retrieve history logs. ${e.message}</div>`;
+        }
+    }
+
     async function renderCategoryPage(categoryName) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
