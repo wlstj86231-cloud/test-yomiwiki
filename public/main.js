@@ -10,6 +10,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const API_ENDPOINT = '/api';
 
+    // --- [MOBILE DYNAMIC HEADER] ---
+    let lastScrollY = window.scrollY;
+    let lastTapTime = 0;
+    const headerEl = document.querySelector('.header');
+
+    window.addEventListener('scroll', () => {
+        if (window.innerWidth <= 768 && headerEl) {
+            const currentScrollY = window.scrollY;
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                headerEl.classList.add('header-hidden');
+            } else {
+                headerEl.classList.remove('header-hidden');
+            }
+            lastScrollY = currentScrollY;
+        }
+    });
+
+    document.addEventListener('touchend', (e) => {
+        if (window.innerWidth <= 768 && headerEl) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            if (tapLength < 300 && tapLength > 0) {
+                // Double tap detected
+                headerEl.classList.remove('header-hidden');
+            }
+            lastTapTime = currentTime;
+        }
+    });
+
     // --- [HELPERS] ---
     window.titleToSlug = (title) => {
         if (!title) return "";
@@ -207,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const subNodes = data.sub_articles || [];
                 boardHtml = `
                     <div style="margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
+                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
                         <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
                     </div>
                     <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">

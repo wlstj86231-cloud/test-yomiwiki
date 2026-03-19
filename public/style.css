@@ -511,7 +511,9 @@ html, body {
     }
 
     .container { padding: 1rem; gap: 1rem; }
-    .article-title { font-size: 1.6rem; }
+    .article-title { font-size: 1.2rem; margin-bottom: 0.5rem; }
+    .article-meta { font-size: 0.65rem; }
+    .sub-nodes-title { font-size: 1rem !important; }
     .logo { font-size: 1.4rem; }
     .search-input { font-size: 0.9rem; padding: 6px 12px; }
     .btn-clinical-toggle { padding: 8px 10px; font-size: 0.75rem; }
@@ -522,6 +524,10 @@ html, body {
         align-items: center;
         top: 0; /* Sticky to top on mobile */
         padding: 0.5rem 1rem;
+        transition: transform 0.3s ease-in-out; /* For hide/show animation */
+    }
+    .header.header-hidden {
+        transform: translateY(-100%);
     }
     .logo-group { margin-bottom: 5px; width: 100%; justify-content: center; }
     .search-bar { width: 100%; margin-bottom: 5px; }
