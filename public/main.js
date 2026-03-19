@@ -142,35 +142,39 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
                 boardHtml = `
-                    <div style="margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
-                        <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
+                    <div class="sector-board" style="margin-bottom:30px;">
+                        <div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
+                            <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
+                        </div>
+                        <div class="wiki-table-container" style="overflow-x:auto; background:#050505; border:1px solid #222;">
+                            <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
+                                <thead>
+                                    <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
+                                        <th style="padding:12px 15px; color:var(--accent-orange);">NODE</th>
+                                        <th style="padding:12px 15px; color:var(--accent-orange); text-align:center; width:80px;">ACTION</th>
+                                        <th style="padding:12px 15px; color:var(--accent-orange); width:120px;">AGENT</th>
+                                        <th style="padding:12px 15px; color:var(--accent-orange); text-align:right; width:150px;">TIMESTAMP</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${subNodes.length > 0 ? subNodes.map(sub => `
+                                        <tr style="border-bottom:1px solid #111;">
+                                            <td style="padding:10px 15px;"><a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
+                                            <td style="padding:10px 15px; text-align:center;"><a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a></td>
+                                            <td style="padding:10px 15px; color:var(--text-dim);">${escapeHTML(sub.author || "Unknown")}</td>
+                                            <td style="padding:10px 15px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
+                                        </tr>
+                                    `).join('') : `<tr><td colspan="4" style="padding:40px; text-align:center; opacity:0.3; font-style:italic;">[NULL_DATA_STREAM]: No archival nodes detected.</td></tr>`}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
-                        <thead>
-                            <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
-                                <th style="padding:10px; color:var(--accent-orange);">NODE</th>
-                                <th style="padding:10px; color:var(--accent-orange); text-align:center;">ACTION</th>
-                                <th style="padding:10px; color:var(--accent-orange);">AGENT</th>
-                                <th style="padding:10px; color:var(--accent-orange); text-align:right;">TIMESTAMP</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${subNodes.map(sub => `
-                                <tr style="border-bottom:1px solid #111;">
-                                    <td style="padding:10px;"><a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
-                                    <td style="padding:10px; text-align:center;"><a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a></td>
-                                    <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
-                                    <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
-                                </tr>
-                            `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_SUB_NODES]</td></tr>'}
-                        </tbody>
-                    </table>
                 `;
                 contentHtml = ""; // Hide protocol on board
             }
 
-            const commentsHtml = (isBoard && !revId) ? "" : renderCommentsHTML(data.title, data.comments || []);
+            const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
             articleBody.innerHTML = contentHtml + boardHtml + commentsHtml;
             window.scrollTo(0, 0);
 

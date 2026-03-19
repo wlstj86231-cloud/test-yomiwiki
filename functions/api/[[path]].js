@@ -86,10 +86,16 @@ export async function onRequest(context) {
             } else {
                 const { results: rawComments } = await env.DB.prepare("SELECT * FROM comments WHERE article_id = ? ORDER BY timestamp DESC").bind(article.id).all();
                 
+                // BOARD LOGIC: Final and Definitive Fix
                 let subArticles = [];
-                // Correct Board Logic: strictly check for Sector prefix without sub-slashes for top-level boards
                 if (article.title.startsWith('Sector:') && !article.title.substring(7).includes('/')) {
-                    const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE ? AND title != ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(`${article.title}/%`, article.title).all();
+                    const sectorPrefix = article.title + "/%";
+                    const { results } = await env.DB.prepare(`
+                        SELECT id, title, author, updated_at 
+                        FROM articles 
+                        WHERE title LIKE ? AND is_deleted = 0 
+                        ORDER BY updated_at DESC LIMIT 100
+                    `).bind(sectorPrefix).all();
                     subArticles = results;
                 }
 

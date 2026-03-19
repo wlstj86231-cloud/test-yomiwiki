@@ -34,3 +34,4 @@
 13v. 이 표의 디자인을 요미위키의 주황/검정 해커 터미널 테마에 맞게 CSS로 꾸며서, 모든 국가의 게시판에 똑같은 디자인이 적용되게 해줘.
 
 * RE-VERIFICATION: Fixed global API crashes and unified UI to English for stability. (v2.4.4)
+* ERROR_REPORT: Resolved board list and comment invisibility caused by over-simplification of SQL logic and data mapping. (v2.4.5)
