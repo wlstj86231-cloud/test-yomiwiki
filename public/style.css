@@ -343,15 +343,15 @@ html, body {
 .external-link { color: var(--accent-orange-dim); }
 .external-link:after { content: ' ↗'; font-size: 0.85rem; }
 
-/* --- [Layout & Container] --- */
+/* --- [Layout & Container Refinement] --- */
 .container { 
     display: flex; 
     flex: 1; 
     width: 100%; 
     max-width: var(--max-content-width); 
     margin: 0 auto; 
-    padding: 2rem 4rem; /* Increased side padding for ultra-wide screens */
-    gap: 3rem; /* Increased gap between sidebar and main content */
+    padding: 2rem 4rem; 
+    gap: 3rem; 
 }
 
 .sidebar { 
@@ -360,26 +360,72 @@ html, body {
 }
 
 .main-content {
-    flex: 1; /* Force main content to expand and fill all available space */
-    min-width: 0; /* Prevent flex overflow issues */
+    flex: 1;
+    min-width: 0; 
 }
 
-.sidebar-box { background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; margin-bottom: 1.5rem; }
-.sidebar-title { font-family: var(--font-mono); color: var(--accent-orange); font-size: 0.85rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
-.sidebar-live-activity { font-size: 0.90rem !important; }
+/* --- [Responsive Logic: Tactical Overhaul] --- */
 
-/* Mobile Responsiveness for Layout */
+/* 1. Large Tablets & Small Laptops (1024px ~ 1400px) */
+@media (max-width: 1400px) {
+    .container { padding: 2rem; gap: 2rem; }
+}
+
+/* 2. Tablets (768px ~ 1024px) */
 @media (max-width: 1024px) {
     .container {
         flex-direction: column;
         padding: 1.5rem;
+        gap: 2rem;
     }
     .sidebar {
         width: 100%;
-        order: 2; /* Move sidebar below content on mobile */
+        order: 2;
     }
     .main-content {
         order: 1;
+        width: 100%;
+    }
+    .header {
+        grid-template-columns: 1fr auto;
+        height: auto;
+        padding: 1rem;
+        gap: 15px;
+    }
+    .nav { grid-column: span 2; justify-content: center; border-top: 1px solid var(--border-color); padding-top: 10px; }
+    .search-bar { min-width: 0; }
+}
+
+/* 3. Mobile Phones (Up to 768px) */
+@media (max-width: 768px) {
+    .container { padding: 1rem; }
+    .article-title { font-size: 2rem; }
+    .logo { font-size: 1.4rem; }
+    .search-input { font-size: 0.9rem; padding: 8px 15px; }
+    .btn-clinical-toggle { padding: 10px 12px; font-size: 0.8rem; }
+    
+    .header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        top: 0; /* Sticky to top on mobile */
+    }
+    .logo-group { margin-bottom: 10px; width: 100%; justify-content: center; }
+    .search-bar { width: 100%; margin-bottom: 10px; }
+    .nav { width: 100%; border: none; padding: 0; }
+    .nav-list { justify-content: space-around; width: 100%; }
+    .nav-list li a { font-size: 0.8rem; padding: 5px; }
+
+    /* Fix for Table & InfoBox on Mobile */
+    .infobox {
+        width: 100%;
+        float: none;
+        margin: 0 0 2rem 0;
+    }
+    .wikitable {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
     }
 }
 
