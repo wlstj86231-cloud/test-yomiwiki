@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS articles (
     version INTEGER DEFAULT 1,
     is_locked INTEGER DEFAULT 0,
     is_chunked INTEGER DEFAULT 0,
-    is_deleted INTEGER DEFAULT 0
+    is_deleted INTEGER DEFAULT 0,
+    comments_data TEXT DEFAULT '[]' -- Added for integrated comments (v3.0)
 );
 -- 35. 분류 기반 조회 성능 향상을 위한 인덱스 (Item 60)
 CREATE INDEX IF NOT EXISTS idx_articles_classification ON articles(classification);
@@ -46,22 +47,6 @@ CREATE INDEX IF NOT EXISTS idx_revisions_timestamp_sort ON revisions(timestamp D
 -- 33. 문서 상태 및 작성자 필터링 최적화
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(is_deleted, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_articles_author ON articles(author);
-
--- comments: 토론 스레드
-CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    article_id INTEGER,
-    article_title TEXT NOT NULL COLLATE NOCASE,
-    author TEXT NOT NULL,
-    content TEXT NOT NULL,
-    parent_id INTEGER DEFAULT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(article_id) REFERENCES articles(id),
-    FOREIGN KEY(parent_id) REFERENCES comments(id)
-);
--- 33. 토론 로딩 성능 향상을 위한 인덱스
-CREATE INDEX IF NOT EXISTS idx_comments_article_id ON comments(article_id);
-CREATE INDEX IF NOT EXISTS idx_comments_article_title ON comments(article_title);
 
 -- reports: 콘텐츠 신고 내역
 CREATE TABLE IF NOT EXISTS reports (

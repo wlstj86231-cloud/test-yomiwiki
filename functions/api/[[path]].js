@@ -62,7 +62,7 @@ export async function onRequest(context) {
             let article;
             if (revId) {
                 const title = normalizeTitle(identifier);
-                article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, a.id FROM revisions r JOIN articles a ON r.article_id = a.id WHERE (a.title = ? OR a.id = ?) AND r.id = ?").bind(title, isNumericId ? parseInt(identifier) : -1, revId).first();
+                article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, a.id, a.comments_data FROM revisions r JOIN articles a ON r.article_id = a.id WHERE (a.title = ? OR a.id = ?) AND r.id = ?").bind(title, isNumericId ? parseInt(identifier) : -1, revId).first();
             } else {
                 if (isNumericId) article = await env.DB.prepare("SELECT * FROM articles WHERE id = ?").bind(parseInt(identifier)).first();
                 else article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(normalizeTitle(identifier)).first();
@@ -73,11 +73,10 @@ export async function onRequest(context) {
             } else {
                 let comments = [];
                 try {
-                    const { results } = await env.DB.prepare("SELECT * FROM comments WHERE article_id = ? ORDER BY timestamp DESC").bind(article.id).all();
-                    comments = results;
+                    comments = JSON.parse(article.comments_data || '[]');
                 } catch (e) {
-                    const { results } = await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(article.title).all();
-                    comments = results;
+                    console.error("COMMENT_PARSE_ERROR", e);
+                    comments = [];
                 }
                 
                 let subArticles = [];
@@ -108,20 +107,29 @@ export async function onRequest(context) {
             resData = results;
         }
 
-        // 5. POST COMMENT (Fixed Title Extraction for Slashes)
+        // 5. POST COMMENT (Integrated JSON Storage)
         else if (path.startsWith('/article/') && path.endsWith('/comments') && method === "POST") {
-            // Correct way to extract title with slashes
             const titlePart = path.replace('/article/', '').replace('/comments', '');
             const title = normalizeTitle(titlePart);
             const { content, parent_id } = await request.json();
             
-            const article = await env.DB.prepare("SELECT id, title FROM articles WHERE title = ?").bind(title).first();
+            const article = await env.DB.prepare("SELECT id, title, comments_data FROM articles WHERE title = ?").bind(title).first();
             if (article) {
+                let comments = [];
                 try {
-                    await env.DB.prepare("INSERT INTO comments (article_id, article_title, author, content, parent_id) VALUES (?, ?, 'Anonymous_Agent', ?, ?)").bind(article.id, article.title, content, parent_id || null).run();
-                } catch (e) {
-                    await env.DB.prepare("INSERT INTO comments (article_title, author, content, parent_id) VALUES (?, 'Anonymous_Agent', ?, ?)").bind(article.title, content, parent_id || null).run();
-                }
+                    comments = JSON.parse(article.comments_data || '[]');
+                } catch (e) { comments = []; }
+
+                const newComment = {
+                    id: Date.now() + Math.random().toString(36).substring(2, 7), // More robust ID
+                    author: 'Anonymous_Agent',
+                    content: content,
+                    timestamp: new Date().toISOString(),
+                    parent_id: parent_id || null
+                };
+                comments.push(newComment);
+
+                await env.DB.prepare("UPDATE articles SET comments_data = ? WHERE id = ?").bind(JSON.stringify(comments), article.id).run();
                 resData = { success: true };
             } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
         }
@@ -136,6 +144,22 @@ export async function onRequest(context) {
             ];
             await env.DB.batch(batch);
             resData = { success: true };
+        }
+
+        // 7. AUTHENTICATION (Login/Register)
+        else if ((path === '/auth/login' || path === 'auth/login' || path === '/auth/register' || path === 'auth/register') && method === "POST") {
+            const { username, password } = await request.json();
+            if (!username || !password) {
+                status = 400; resData = { error: "FIELDS_INCOMPLETE" };
+            } else {
+                // Mock implementation for now - success for any input
+                resData = { 
+                    success: true, 
+                    username: username, 
+                    token: "mock_token_" + Date.now(), 
+                    role: "viewer" 
+                };
+            }
         }
 
         else { status = 404; resData = { error: "PATH_NOT_FOUND" }; }
