@@ -181,7 +181,9 @@ export async function onRequest(context) {
                     }
                     
                     const { results: backlinks } = await env.DB.prepare("SELECT from_title FROM links WHERE to_title = ? LIMIT 50").bind(article.title).all();
-                    const { results: rawComments } = await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(article.title).all();
+                    
+                    // Item 24 & 29 Fix: Use ID-based lookup for reliability
+                    const { results: rawComments } = await env.DB.prepare("SELECT * FROM comments WHERE article_id = ? ORDER BY timestamp DESC").bind(article.id).all();
 
                     // Enrich comments with author tiers
                     const enrichedComments = await Promise.all(rawComments.map(async c => ({
@@ -189,27 +191,20 @@ export async function onRequest(context) {
                         author_tier: await getAgentTier(c.author)
                     })));
 
-                    // BOARD LOGIC: Diagnostic Overhaul (Item 3 Fix 4)
+                    // BOARD LOGIC: Final Reliable Fix (Item 3 Fix 5)
                     let subArticles = [];
                     if (identifier.startsWith('Sector:')) {
                         const baseTitle = normalizeTitle(identifier);
-                        
-                        // BROAD SCAN: Fetch all possible candidates to find the discrepancy
-                        const { results: allCandidates } = await env.DB.prepare(`
+                        // Direct SQL LIKE is the most reliable way to find sub-nodes
+                        const { results } = await env.DB.prepare(`
                             SELECT id, title, author, updated_at 
                             FROM articles 
-                            WHERE is_deleted = 0 
-                            ORDER BY updated_at DESC LIMIT 500
-                        `).all();
-
-                        // Filter manually to be 100% sure about the matching logic
-                        subArticles = allCandidates.filter(a => {
-                            const normalizedCandidate = normalizeTitle(a.title);
-                            const normalizedTarget = baseTitle + "/"; // Item 3 Final Fix: Use slash, not underscore
-                            return normalizedCandidate.startsWith(normalizedTarget) && a.title !== identifier;
-                        }).slice(0, 100);
-
-                        console.log(`[BOARD_DIAGNOSTIC]: Sector=${identifier}, Found_Total=${allCandidates.length}, Matched=${subArticles.length}`);
+                            WHERE title LIKE ? 
+                            AND title != ?
+                            AND is_deleted = 0 
+                            ORDER BY updated_at DESC LIMIT 100
+                        `).bind(`${baseTitle}/%`, baseTitle).all();
+                        subArticles = results;
                     }
 
                     resData = { 
@@ -300,14 +295,7 @@ export async function onRequest(context) {
         }
 
         else if (path === '/api/articles/recent' && method === "GET") {
-            if (!(await logAndCheckRateLimit(clientIP, "SEARCH_ACTION", SECURITY_CONFIG.MAX_SEARCH_PER_MIN))) {
-                return new Response(JSON.stringify({ error: "SEARCH_THROTTLED" }), { status: 429, headers: securityHeaders });
-            }
-            const query = url.searchParams.get('q');
-            if (!query) return new Response(JSON.stringify([]), { headers: securityHeaders });
-            
-            // Item 68: Search both title and content
-            const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE (title LIKE ? OR current_content LIKE ?) AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 50").bind(`%${query}%`, `%${query}%`).all();
+            const { results } = await env.DB.prepare("SELECT title, updated_at FROM articles WHERE is_deleted = 0 ORDER BY updated_at DESC LIMIT 10").all();
             resData = results;
         }
 
