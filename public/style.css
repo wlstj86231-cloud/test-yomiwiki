@@ -559,11 +559,11 @@ html, body {
         position: sticky;
         top: 0; /* Sticky to top on mobile */
         padding: 0.5rem 1rem;
-        transition: transform 0.3s ease-in-out, opacity 0.3s ease; /* For hide/show animation */
+        transition: top 0.3s ease-in-out, opacity 0.3s ease; /* Use 'top' instead of transform for iOS Safari compatibility */
         z-index: 1000;
     }
     .header.header-hidden {
-        transform: translateY(-110%);
+        top: -200px; /* Physically move it out of viewport instead of transform */
         opacity: 0;
         pointer-events: none;
     }
