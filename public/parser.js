@@ -94,14 +94,16 @@ function wikiParse(content) {
     });
 
     // --- 4. Links & Lists & Tables ---
-    // Wiki Links
+    // Wiki Links (V4 Enhanced with Data-Title)
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
-        const slug = title.trim().replace(/[_\s]+/g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link">${escapeHTML(title)}</a>`;
+        const cleanTitle = title.trim();
+        const slug = cleanTitle.replace(/[_\s]+/g, '_');
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
     });
     html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
-        const slug = title.trim().replace(/[_\s]+/g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link">${escapeHTML(alias)}</a>`;
+        const cleanTitle = title.trim();
+        const slug = cleanTitle.replace(/[_\s]+/g, '_');
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(alias)}</a>`;
     });
 
     // External Links
