@@ -640,6 +640,65 @@ html, body {
     display: flex;
 }
 
+/* --- [SCP-Inspired UI Components] --- */
+.scp-warning-block {
+    border: 4px double var(--hazard-red);
+    background: rgba(255, 68, 68, 0.05);
+    padding: 20px;
+    margin: 2rem 0;
+    text-align: center;
+    position: relative;
+}
+
+.scp-warning-header {
+    font-family: var(--font-sans);
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--hazard-red);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.scp-container {
+    border: 1px solid var(--border-bright);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 25px;
+    margin: 1.5rem 0;
+}
+
+.scp-header-line {
+    border-bottom: 2px solid var(--accent-orange);
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    font-family: var(--font-sans);
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--accent-orange);
+}
+
+.scp-rules-list {
+    margin-top: 15px;
+    counter-reset: rules;
+}
+
+.scp-rules-list li {
+    margin-bottom: 12px;
+    padding-left: 40px;
+    position: relative;
+    font-size: 0.95rem;
+}
+
+.scp-rules-list li::before {
+    counter-increment: rules;
+    content: "RULE-" counter(rules);
+    position: absolute;
+    left: 0;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    color: var(--accent-cyan);
+    font-size: 0.7rem;
+}
+
 /* --- [UI Elements] --- */
 .btn-clinical-toggle {
     background: transparent; border: 1px solid var(--accent-orange); color: var(--accent-orange);

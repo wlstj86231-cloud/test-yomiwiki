@@ -163,24 +163,43 @@ VALUES (
 | type = SYSTEM_CORE
 }}
 
+<div class="scp-warning-block">
+    <div class="scp-warning-header">WARNING: ACCESS RESTRICTED</div>
+    THE ARCHIVAL DATABASE IS <b>CLASSIFIED</b>. UNAUTHORIZED ACCESS TO THESE FILES IS PUNISHABLE BY IMMEDIATE TERMINATION OF CURRENT IP UPLINK AND PHYSICAL RETRIEVAL BY FIELD AGENTS.
+</div>
+
 == WELCOME_AGENT ==
-Welcome to the ''''''YomiWiki Archival Gateway''''''. This is a secure repository for occult, paranormal, and clinical data. All transmissions are monitored.
+Welcome to the ''''''YomiWiki Archival Gateway''''''. This is a secure repository for occult, paranormal, and clinical data. All transmissions are monitored and encrypted using RSA-4096 protocols.
+
+<div class="scp-container">
+    <div class="scp-header-line">SITE_PROTOCOLS_AND_RULES</div>
+    <ul class="scp-rules-list">
+        <li><b>Clinical Detachment:</b> All reports must be written in a clinical, objective tone. Avoid emotional bias or personal conjecture unless specifically required by the containment protocol.</li>
+        <li><b>Confidentiality:</b> Information contained within this node is strictly on a need-to-know basis. Sharing classified data with unverified civilian entities is a Tier IV protocol violation.</li>
+        <li><b>Authenticity:</b> Ensure all data points are validated by at least two senior archivists. Fabricated anomalies undermine the integrity of the collective archive.</li>
+        <li><b>Formatting:</b> Utilize the visual infobox constructor for all entity reports. Standardized data visualization is mandatory for rapid response deployment.</li>
+        <li><b>Node Management:</b> Unauthorized deletion of archival nodes will result in immediate revocation of your Agent ID and permanent blacklist.</li>
+        <li><b>Interaction:</b> Use the integrated discussion logs for collaborative analysis. Cross-node referencing is encouraged.</li>
+    </ul>
+</div>
+
+== ARCHIVAL_SECTORS ==
+Access individual regional sectors to monitor localized anomalies:
+* [[Sector:South_Korea|Sector 1: South Korea]]
+* [[Sector:USA|Sector 2: United States]]
+* [[Sector:Japan|Sector 3: Japan]]
+* [[Sector:India|Sector 4: India]]
 
 == SYSTEM_NOTICE ==
 [CLINICAL]
-The archival grid is currently operating at 99.9% efficiency. Unauthorized attempts to decrypt Tier IV records will result in immediate IP termination.
+The archival grid is currently operating at 99.9% efficiency. If you detect any signal degradation or unauthorized parser injections, report to the Overseer immediately via the [ADMIN] terminal.
 [/CLINICAL]
-
-== ARCHIVAL_PROTOCOLS ==
-* [[Help:Protocols|Maintain Clinical Detachment]]
-* [[Help:Taboos|Avoid Emotional Bias]]
-* [[Help:Editing|Report Anomalies Immediately]]
 
 [[Category:CORE_SYSTEM]]',
     'Archive_System',
     'CONFIDENTIAL',
     'GREEN'
-) ON CONFLICT(title) DO NOTHING;
+) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content;
 
 -- [SEED DATA: Regional Sectors (Auto-Activate Boards)]
 INSERT INTO articles (title, current_content, author, classification) VALUES 
