@@ -35,12 +35,25 @@ window.ArticleView = {
     },
 
     /**
-     * Renders the article title to the DOM.
+     * Renders the article title to the DOM and ensures the ad placeholder is present.
      */
     renderTitle: function(title) {
         const titleEl = document.getElementById('article-title');
         if (titleEl) {
             titleEl.textContent = title;
+            
+            // Item 31: Add ad placeholder after the title if it doesn't exist
+            let adBox = document.getElementById('ad-top-placeholder');
+            if (!adBox) {
+                adBox = document.createElement('div');
+                adBox.id = 'ad-top-placeholder';
+                adBox.className = 'ad-placeholder';
+                adBox.style.margin = '20px 0';
+                adBox.style.minHeight = '100px';
+                adBox.style.textAlign = 'center';
+                // adBox.innerHTML = '<!-- ADSENSE_CODE_TOP -->';
+                titleEl.parentNode.insertBefore(adBox, titleEl.nextSibling);
+            }
         }
     },
 
