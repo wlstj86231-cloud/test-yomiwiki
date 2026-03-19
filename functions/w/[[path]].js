@@ -39,7 +39,12 @@ export async function onRequest(context) {
         let html = await templateResponse.text();
 
         // 5. Injection (Match exactly with index.html tags)
-        const plainContent = article.current_content.replace(/[\[\]{}|*]/g, '').substring(0, 160).trim();
+        // Strip HTML tags and wiki markup for a clean description
+        const plainContent = article.current_content
+            .replace(/<[^>]*>/g, '') // Strip HTML tags
+            .replace(/[\[\]{}|*]/g, '') // Strip wiki symbols
+            .substring(0, 160)
+            .trim();
         const description = `${plainContent}... [AUTHORIZED_CLEARANCE_REQUIRED]`;
         const ogTags = `
             <meta name="description" content="${description}">
