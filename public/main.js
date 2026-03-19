@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         finally { btn.disabled = false; }
     };
 
-    window.adminPurgeCurrentNode = async (title) => {
+    window.adminPurgeCurrentNode = async (title, stayOnPage = false) => {
         if (!confirm(`[ULTIMATE_WARNING]: PURGE node "${title}" from the archival grid? This action is irreversible.`)) return;
         try {
             const res = await securedFetch(`${API_ENDPOINT}/admin/article/purge`, {
@@ -151,7 +151,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (res.ok) { 
                 alert(`[SYSTEM]: Node "${title}" has been successfully expunged.`);
-                window.navigateTo('/w/Main_Page');
+                if (stayOnPage) init();
+                else window.navigateTo('/w/Main_Page');
             }
         } catch (e) { alert("[CRITICAL]: Purge sequence failed."); }
     };
@@ -193,10 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             mainTitle.textContent = data.title || title;
-            const purgeBtn = currentUser?.role === 'admin' ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
+            const isBoard = data.title && data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
+            const purgeBtn = (currentUser?.role === 'admin' && !isBoard) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${purgeBtn}`;
 
-            const isBoard = data.title && data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
             // Assemble Output
@@ -218,14 +219,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             </tr>
                         </thead>
                         <tbody>
-                            ${subNodes.map(sub => `
+                            ${subNodes.map(sub => {
+                                const adminActions = currentUser?.role === 'admin' ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(sub.title)}', true)" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.6rem; margin-left:5px;">[PURGE]</button>` : "";
+                                return `
                                 <tr style="border-bottom:1px solid #111;">
                                     <td style="padding:10px;"><a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
-                                    <td style="padding:10px; text-align:center;"><a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a></td>
+                                    <td style="padding:10px; text-align:center;">
+                                        <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a>
+                                        ${adminActions}
+                                    </td>
                                     <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
                                     <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
                                 </tr>
-                            `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_SUB_NODES]</td></tr>'}
+                                `;
+                            }).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_SUB_NODES]</td></tr>'}
                         </tbody>
                     </table>
                 `;
