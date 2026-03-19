@@ -223,6 +223,14 @@ export async function onRequest(context) {
             resData = results;
         }
 
+        else if (path === '/search/suggest' && method === "GET") {
+            const query = url.searchParams.get('q');
+            if (!query || query.length < 2) return new Response(JSON.stringify([]), { headers: securityHeaders });
+            
+            const { results } = await env.DB.prepare("SELECT title FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY title ASC LIMIT 10").bind(`%${query}%`).all();
+            resData = results.map(r => r.title);
+        }
+
         else if (path.startsWith('/article/') && path.endsWith('/comments') && method === "POST") {
             const title = normalizeTitle(path.split('/')[2]);
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);

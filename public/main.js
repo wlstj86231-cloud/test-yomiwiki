@@ -587,6 +587,57 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("[ERROR]: Failed to reach central command."); }
     };
 
+    // --- [Search Autocomplete Logic: Phase 4-4] ---
+    const searchInput = document.getElementById('search-input');
+    const searchDropdown = document.getElementById('search-dropdown');
+    let debounceTimer;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                searchDropdown.style.display = 'none';
+                return;
+            }
+
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`${API_ENDPOINT}/search/suggest?q=${encodeURIComponent(query)}`);
+                    const suggestions = await res.json();
+                    
+                    if (suggestions.length > 0) {
+                        searchDropdown.innerHTML = suggestions.map(title => `
+                            <div class="search-item" onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}'); document.getElementById('search-input').value=''; document.getElementById('search-dropdown').style.display='none';">
+                                <span style="color:var(--accent-orange); margin-right:8px;">▶</span> ${escapeHTML(title)}
+                            </div>
+                        `).join('');
+                        searchDropdown.style.display = 'block';
+                    } else {
+                        searchDropdown.style.display = 'none';
+                    }
+                } catch (err) { console.error("SEARCH_FETCH_FAILED", err); }
+            }, 300);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.style.display = 'none';
+            }
+        });
+
+        // Handle Enter key
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && searchInput.value.trim()) {
+                window.navigateTo(`/w/${encodeURIComponent(searchInput.value.trim().replace(/ /g, '_'))}`);
+                searchInput.value = '';
+                searchDropdown.style.display = 'none';
+            }
+        });
+    }
+
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         const path = window.location.pathname;

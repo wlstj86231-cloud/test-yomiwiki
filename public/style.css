@@ -322,3 +322,34 @@ html, body {
 
 .footer { background: var(--bg-sidebar); border-top: 1px solid var(--border-color); padding: 2rem; text-align: center; font-size: 0.8rem; color: var(--text-dim); }
 .btn-floating { position: fixed; bottom: 30px; right: 30px; background: rgba(0,0,0,0.8); border: 1px solid var(--accent-orange); color: var(--accent-orange); padding: 10px 15px; font-family: var(--font-mono); z-index: 5000; cursor: pointer; }
+
+/* --- [Search Autocomplete Styles] --- */
+.search-bar { position: relative; }
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #0a0a0a;
+    border: 1px solid var(--accent-orange);
+    border-top: none;
+    z-index: 2000;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+.search-item {
+    padding: 12px 15px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-main);
+    cursor: pointer;
+    border-bottom: 1px solid #111;
+    transition: background 0.2s;
+}
+.search-item:last-child { border-bottom: none; }
+.search-item:hover {
+    background: rgba(255, 153, 0, 0.1);
+    color: var(--accent-orange);
+}
