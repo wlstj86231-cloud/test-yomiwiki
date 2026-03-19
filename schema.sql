@@ -189,6 +189,19 @@ The archival grid is currently operating at 99.9% efficiency. Unauthorized attem
     'GREEN'
 ) ON CONFLICT(title) DO NOTHING;
 
+-- [SEED DATA: Regional Sectors (Auto-Activate Boards)]
+INSERT INTO articles (title, current_content, author, classification) VALUES 
+('Sector:South_Korea', '== SECTOR 1: SOUTH KOREA ==\n[CLINICAL]\nMonitoring active anomalies in the Korean Peninsula.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
+('Sector:USA', '== SECTOR 2: UNITED STATES ==\n[CLINICAL]\nMonitoring federal and anomalous activities in North America.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
+('Sector:Japan', '== SECTOR 3: JAPAN ==\n[CLINICAL]\nTracking localized phenomena in the Japanese archipelago.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
+('Sector:India', '== SECTOR 4: INDIA ==\n[CLINICAL]\nMonitoring subcontinental grid fluctuations.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
+('Sector:China', '== SECTOR 5: CHINA ==\n[CLINICAL]\nMainland surveillance and archival data.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
+('Sector:Australia', '== SECTOR 6: AUSTRALIA ==\n[CLINICAL]\nOceanic and outback anomalies detected.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
+('Sector:France', '== SECTOR 7: FRANCE ==\n[CLINICAL]\nEuropean command node active.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
+('Sector:North_Korea', '== SECTOR 8: NORTH KOREA ==\n[CLINICAL]\nEXTREME HAZARD: Proceed with absolute caution. Signal often jammed.\n[/CLINICAL]', 'SYSTEM', 'SECRET')
+ON CONFLICT(title) DO NOTHING;
+
 INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary)
-SELECT id, current_content, author, 'INITIAL_HANDSHAKE' FROM articles WHERE title = 'Main_Page'
+SELECT id, current_content, author, 'INITIAL_HANDSHAKE' FROM articles
+WHERE title IN ('Main_Page', 'Sector:South_Korea', 'Sector:USA', 'Sector:Japan', 'Sector:India', 'Sector:China', 'Sector:Australia', 'Sector:France', 'Sector:North_Korea')
 ON CONFLICT DO NOTHING;
