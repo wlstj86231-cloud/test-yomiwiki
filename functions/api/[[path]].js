@@ -189,11 +189,11 @@ export async function onRequest(context) {
                         author_tier: await getAgentTier(c.author)
                     })));
 
-                    // BOARD LOGIC
+                    // BOARD LOGIC: Refined category matching (Item 3)
                     let subArticles = [];
                     if (identifier.startsWith('Sector:')) {
-                        // Optimization: Fetch only ID and Title for the list, excluding heavy content
-                        const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(`${identifier}/%`).all();
+                        // Strict matching for sub-nodes within the specific sector
+                        const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE ? AND title != ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(`${identifier}/%`, identifier).all();
                         subArticles = results;
                     }
 
