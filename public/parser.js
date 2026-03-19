@@ -1,5 +1,5 @@
 /**
- * YomiWiki Core Parser (V5.5 Advanced SCP Mode)
+ * YomiWiki Core Parser (V5.6 Hybrid SCP Mode)
  * Decodes wiki markup into HTML with precision and handles intentional HTML components.
  */
 
@@ -16,7 +16,7 @@ function escapeHTML(str) {
 function wikiParse(content) {
     if (!content) return "";
     
-    // Fix literal \n strings if they exist (common in some DB transmission modes)
+    // Fix literal \n strings if they exist
     content = content.replace(/\\n/g, '\n');
 
     // --- 1. Collection Phase (Preserve special blocks before any escaping) ---
@@ -60,28 +60,28 @@ function wikiParse(content) {
     });
 
     // --- 1.1 Safe HTML Extraction (SCP Style Support) ---
-    // Specifically allow certain tags used in our templates
-    const safeTagsRegex = /<(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)\b[^>]*>|<\/(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)>/gi;
+    // Extract full tags like <div ...> or </div>
+    const safeTagsRegex = /<(?!\/)(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)\b[^>]*>|<\/(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)>/gi;
     content = content.replace(safeTagsRegex, (match) => {
         const num = safeHtmlBlocks.length;
         safeHtmlBlocks.push(match);
         return `§§§SAFEHTML§${num}§${SECRET_SALT}§§§`;
     });
 
-    // --- 2. Security Escaping (Now safe because blocks are hidden) ---
+    // --- 2. Security Escaping ---
     let html = escapeHTML(content);
 
     // --- 3. Text Formatting & Headers ---
-    // Markdown Bold/Italic/Stroke
+    // Markdown Bold/Italic
     html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
     html = html.replace(/__(.*?)__/g, '<b>$1</b>');
-    // Improved italic regex to prevent eating underscores in words/IDs
     html = html.replace(/(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)/g, '<i>$1</i>');
     html = html.replace(/(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g, '<i>$1</i>');
     html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
 
+    // Wiki Headers (Improved regex to match == TITLE ==)
     const headers = [];
-    const headerRegex = /^ *(#{1,6}) +(.+?)$|^ *(={2,}) *(.+?) *\3 *$/gm;
+    const headerRegex = /^ *(#{1,6}) +(.+?)$|^ *(={2,6}) *(.+?) *\3 *$/gm;
     html = html.replace(headerRegex, (match, hashes, mTitle, wikiHashes, wTitle) => {
         const level = hashes ? hashes.length : wikiHashes.length;
         const title = (mTitle || wTitle).trim();
@@ -90,7 +90,7 @@ function wikiParse(content) {
         return `<h${level} id="${id}">${title}</h${level}>`;
     });
 
-    // --- 4. Footnotes (Precision Match) ---
+    // --- 4. Footnotes ---
     const footnotes = [];
     html = html.replace(/\[\* +(.+?)\]/g, (match, fnContent) => {
         const num = footnotes.length + 1;
@@ -98,10 +98,8 @@ function wikiParse(content) {
         footnotes.push(cleanContent);
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
-    window.lastFootnotes = footnotes; 
 
-    // --- 5. Links & Images (V4.1 Advanced) ---
-    // Handle Images first to prevent link regex collision
+    // --- 5. Links & Images ---
     html = html.replace(/\[\[File:([^|\]]+)(?:\|([^\]]+))?\]\]/g, (match, url, options) => {
         const params = {};
         if (options) {
@@ -118,7 +116,6 @@ function wikiParse(content) {
         return `<div class="media-container ${alignClass}" style="${widthStyle}"><img src="${encodeURI(url.trim())}" class="wiki-image" alt="${caption}">${caption ? `<div class="media-caption">${caption}</div>` : ''}</div>`;
     });
 
-    // Wiki Links (Data-Title for routing)
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const cleanTitle = title.trim();
         if (cleanTitle.toLowerCase().startsWith('category:')) return "";
@@ -145,7 +142,7 @@ function wikiParse(content) {
     lines.forEach(line => {
         const trimmed = line.trim();
         if (trimmed.startsWith('§§§SAFEHTML')) {
-            finalHtml.push(line); // Pass through placeholders
+            finalHtml.push(line); 
             return;
         }
         
@@ -198,7 +195,7 @@ function wikiParse(content) {
     });
     let parsedContent = finalHtml.join('');
 
-    // --- 7. TOC Generation ---
+    // --- 7. TOC ---
     if (headers.length >= 1) {
         const counts = [0, 0, 0, 0, 0, 0, 0];
         let lastLevel = 0;
@@ -214,7 +211,7 @@ function wikiParse(content) {
         parsedContent = tocHtml + parsedContent;
     }
 
-    // --- 8. Footnote List Injection ---
+    // --- 8. Footnotes ---
     if (footnotes.length > 0) {
         let fnHtml = `<div class="wiki-footnotes"><div class="footnotes-title">[ARCHIVAL_FOOTNOTES]</div><ol>`;
         footnotes.forEach((content, i) => {
@@ -225,9 +222,7 @@ function wikiParse(content) {
         parsedContent += fnHtml;
     }
 
-    // --- 9. Injection Phase (Restore special blocks) ---
-    
-    // Restore Safe HTML
+    // --- 9. Injection Phase ---
     parsedContent = parsedContent.replace(/§§§SAFEHTML§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
         return safeHtmlBlocks[num];
