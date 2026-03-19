@@ -517,8 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>`;
                 
-                // Hide board content behind a toggle
-                contentHtml = `<details style="margin-bottom:30px; border:1px solid #222; padding:10px;"><summary style="cursor:pointer; font-size:0.95rem; font-family:var(--font-mono); color:var(--text-dim);">[VIEW_SECTOR_PROTOCOL]</summary><div style="padding-top:15px;">${contentHtml}</div></details>`;
+                // Show board content directly without a toggle
+                contentHtml = `<div style="margin-bottom:30px; border:1px solid #222; padding:10px;"><div style="font-size:0.95rem; font-family:var(--font-mono); color:var(--accent-orange); margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">[SECTOR_PROTOCOL]</div><div style="padding-top:5px;">${contentHtml}</div></div>`;
             }
 
             // 2. FOOTER (Metadata, Categories, Backlinks)
