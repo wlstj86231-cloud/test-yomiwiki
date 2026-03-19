@@ -49,14 +49,17 @@ CREATE INDEX IF NOT EXISTS idx_articles_author ON articles(author);
 -- comments: 토론 스레드
 CREATE TABLE IF NOT EXISTS comments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    article_id INTEGER,
     article_title TEXT NOT NULL COLLATE NOCASE,
     author TEXT NOT NULL,
     content TEXT NOT NULL,
     parent_id INTEGER DEFAULT NULL,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(article_id) REFERENCES articles(id),
     FOREIGN KEY(parent_id) REFERENCES comments(id)
 );
 -- 33. 토론 로딩 성능 향상을 위한 인덱스
+CREATE INDEX IF NOT EXISTS idx_comments_article_id ON comments(article_id);
 CREATE INDEX IF NOT EXISTS idx_comments_article_title ON comments(article_title);
 
 -- reports: 콘텐츠 신고 내역
