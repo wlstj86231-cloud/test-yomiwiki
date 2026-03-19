@@ -67,8 +67,10 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT CHECK(role IN ('admin', 'editor', 'viewer')) DEFAULT 'viewer',
+    registration_ip TEXT, -- Added to restrict one account per IP
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX IF NOT EXISTS idx_users_ip ON users(registration_ip);
 
 -- ip_logs: 보안 감시 로그
 CREATE TABLE IF NOT EXISTS ip_logs (

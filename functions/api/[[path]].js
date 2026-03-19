@@ -168,15 +168,21 @@ export async function onRequest(context) {
             if (!username || !password) {
                 status = 400; resData = { error: "FIELDS_INCOMPLETE" };
             } else if (path.includes('register')) {
-                const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
-                if (existing) {
-                    status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
+                // Check if IP already has an account
+                const ipCheck = await env.DB.prepare("SELECT id FROM users WHERE registration_ip = ?").bind(clientIP).first();
+                if (ipCheck) {
+                    status = 403; resData = { error: "MULTIPLE_ACCOUNTS_PROHIBITED", message: "Only one agent ID per IP uplink is permitted." };
                 } else {
-                    const passHash = await hashPassword(password);
-                    await env.DB.prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'viewer')").bind(username, passHash).run();
-                    const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
-                    const tokenStr = btoa(JSON.stringify(payload)) + ".signature";
-                    resData = { success: true, username, token: tokenStr, role: 'viewer' };
+                    const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
+                    if (existing) {
+                        status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
+                    } else {
+                        const passHash = await hashPassword(password);
+                        await env.DB.prepare("INSERT INTO users (username, password_hash, role, registration_ip) VALUES (?, ?, 'viewer', ?)").bind(username, passHash, clientIP).run();
+                        const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
+                        const tokenStr = btoa(JSON.stringify(payload)) + ".signature";
+                        resData = { success: true, username, token: tokenStr, role: 'viewer' };
+                    }
                 }
             } else {
                 const userRec = await env.DB.prepare("SELECT * FROM users WHERE username = ?").bind(username).first();
