@@ -185,17 +185,18 @@ export async function onRequest(context) {
                     }
                 }
             } else {
-                const userRec = await env.DB.prepare("SELECT * FROM users WHERE username = ?").bind(username).first();
+                // Login
+                const userRec = await env.DB.prepare("SELECT * FROM users WHERE username = ? COLLATE NOCASE").bind(username).first();
                 if (!userRec) {
-                    status = 401; resData = { error: "AUTH_DENIED" };
+                    status = 404; resData = { error: "IDENTIFIER_NOT_FOUND" };
                 } else {
                     const passHash = await hashPassword(password);
                     if (userRec.password_hash === passHash) {
-                        const payload = { username, role: userRec.role, exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
+                        const payload = { username: userRec.username, role: userRec.role, exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
                         const tokenStr = btoa(JSON.stringify(payload)) + ".signature";
-                        resData = { success: true, username, token: tokenStr, role: userRec.role };
+                        resData = { success: true, username: userRec.username, token: tokenStr, role: userRec.role };
                     } else {
-                        status = 401; resData = { error: "AUTH_DENIED" };
+                        status = 401; resData = { error: "PASSWORD_MISMATCH" };
                     }
                 }
             }
