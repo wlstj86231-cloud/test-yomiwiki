@@ -516,48 +516,43 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. BOARD VIEW (Post List)
             let boardHtml = "";
             if (isBoard && !revId) {
-                boardHtml = `<div class="sector-board" style="margin-bottom:40px;">
+                const subNodes = data.sub_articles || [];
+                boardHtml = `
+                <div class="sector-board" style="margin-bottom:40px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:15px;">
                         <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
                         <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[ESTABLISH_NEW_NODE]</button>
                     </div>
                     
-                    <!-- Item 5: Common Table Framework -->
-                    <div class="wiki-table-container" style="overflow-x:auto;">
+                    <div class="wiki-table-container" style="overflow-x:auto; background:#050505; border:1px solid #222;">
                         <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.85rem;">
-                            <thead id="board-table-head">
-                                <tr style="background:#111; border-bottom:2px solid var(--border-color);">
-                                    <th style="padding:12px 15px; text-align:left; color:var(--accent-orange);">문서</th>
-                                    <th style="padding:12px 15px; text-align:center; color:var(--accent-orange); width:100px;">기능</th>
-                                    <th style="padding:12px 15px; text-align:left; color:var(--accent-orange); width:150px;">수정자</th>
-                                    <th style="padding:12px 15px; text-align:right; color:var(--accent-orange); width:180px;">수정 시간</th>
+                            <thead>
+                                <tr style="background:#111; border-bottom:2px solid var(--border-color); text-align:left;">
+                                    <th style="padding:12px 15px; color:var(--accent-orange);">문서</th>
+                                    <th style="padding:12px 15px; color:var(--accent-orange); text-align:center; width:80px;">기능</th>
+                                    <th style="padding:12px 15px; color:var(--accent-orange); width:120px;">수정자</th>
+                                    <th style="padding:12px 15px; color:var(--accent-orange); text-align:right; width:150px;">수정 시간</th>
                                 </tr>
                             </thead>
-                            <tbody id="board-table-body">
-                                ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
-                                    <tr style="border-bottom:1px solid #222;">
-                                        <!-- Item 8 & 9: Display Title as Link -->
-                                        <td style="padding:10px 15px;">
-                                            <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}" style="font-weight:bold; color:var(--accent-cyan); text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
+                            <tbody>
+                                ${subNodes.length > 0 ? subNodes.map(sub => `
+                                    <tr style="border-bottom:1px solid #111;">
+                                        <td style="padding:12px 15px;">
+                                            <a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); text-decoration:none; font-weight:bold;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
                                         </td>
-                                        <!-- Item 10: History Button -->
-                                        <td style="padding:10px 15px; text-align:center;">
-                                            <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.70rem; padding:2px 6px; text-decoration:none;">역사</a>
+                                        <td style="padding:12px 15px; text-align:center;">
+                                            <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; padding:2px 5px; opacity:0.7; text-decoration:none;">역사</a>
                                         </td>
-                                        <!-- Item 11: Display Last Editor -->
-                                        <td style="padding:10px 15px; color:var(--text-dim); font-size:0.80rem;">
-                                            ${escapeHTML(sub.author || "Anonymous_Agent")}
+                                        <td style="padding:12px 15px; color:var(--text-dim); font-size:0.80rem;">
+                                            ${escapeHTML(sub.author || "Anonymous")}
                                         </td>
-                                        <!-- Item 12: Display Relative Timestamp -->
-                                        <td style="padding:10px 15px; text-align:right; color:var(--text-dim); font-size:0.80rem;">
-                                            ${window.timeAgo(sub.updated_at)}
+                                        <td style="padding:12px 15px; text-align:right; color:var(--text-dim); font-size:0.80rem;">
+                                            ${window.timeAgo ? window.timeAgo(sub.updated_at) : sub.updated_at}
                                         </td>
                                     </tr>
                                 `).join('') : `
                                     <tr>
-                                        <td colspan="4" style="text-align:center; padding:40px; opacity:0.3; font-style:italic;">
-                                            [NULL_DATA_STREAM]: No archival nodes detected in this sector.
-                                        </td>
+                                        <td colspan="4" style="padding:40px; text-align:center; opacity:0.3; font-style:italic;">[NULL_DATA_STREAM]: No archival nodes detected.</td>
                                     </tr>
                                 `}
                             </tbody>
@@ -565,7 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>`;
                 
-                // Item 2: Content (Protocol) is no longer displayed on board views
                 contentHtml = "";
             }
 
