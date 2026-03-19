@@ -94,6 +94,10 @@ window.ArticleView = {
                     </div>
                 `;
                 bodyEl.appendChild(relatedBox);
+                
+                // Item 71: Fetch and render the data
+                const classification = document.querySelector('#article-classification-bar a')?.textContent || 'UNCLASSIFIED';
+                this.renderRelatedNodes(classification, data.title);
             }
 
             // Item 53: Render Footnotes at the bottom
@@ -208,5 +212,31 @@ window.ArticleView = {
     scrollToSection: function(id) {
         const target = document.getElementById(id);
         if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    /**
+     * Item 71: Fetches and renders 3 related articles based on classification.
+     */
+    renderRelatedNodes: async function(classification, currentTitle) {
+        const listEl = document.getElementById('related-nodes-list');
+        if (!listEl) return;
+
+        try {
+            const res = await fetch(`/api/articles/related?classification=${encodeURIComponent(classification)}&exclude=${encodeURIComponent(currentTitle)}`, {
+                headers: { 'X-Yomi-Request': 'true' }
+            });
+            const data = await res.json();
+
+            listEl.innerHTML = data.map(node => `
+                <div class="node-item" style="background:#0a0a0a; border:1px solid #222; padding:12px; border-left:3px solid var(--accent-orange); transition:all 0.3s ease;">
+                    <a href="/w/${encodeURIComponent(window.titleToSlug(node.title))}" style="font-family:var(--font-mono); color:var(--accent-cyan); font-weight:bold; text-decoration:none; display:block; font-size:0.85rem;">
+                        ▶ ${escapeHTML(node.title.split('/').pop())}
+                    </a>
+                </div>
+            `).join('') || '<div style="opacity:0.3; font-style:italic; font-size:0.85rem;">[NO_RELATED_SIGNALS_FOUND]</div>';
+        } catch (e) {
+            console.error("[SYSTEM]: Failed to retrieve related archival data.", e);
+            listEl.innerHTML = '<div style="opacity:0.3; font-style:italic; font-size:0.85rem;">[ERROR_RETRIEVING_DATA]</div>';
+        }
     }
 };

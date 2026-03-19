@@ -347,6 +347,16 @@ export async function onRequest(context) {
             resData = results;
         }
 
+        else if (path === '/api/articles/related' && method === "GET") {
+            const classification = url.searchParams.get('classification');
+            const excludeTitle = url.searchParams.get('exclude');
+            if (!classification) return new Response(JSON.stringify([]), { headers: securityHeaders });
+
+            // Item 70: Fetch 3 random articles with the same classification
+            const { results } = await env.DB.prepare("SELECT title FROM articles WHERE classification = ? AND title != ? AND is_deleted = 0 ORDER BY RANDOM() LIMIT 3").bind(classification, excludeTitle || "").all();
+            resData = results;
+        }
+
         else if (path === '/api/articles/recent' && method === "GET") {
             const { results } = await env.DB.prepare("SELECT title, updated_at FROM articles WHERE is_deleted = 0 ORDER BY updated_at DESC LIMIT 10").all();
             resData = results;
