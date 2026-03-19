@@ -229,8 +229,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             
             if (data.error === "RECORD_NOT_FOUND") {
-                mainTitle.textContent = "RECORD_NOT_FOUND";
-                articleBody.innerHTML = `<div class="not-found-container"><h3>SIGNAL_LOST</h3><button onclick="window.navigateTo('?mode=edit')" class="btn-clinical-toggle">[ESTABLISH_NEW_NODE]</button></div>`;
+                mainTitle.textContent = title;
+                articleBody.innerHTML = `
+                    <div class="not-found-container" style="padding:40px; border:1px solid var(--accent-orange); background:rgba(255,153,0,0.02); margin-top:20px;">
+                        <h3 style="color:var(--accent-orange); font-family:var(--font-mono); margin-top:0;">[SIGNAL_LOST_404]</h3>
+                        <p style="color:var(--text-main); font-size:0.95rem;">The archival record for <strong>"${escapeHTML(title)}"</strong> is currently vacant in our database.</p>
+                        <p style="color:var(--text-dim); font-size:0.85rem; margin-bottom:25px;">[SYSTEM_QUERY]: Would you like to establish a new archival node at this coordinate?</p>
+                        <div style="display:flex; gap:10px;">
+                            <button onclick="window.navigateTo('?mode=edit')" class="btn-clinical-toggle" style="padding:12px 25px;">[ESTABLISH_NEW_NODE]</button>
+                            <button onclick="window.history.back()" class="btn-clinical-toggle" style="padding:12px 25px; opacity:0.6;">[ABORT_MISSION]</button>
+                        </div>
+                    </div>
+                `;
                 return;
             }
 

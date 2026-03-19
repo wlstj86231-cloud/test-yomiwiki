@@ -86,14 +86,14 @@ function wikiParse(content) {
     });
 
     // --- 4. Links & Images ---
-    // Wiki Links
+    // Wiki Links (V4 Enhanced with Data-Title)
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const slug = title.trim().replace(/[_\s]+/g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link">${escapeHTML(title)}</a>`;
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(title.trim())}">${escapeHTML(title)}</a>`;
     });
     html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
         const slug = title.trim().replace(/[_\s]+/g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link">${escapeHTML(alias)}</a>`;
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(title.trim())}">${escapeHTML(alias)}</a>`;
     });
 
     // Images [[File:URL|caption]]
