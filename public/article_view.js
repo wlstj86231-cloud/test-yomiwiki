@@ -78,12 +78,29 @@ window.ArticleView = {
 
     generateTocData: function() {
         const headings = this.getHeadings();
+        let h2Count = 0;
+        let h3Count = 0;
+
         return Array.from(headings).map((el, index) => {
             if (!el.id) el.id = `section-${index + 1}`;
+            
+            const level = el.tagName.toLowerCase() === 'h2' ? 1 : 2;
+            let numberStr = "";
+
+            if (level === 1) {
+                h2Count++;
+                h3Count = 0;
+                numberStr = `${h2Count}.`;
+            } else {
+                h3Count++;
+                numberStr = `${h2Count}.${h3Count}.`;
+            }
+
             return {
                 text: el.innerText.trim(),
-                level: el.tagName.toLowerCase() === 'h2' ? 1 : 2,
-                id: el.id
+                level: level,
+                id: el.id,
+                number: numberStr
             };
         });
     },
@@ -103,7 +120,7 @@ window.ArticleView = {
                 ${tocData.map(item => `
                     <li class="toc-item level-${item.level}" style="margin-bottom:5px; padding-left:${(item.level - 1) * 15}px;">
                         <span style="color:var(--accent-cyan); font-family:var(--font-mono); cursor:pointer;">
-                            ${escapeHTML(item.text)}
+                            <span style="color:var(--accent-orange); margin-right:8px;">${item.number}</span> ${escapeHTML(item.text)}
                         </span>
                     </li>
                 `).join('')}
