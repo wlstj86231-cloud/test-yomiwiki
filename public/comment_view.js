@@ -1,14 +1,19 @@
 /**
- * CommentView Component (Item 22)
- * This file will handle the rendering and logic for article-specific discussions.
+ * CommentView Component (Item 23)
+ * This file handles the rendering and logic for article-specific discussions.
  */
 
 window.CommentView = {
+    currentArticleId: null,
+
     /**
-     * Renders the comment section placeholder.
-     * Logic for fetching and displaying comments will be added in subsequent steps.
+     * Initializes the comment view for a specific article.
+     * @param {number} articleId - The numeric ID of the current article.
      */
     init: function(articleId) {
-        // To be implemented
+        this.currentArticleId = articleId;
+        console.log(`[SYSTEM]: Comment interface linked to archival node ID: ${this.currentArticleId}`);
+        
+        // Rendering logic will follow in subsequent steps.
     }
 };
