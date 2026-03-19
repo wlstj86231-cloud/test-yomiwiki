@@ -32,6 +32,21 @@ window.ArticleView = {
         document.title = `${title} | YomiWiki Archival Node`;
         const titleEl = document.getElementById('article-title');
         if (titleEl) {
+            // Item 48: Add 'HISTORY' button in a metadata sub-header
+            let metaHeader = document.getElementById('article-meta-header');
+            if (!metaHeader) {
+                metaHeader = document.createElement('div');
+                metaHeader.id = 'article-meta-header';
+                metaHeader.style.marginBottom = '10px';
+                metaHeader.style.fontFamily = 'var(--font-mono)';
+                metaHeader.style.fontSize = '0.80rem';
+                metaHeader.style.color = 'var(--text-dim)';
+                titleEl.parentNode.insertBefore(metaHeader, titleEl);
+            }
+            metaHeader.innerHTML = `
+                [ARCHIVAL_NODE] | <a href="?mode=history" style="color:var(--accent-orange); text-decoration:none;">[VIEW_HISTORY]</a>
+            `;
+
             titleEl.textContent = title;
             let adBox = document.getElementById('ad-top-placeholder');
             if (!adBox) {
