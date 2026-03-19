@@ -90,22 +90,7 @@ function wikiParse(content) {
     console.log(`[PARSER_STATS]: Headers=${headers.length}, Footnotes=${footnotes.length}`);
 
     // --- 5. Links & Images (V4.1 Advanced) ---
-    // Wiki Links (Data-Title for routing)
-    // Item 41: Replace [[title]] with <a> tag
-    html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
-        const cleanTitle = title.trim();
-        if (cleanTitle.toLowerCase().startsWith('category:')) return "";
-        if (cleanTitle.startsWith('File:')) return match; 
-        const slug = cleanTitle.replace(/ /g, '_'); 
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
-    });
-    // Item 41: Replace [[title|alias]] with <a> tag
-    html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
-        const cleanTitle = title.trim();
-        const slug = cleanTitle.replace(/ /g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(alias.trim())}</a>`;
-    });
-
+    // Item 41: Handle Images first to prevent link regex collision
     html = html.replace(/\[\[File:([^|\]]+)(?:\|([^\]]+))?\]\]/g, (match, url, options) => {
         const params = {};
         if (options) {
@@ -120,6 +105,23 @@ function wikiParse(content) {
         const widthStyle = params.width ? `width:${params.width};` : "";
         const caption = params.caption || "";
         return `<div class="media-container ${alignClass}" style="${widthStyle}"><img src="${encodeURI(url.trim())}" class="wiki-image" alt="${caption}">${caption ? `<div class="media-caption">${caption}</div>` : ''}</div>`;
+    });
+
+    // Wiki Links (Data-Title for routing)
+    // Item 41: Replace [[title]] with <a> tag
+    html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
+        const cleanTitle = title.trim();
+        if (cleanTitle.toLowerCase().startsWith('category:')) return "";
+        if (cleanTitle.startsWith('File:')) return match; 
+        const slug = cleanTitle.replace(/ /g, '_'); 
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
+    });
+    // Item 41: Replace [[title|alias]] with <a> tag
+    html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
+        const cleanTitle = title.trim();
+        if (cleanTitle.startsWith('File:')) return match; // Safeguard
+        const slug = cleanTitle.replace(/ /g, '_');
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(alias.trim())}</a>`;
     });
 
     html = html.replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, '<a href="$1" class="external-link" target="_blank" rel="noopener noreferrer">$2</a>');
