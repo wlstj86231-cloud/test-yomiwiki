@@ -200,6 +200,7 @@ html, body {
     word-wrap: break-word;
     word-break: normal;
     hyphens: auto;
+    padding-bottom: 100px; /* Generous space at the bottom */
 }
 
 /* --- [Image & Media Layouts] --- */
