@@ -255,8 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
 
-        mainTitle.textContent = type === 'login' ? '[AUTH_PROTOCOL: LOGIN]' : '[AUTH_PROTOCOL: REGISTER]';
-        metaText.textContent = "CLEARANCE_REQUIRED";
+        mainTitle.textContent = type === 'login' ? '[AUTH: LOGIN]' : '[AUTH: REGISTER]';
+        metaText.textContent = "CLEARANCE_REQ";
         
         articleBody.innerHTML = `
             <div style="max-width:400px; margin:40px auto; background:#050505; border:1px solid #222; padding:30px;">
