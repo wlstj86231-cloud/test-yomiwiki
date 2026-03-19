@@ -10,6 +10,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const API_ENDPOINT = '/api';
 
+    // --- [TITLE NORMALIZATION HELPERS: Phase 5] ---
+    window.titleToSlug = (title) => {
+        if (!title) return "";
+        return title.trim().replace(/ /g, '_');
+    };
+
+    window.slugToTitle = (slug) => {
+        if (!slug) return "";
+        try {
+            return decodeURIComponent(slug).replace(/_/g, ' ').trim();
+        } catch (e) {
+            return slug.replace(/_/g, ' ').trim();
+        }
+    };
+
     // --- [Auth & State] ---
     let currentUser = JSON.parse(localStorage.getItem('yomi_user')) || null;
 
@@ -303,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div style="margin-top:10px; display:flex; gap:10px;">
                     <button onclick="window.submitEdit('${escapeHTML(title)}')" class="btn-clinical-toggle" style="flex:1; padding:15px;">[TRANSMIT_TO_ARCHIVE]</button>
-                    <button onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}')" class="btn-clinical-toggle" style="padding:15px;">[ABORT]</button>
+                    <button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(title))}')" class="btn-clinical-toggle" style="padding:15px;">[ABORT]</button>
                 </div>
             `;
 
@@ -393,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         `).join('')}
                     </div>
                     <div style="margin-top:40px;">
-                        <button onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}')" class="btn-clinical-toggle" style="padding:15px 30px;">[BACK_TO_LIVE_NODE]</button>
+                        <button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(title))}')" class="btn-clinical-toggle" style="padding:15px 30px;">[BACK_TO_LIVE_NODE]</button>
                     </div>
                 </div>
             `;
@@ -719,7 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     if (suggestions.length > 0) {
                         searchDropdown.innerHTML = suggestions.map(title => `
-                            <div class="search-item" onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}'); document.getElementById('search-input').value=''; document.getElementById('search-dropdown').style.display='none';">
+                            <div class="search-item" onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(title))}'); document.getElementById('search-input').value=''; document.getElementById('search-dropdown').style.display='none';">
                                 <span style="color:var(--accent-orange); margin-right:8px;">▶</span> ${escapeHTML(title)}
                             </div>
                         `).join('');
@@ -741,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle Enter key
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && searchInput.value.trim()) {
-                window.navigateTo(`/w/${encodeURIComponent(searchInput.value.trim().replace(/ /g, '_'))}`);
+                window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(searchInput.value.trim()))}`);
                 searchInput.value = '';
                 searchDropdown.style.display = 'none';
             }
@@ -818,7 +833,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let title = path.startsWith('/w/') ? decodeURIComponent(path.substring(3)).replace(/[_\s]+/g, ' ').trim() : 'Main_Page';
+        let title = 'Main_Page';
+        if (path.startsWith('/w/')) {
+            // Extract everything after /w/ and decode via helper
+            title = window.slugToTitle(path.substring(3));
+        }
+        
         const mode = urlParams.get('mode');
         
         if (title.startsWith('Category:')) {

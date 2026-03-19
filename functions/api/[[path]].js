@@ -81,7 +81,12 @@ export async function onRequest(context) {
 
     // --- [IMPORTANT: CONSISTENT TITLE NORMALIZATION] ---
     function normalizeTitle(rawTitle) { 
-        return decodeURIComponent(rawTitle || "").replace(/[_\s]+/g, '_').trim(); 
+        try {
+            const decoded = decodeURIComponent(rawTitle || "");
+            return decoded.replace(/[_\s]+/g, '_').trim();
+        } catch (e) {
+            return (rawTitle || "").replace(/[_\s]+/g, '_').trim();
+        }
     }
 
     async function getAgentTier(username) {
