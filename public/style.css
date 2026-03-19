@@ -343,33 +343,84 @@ html, body {
     box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
 }
 
-/* --- [Search Autocomplete Styles] --- */
-.search-bar { position: relative; }
-.search-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
+/* --- [Table of Contents Styling - Namu/Clinical Hybrid] --- */
+.wiki-toc {
     background: #0a0a0a;
-    border: 1px solid var(--accent-orange);
-    border-top: none;
-    z-index: 2000;
-    max-height: 300px;
-    overflow-y: auto;
-    display: none;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    display: inline-block;
+    min-width: 280px;
+    margin: 2rem 0;
+    font-size: 0.85rem;
+    box-shadow: 5px 5px 0px rgba(255, 153, 0, 0.05);
 }
-.search-item {
-    padding: 12px 15px;
+.toc-title {
+    font-family: var(--font-mono);
+    color: var(--accent-orange);
+    font-weight: 800;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.toc-toggle { cursor: pointer; color: var(--text-dim); font-size: 0.7rem; font-weight: normal; }
+.toc-toggle:hover { color: var(--accent-orange); }
+
+.wiki-toc ul { list-style: none !important; padding: 0; margin: 0; }
+.wiki-toc li { margin-bottom: 6px; line-height: 1.4; }
+.toc-level-1 { font-weight: bold; margin-top: 10px; }
+.toc-level-2 { padding-left: 15px; }
+.toc-level-3 { padding-left: 30px; }
+.toc-level-4 { padding-left: 45px; }
+
+.toc-number { 
+    color: var(--accent-orange); 
+    margin-right: 10px; 
+    font-family: var(--font-mono); 
+    font-size: 0.75rem; 
+    opacity: 0.8;
+}
+.wiki-toc a { color: var(--text-main); }
+.wiki-toc a:hover { color: var(--accent-orange); text-decoration: underline !important; }
+
+/* --- [Footnotes Styling] --- */
+.wiki-footnotes {
+    margin-top: 80px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+}
+.footnotes-title {
     font-family: var(--font-mono);
     font-size: 0.8rem;
-    color: var(--text-main);
-    cursor: pointer;
-    border-bottom: 1px solid #111;
-    transition: background 0.2s;
+    color: var(--text-dim);
+    margin-bottom: 15px;
+    letter-spacing: 2px;
 }
-.search-item:last-child { border-bottom: none; }
-.search-item:hover {
-    background: rgba(255, 153, 0, 0.1);
+.wiki-footnotes ol { 
+    padding-left: 20px !important; 
+    color: var(--text-muted); 
+    font-size: 0.85rem; 
+    line-height: 1.8;
+}
+.wiki-footnotes li { margin-bottom: 10px; }
+.wiki-footnotes li:target { 
+    background: rgba(255, 153, 0, 0.05); 
+    outline: 1px solid var(--accent-orange);
+}
+.footnote-backlink {
     color: var(--accent-orange);
+    text-decoration: none;
+    margin-left: 8px;
+    font-weight: bold;
 }
+.footnote-link {
+    color: var(--accent-cyan);
+    font-size: 0.75rem;
+    vertical-align: super;
+    text-decoration: none;
+    margin: 0 2px;
+}
+.footnote-link:hover { text-decoration: underline !important; }

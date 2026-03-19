@@ -1,6 +1,6 @@
 /**
- * YomiWiki Core Parser (V5.3 XSS Shield)
- * Decodes wiki markup into HTML with maximum security.
+ * YomiWiki Core Parser (V5.4 Fixed)
+ * Decodes wiki markup into HTML with precision.
  */
 
 function escapeHTML(str) {
@@ -13,26 +13,24 @@ function escapeHTML(str) {
         .replace(/'/g, "&#039;");
 }
 
-/**
- * @param {string} content - Raw or partially escaped content.
- * @param {boolean} isEscaped - If true, skip initial HTML escaping.
- * @param {string} salt - Optional salt for placeholder security.
- */
-function wikiParse(content, isEscaped = false, salt = null) {
+function wikiParse(content) {
     if (!content) return "";
     
-    // --- 0. Pre-Parsing Security (XSS Defense V5-3) ---
-    const SECRET_SALT = salt || Math.random().toString(36).substring(7);
-    let html = isEscaped ? content : escapeHTML(content);
-
-    // --- 1. Collection Phase (Extract blocks from escaped text) ---
+    // --- 1. Collection Phase (Preserve special blocks before any escaping) ---
     const infoboxes = [];
     const clinicalBlocks = [];
     const codeBlocks = [];
+    const SECRET_SALT = Math.random().toString(36).substring(7);
 
-    // Infobox (Must handle escaped delimiters if they were part of syntax)
-    // Wiki syntax usually doesn't contain < > & so escaping doesn't break them.
-    html = html.replace(/\{\{infobox([\s\S]*?)\}\}/g, (match, body) => {
+    // Code Blocks (Highest priority)
+    content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+        const num = codeBlocks.length;
+        codeBlocks.push(code.trim());
+        return `%%%CODE_${num}_${SECRET_SALT}%%%`;
+    });
+
+    // Infobox
+    content = content.replace(/\{\{infobox([\s\S]*?)\}\}/g, (match, body) => {
         const num = infoboxes.length;
         const rows = body.split('|').map(r => r.trim()).filter(r => r);
         let title = "ARCHIVAL_DATA";
@@ -51,20 +49,16 @@ function wikiParse(content, isEscaped = false, salt = null) {
     });
 
     // Clinical Blocks
-    html = html.replace(/\[CLINICAL\]([\s\S]*?)\[\/CLINICAL\]/g, (match, body) => {
+    content = content.replace(/\[CLINICAL\]([\s\S]*?)\[\/CLINICAL\]/g, (match, body) => {
         const num = clinicalBlocks.length;
         clinicalBlocks.push(body.trim());
         return `%%%CLINICAL_${num}_${SECRET_SALT}%%%`;
     });
 
-    // Code Blocks
-    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-        const num = codeBlocks.length;
-        codeBlocks.push({ lang: lang || 'plaintext', code: code.trim() });
-        return `%%%CODE_${num}_${SECRET_SALT}%%%`;
-    });
+    // --- 2. Security Escaping (Now safe because blocks are hidden) ---
+    let html = escapeHTML(content);
 
-    // --- 2. Text Formatting & Headers ---
+    // --- 3. Text Formatting & Headers ---
     // Markdown Bold/Italic/Stroke
     html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
     html = html.replace(/__(.*?)__/g, '<b>$1</b>');
@@ -82,7 +76,7 @@ function wikiParse(content, isEscaped = false, salt = null) {
         return `<h${level} id="${id}">${title}</h${level}>`;
     });
 
-    // --- 3. Footnotes ---
+    // --- 4. Footnotes ---
     const footnotes = [];
     html = html.replace(/\[\* (.*?)\]/g, (match, fnContent) => {
         const num = footnotes.length + 1;
@@ -91,7 +85,7 @@ function wikiParse(content, isEscaped = false, salt = null) {
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
 
-    // --- 4. Links & Images ---
+    // --- 5. Links & Images ---
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const cleanTitle = title.trim();
         if (cleanTitle.toLowerCase().startsWith('category:')) return "";
@@ -121,11 +115,9 @@ function wikiParse(content, isEscaped = false, salt = null) {
         return `<div class="media-container ${alignClass}" style="${widthStyle}"><img src="${encodeURI(url.trim())}" class="wiki-image" alt="${caption}">${caption ? `<div class="media-caption">${caption}</div>` : ''}</div>`;
     });
 
-    html = html.replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, (match, url, text) => {
-        return `<a href="${url}" class="external-link" target="_blank" rel="noopener noreferrer">${text}</a>`;
-    });
+    html = html.replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, '<a href="$1" class="external-link" target="_blank" rel="noopener noreferrer">$2</a>');
     
-    // --- 5. Tables and Lists ---
+    // --- 6. Tables and Lists ---
     const lines = html.split('\n');
     let finalHtml = [];
     let listStack = [];
@@ -145,8 +137,8 @@ function wikiParse(content, isEscaped = false, salt = null) {
         } else if (inTable) {
             if (trimmed.startsWith('|+')) tableHtml += `<caption>${trimmed.substring(2).trim()}</caption>`;
             else if (trimmed.startsWith('|-')) tableHtml += '<tr>';
-            else if (trimmed.startsWith('!')) trimmed.substring(1).split('!!').forEach(c => tableHtml += `<th>${wikiParse(c.trim(), true, SECRET_SALT)}</th>`);
-            else if (trimmed.startsWith('|')) trimmed.substring(1).split('||').forEach(c => tableHtml += `<td>${wikiParse(c.trim(), true, SECRET_SALT)}</td>`);
+            else if (trimmed.startsWith('!')) trimmed.substring(1).split('!!').forEach(c => tableHtml += `<th>${wikiParse(c.trim())}</th>`);
+            else if (trimmed.startsWith('|')) trimmed.substring(1).split('||').forEach(c => tableHtml += `<td>${wikiParse(c.trim())}</td>`);
         } else {
             const listMatch = line.match(/^([\*\#]+)\s*(.*)$/);
             if (listMatch) {
@@ -165,7 +157,7 @@ function wikiParse(content, isEscaped = false, salt = null) {
     });
     let parsedContent = finalHtml.join('');
 
-    // --- 6. TOC Generation ---
+    // --- 7. TOC Generation (MUST BE INTEGRATED) ---
     if (headers.length >= 3) {
         const counts = [0, 0, 0, 0, 0, 0, 0];
         let lastLevel = 0;
@@ -181,16 +173,17 @@ function wikiParse(content, isEscaped = false, salt = null) {
         parsedContent = tocHtml + parsedContent;
     }
 
-    // --- 7. Injection Phase (Restore special blocks) ---
+    // --- 8. Footnote List Injection ---
     if (footnotes.length > 0) {
         let fnHtml = `<div class="wiki-footnotes"><div class="footnotes-title">[ARCHIVAL_FOOTNOTES]</div><ol>`;
         footnotes.forEach((content, i) => {
-            fnHtml += `<li id="fn-${i+1}">${wikiParse(content, true, SECRET_SALT)} <a href="#fn-ref-${i+1}" class="footnote-backlink">↩</a></li>`;
+            fnHtml += `<li id="fn-${i+1}">${wikiParse(content)} <a href="#fn-ref-${i+1}" class="footnote-backlink">↩</a></li>`;
         });
         fnHtml += `</ol></div>`;
         parsedContent += fnHtml;
     }
 
+    // --- 9. Injection Phase (Restore special blocks) ---
     parsedContent = parsedContent.replace(/%%%INFOBOX_(\d+)_([a-z0-9]+)%%%/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
         const info = infoboxes[num];
@@ -199,19 +192,19 @@ function wikiParse(content, isEscaped = false, salt = null) {
             const key = item.key.toLowerCase();
             if (key === 'image') bodyHtml += `<tr><td colspan="2" class="infobox-image-cell"><img src="${encodeURI(item.val)}" class="wiki-image"></td></tr>`;
             else if (key === 'caption') bodyHtml += `<tr><td colspan="2" class="infobox-caption-cell">${item.val}</td></tr>`;
-            else bodyHtml += `<tr><th>${item.key}</th><td>${wikiParse(item.val, true, SECRET_SALT)}</td></tr>`;
+            else bodyHtml += `<tr><th>${item.key}</th><td>${wikiParse(item.val)}</td></tr>`;
         });
         return `<aside class="infobox"><div class="infobox-title">${info.title}</div><table>${bodyHtml}</table></aside>`;
     });
 
     parsedContent = parsedContent.replace(/%%%CLINICAL_(\d+)_([a-z0-9]+)%%%/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
-        return `<div class="clinical-report-block"><div class="clinical-report-header">[OFFICIAL_CLINICAL_RECORD]</div><div class="clinical-report-content">${wikiParse(clinicalBlocks[num], true, SECRET_SALT)}</div><div class="clinical-report-footer">VALIDATED_BY_ARCHIVE_SYSTEM</div></div>`;
+        return `<div class="clinical-report-block"><div class="clinical-report-header">[OFFICIAL_CLINICAL_RECORD]</div><div class="clinical-report-content">${wikiParse(clinicalBlocks[num])}</div><div class="clinical-report-footer">VALIDATED_BY_ARCHIVE_SYSTEM</div></div>`;
     });
 
     parsedContent = parsedContent.replace(/%%%CODE_(\d+)_([a-z0-9]+)%%%/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
-        return `<pre class="wiki-code"><code>${codeBlocks[num].code}</code></pre>`;
+        return `<pre class="wiki-code"><code>${escapeHTML(codeBlocks[num])}</code></pre>`;
     });
 
     return parsedContent;
