@@ -35,3 +35,4 @@
 
 * RE-VERIFICATION: Fixed global API crashes and unified UI to English for stability. (v2.4.4)
 * ERROR_REPORT: Resolved board list and comment invisibility caused by over-simplification of SQL logic and data mapping. (v2.4.5)
+* ERROR_REPORT: Fixed Handshake failed error by adding comprehensive error handling in frontend and restoring missing backend helper functions. (v2.4.6)

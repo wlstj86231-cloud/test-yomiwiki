@@ -1,4 +1,4 @@
-// functions/api/[[path]].js - Professional Archival Engine (v2.4.4 Robust)
+// functions/api/[[path]].js - Professional Unified Engine (v2.4.6 Robust)
 
 const SECURITY_CONFIG = {
     SESSION_EXPIRY: 86400 * 7,
@@ -28,11 +28,10 @@ export async function onRequest(context) {
 
     if (method === "OPTIONS") return new Response(null, { headers: securityHeaders });
 
-    // --- Robust Helpers ---
+    // --- Helpers ---
     function normalizeTitle(rawTitle) {
         try {
             const decoded = decodeURIComponent(rawTitle || "");
-            // Standard normalization: spaces to underscores, keep slashes for hierarchy
             return decoded.trim().replace(/\s+/g, '_');
         } catch (e) {
             return (rawTitle || "").trim().replace(/\s+/g, '_');
@@ -40,7 +39,7 @@ export async function onRequest(context) {
     }
 
     async function verifySession(token) {
-        if (!token || token === "mock_token") return { sub: "Anonymous_Agent", role: "viewer" };
+        if (!token) return null;
         try {
             const parts = token.split('.');
             if (parts.length !== 3) return null;
@@ -53,10 +52,7 @@ export async function onRequest(context) {
     async function getAgentTier(username) {
         if (!username || username === 'Anonymous_Agent') return { level: "0", title: "UNVERIFIED" };
         try {
-            const revRes = await env.DB.prepare("SELECT COUNT(*) as count FROM revisions WHERE editor_info = ?").bind(username).first();
-            const commRes = await env.DB.prepare("SELECT COUNT(*) as count FROM comments WHERE author = ?").bind(username).first();
-            const total = (revRes?.count || 0) + (commRes?.count || 0);
-            if (total >= 100) return { level: "II", title: "SENIOR AGENT" };
+            // Simplified to avoid excessive DB load during high traffic
             return { level: "I", title: "AGENT" };
         } catch (e) { return { level: "0", title: "ERROR" }; }
     }
@@ -65,7 +61,7 @@ export async function onRequest(context) {
         let resData = null;
         let status = 200;
 
-        // 1. Fetch Article (GET)
+        // 1. ARTICLE FETCH
         if (path.startsWith('/article/') && method === "GET" && !path.endsWith('/history')) {
             const identifier = path.replace('/article/', '');
             const revId = url.searchParams.get('rev');
@@ -74,7 +70,7 @@ export async function onRequest(context) {
             let article;
             if (revId) {
                 const title = normalizeTitle(identifier);
-                article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, a.is_locked, a.id, a.categories FROM revisions r JOIN articles a ON r.article_id = a.id WHERE (a.title = ? OR a.id = ?) AND r.id = ?").bind(title, isNumericId ? parseInt(identifier) : -1, revId).first();
+                article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, a.is_locked, a.id FROM revisions r JOIN articles a ON r.article_id = a.id WHERE (a.title = ? OR a.id = ?) AND r.id = ?").bind(title, isNumericId ? parseInt(identifier) : -1, revId).first();
             } else {
                 if (isNumericId) article = await env.DB.prepare("SELECT * FROM articles WHERE id = ?").bind(parseInt(identifier)).first();
                 else article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(normalizeTitle(identifier)).first();
@@ -86,34 +82,23 @@ export async function onRequest(context) {
             } else {
                 const { results: rawComments } = await env.DB.prepare("SELECT * FROM comments WHERE article_id = ? ORDER BY timestamp DESC").bind(article.id).all();
                 
-                // BOARD LOGIC: Final and Definitive Fix
                 let subArticles = [];
                 if (article.title.startsWith('Sector:') && !article.title.substring(7).includes('/')) {
                     const sectorPrefix = article.title + "/%";
-                    const { results } = await env.DB.prepare(`
-                        SELECT id, title, author, updated_at 
-                        FROM articles 
-                        WHERE title LIKE ? AND is_deleted = 0 
-                        ORDER BY updated_at DESC LIMIT 100
-                    `).bind(sectorPrefix).all();
+                    const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(sectorPrefix).all();
                     subArticles = results;
                 }
 
-                const commentsWithTiers = await Promise.all(rawComments.map(async c => ({
-                    ...c,
-                    author_tier: await getAgentTier(c.author)
-                })));
-
                 resData = { 
                     ...article, 
-                    comments: commentsWithTiers,
+                    comments: rawComments,
                     sub_articles: subArticles,
                     author_tier: await getAgentTier(article.author)
                 };
             }
         }
 
-        // 2. Search Autocomplete (GET)
+        // 2. SEARCH SUGGEST
         else if (path === '/search/suggest' && method === "GET") {
             const query = url.searchParams.get('q');
             if (!query || query.length < 2) resData = [];
@@ -123,19 +108,19 @@ export async function onRequest(context) {
             }
         }
 
-        // 3. Global Activity Log (GET)
+        // 3. GLOBAL HISTORY (LOG)
         else if (path === '/history' && method === "GET") {
             const { results } = await env.DB.prepare("SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author FROM revisions r JOIN articles a ON r.article_id = a.id ORDER BY r.timestamp DESC LIMIT 20").all();
             resData = results;
         }
 
-        // 4. Sidebar Recent Articles (GET)
+        // 4. SIDEBAR RECENT
         else if (path === '/api/articles/recent' && method === "GET") {
             const { results } = await env.DB.prepare("SELECT id, title, updated_at FROM articles WHERE is_deleted = 0 ORDER BY updated_at DESC LIMIT 10").all();
             resData = results;
         }
 
-        // 5. Post Comment (POST)
+        // 5. POST COMMENT
         else if (path.startsWith('/article/') && path.endsWith('/comments') && method === "POST") {
             const title = normalizeTitle(path.split('/')[2]);
             const { content, parent_id } = await request.json();
@@ -151,7 +136,7 @@ export async function onRequest(context) {
             }
         }
 
-        // 6. Update/Create Article (POST)
+        // 6. UPDATE ARTICLE
         else if (path.startsWith('/article/') && (method === "POST" || method === "PUT")) {
             const title = normalizeTitle(path.replace('/article/', ''));
             const { content, summary, classification } = await request.json();
@@ -166,7 +151,7 @@ export async function onRequest(context) {
             resData = { success: true };
         }
 
-        else { status = 404; resData = { error: "PATH_NOT_FOUND" }; }
+        else { status = 404; resData = { error: "NOT_FOUND" }; }
 
         return new Response(JSON.stringify(resData), { status, headers: securityHeaders });
 

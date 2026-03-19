@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "N/A";
         const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
+        if (isNaN(date.getTime())) return "N/A";
         const now = new Date();
         const diff = Math.floor((now - date) / 1000);
         if (diff < 60) return 'Just now';
@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- [RENDERING ENGINE] ---
     function renderCommentsHTML(title, comments) {
+        if (!comments || !Array.isArray(comments)) return "";
         const sorted = [...comments].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         const rootComments = sorted.filter(c => !c.parent_id);
         const children = sorted.filter(c => c.parent_id);
@@ -125,14 +126,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await securedFetch(url);
             const data = await res.json();
 
-            if (data.error === "RECORD_NOT_FOUND") {
-                mainTitle.textContent = `[NULL_NODE]: ${title}`;
-                articleBody.innerHTML = `<div style="border:1px solid var(--hazard-red); padding:20px; color:var(--hazard-red);">[ALERT]: Archival coordinate not found. <br><br> <button onclick="window.navigateTo('?mode=edit')" class="btn-clinical-toggle">[ESTABLISH_NODE]</button></div>`;
+            if (data.error) {
+                if (data.error === "RECORD_NOT_FOUND") {
+                    mainTitle.textContent = `[NULL_NODE]: ${title}`;
+                    articleBody.innerHTML = `<div style="border:1px solid var(--hazard-red); padding:20px; color:var(--hazard-red);">[ALERT]: Archival coordinate not found. <br><br> <button onclick="window.navigateTo('?mode=edit')" class="btn-clinical-toggle">[ESTABLISH_NODE]</button></div>`;
+                } else {
+                    articleBody.innerHTML = `<div style="border:1px solid var(--hazard-red); padding:20px; color:var(--hazard-red);">[SYSTEM_EXCEPTION]: ${data.error} <br><br> ${data.message || ""}</div>`;
+                }
                 return;
             }
 
             mainTitle.textContent = data.title;
-            metaText.innerHTML = `REV: ${data.updated_at} | AUTH: ${data.author}`;
+            metaText.innerHTML = `REV: ${data.updated_at || "N/A"} | AUTH: ${data.author || "SYSTEM"}`;
 
             const isBoard = data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
@@ -142,39 +147,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
                 boardHtml = `
-                    <div class="sector-board" style="margin-bottom:30px;">
-                        <div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                            <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
-                            <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
-                        </div>
-                        <div class="wiki-table-container" style="overflow-x:auto; background:#050505; border:1px solid #222;">
-                            <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
-                                <thead>
-                                    <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
-                                        <th style="padding:12px 15px; color:var(--accent-orange);">NODE</th>
-                                        <th style="padding:12px 15px; color:var(--accent-orange); text-align:center; width:80px;">ACTION</th>
-                                        <th style="padding:12px 15px; color:var(--accent-orange); width:120px;">AGENT</th>
-                                        <th style="padding:12px 15px; color:var(--accent-orange); text-align:right; width:150px;">TIMESTAMP</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${subNodes.length > 0 ? subNodes.map(sub => `
-                                        <tr style="border-bottom:1px solid #111;">
-                                            <td style="padding:10px 15px;"><a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
-                                            <td style="padding:10px 15px; text-align:center;"><a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a></td>
-                                            <td style="padding:10px 15px; color:var(--text-dim);">${escapeHTML(sub.author || "Unknown")}</td>
-                                            <td style="padding:10px 15px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
-                                        </tr>
-                                    `).join('') : `<tr><td colspan="4" style="padding:40px; text-align:center; opacity:0.3; font-style:italic;">[NULL_DATA_STREAM]: No archival nodes detected.</td></tr>`}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div style="margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
+                        <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
                     </div>
+                    <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
+                        <thead>
+                            <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
+                                <th style="padding:10px; color:var(--accent-orange);">NODE</th>
+                                <th style="padding:10px; color:var(--accent-orange); text-align:center;">ACTION</th>
+                                <th style="padding:10px; color:var(--accent-orange);">AGENT</th>
+                                <th style="padding:10px; color:var(--accent-orange); text-align:right;">TIMESTAMP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${subNodes.map(sub => `
+                                <tr style="border-bottom:1px solid #111;">
+                                    <td style="padding:10px;"><a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
+                                    <td style="padding:10px; text-align:center;"><a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a></td>
+                                    <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
+                                    <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
+                                </tr>
+                            `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_SUB_NODES]</td></tr>'}
+                        </tbody>
+                    </table>
                 `;
-                contentHtml = ""; // Hide protocol on board
+                contentHtml = ""; 
             }
 
-            const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
+            const commentsHtml = (isBoard && !revId) ? "" : renderCommentsHTML(data.title, data.comments || []);
             articleBody.innerHTML = contentHtml + boardHtml + commentsHtml;
             window.scrollTo(0, 0);
 
@@ -208,10 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_ENDPOINT}/history`);
             const logs = await res.json();
             logEl.innerHTML = logs.map(l => {
-                const time = l.timestamp.split(' ')[1]?.substring(0, 5) || "";
-                const tag = l.type === 'edit' ? '<span style="color:var(--accent-orange); margin-right:5px;">[DATA]</span>' : '<span style="color:var(--accent-cyan); margin-right:5px;">[DISC]</span>';
+                const time = l.timestamp?.split(' ')[1]?.substring(0, 5) || "";
                 return `<div style="margin-bottom:8px; border-bottom:1px solid #111; padding-bottom:4px; font-size:0.7rem;">
-                    <span style="color:#444;">${time}</span> ${tag} 
+                    <span style="color:#444;">${time}</span> 
                     <a href="/w/${encodeURIComponent(window.titleToSlug(l.title))}" style="color:#aaa; text-decoration:none;">${escapeHTML(l.title)}</a>
                 </div>`;
             }).join('') || '<div style="opacity:0.3;">[OFFLINE]</div>';
@@ -227,11 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (path.startsWith('/w/')) titleOrId = window.slugToTitle(path.substring(3));
 
         if (mode === 'edit') {
-            // Minimal editor for now
             const mainTitle = document.getElementById('article-title');
             const articleBody = document.querySelector('.article-body');
             mainTitle.textContent = `EDITING: ${titleOrId}`;
-            articleBody.innerHTML = `<textarea id="editor-text" style="width:100%; height:400px; background:#000; color:#0f0;"></textarea> <br> <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle">TRANSMIT</button>`;
+            articleBody.innerHTML = `<textarea id="editor-text" style="width:100%; height:400px; background:#000; color:#0f0; padding:15px; border:1px solid #333;"></textarea> <br> <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle" style="width:100%; padding:15px; margin-top:10px;">[TRANSMIT_TO_ARCHIVE]</button>`;
         } else {
             await renderArticle(titleOrId);
         }
@@ -249,5 +248,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     init();
-    setInterval(updateSidebarActivity, 30000);
+    setInterval(updateSidebarActivity, 60000);
 });
