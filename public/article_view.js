@@ -1,12 +1,11 @@
 /**
- * ArticleView Component (Item 17)
- * This component handles the extraction of article IDs from the URL and fetching data.
+ * ArticleView Component (Item 18)
+ * This component handles the extraction of article IDs, fetching data, and rendering.
  */
 
 window.ArticleView = {
     /**
      * Extracts the numeric article ID from the current URL path (/w/ID).
-     * @returns {number|null} The article ID or null if not numeric.
      */
     getArticleIdFromUrl: function() {
         const path = window.location.pathname;
@@ -20,8 +19,6 @@ window.ArticleView = {
 
     /**
      * Fetches a single article's data from the API using its ID.
-     * @param {number} id - The numeric article ID.
-     * @returns {Promise<Object|null>} The article data or null if error.
      */
     fetchArticleById: async function(id) {
         try {
@@ -34,6 +31,16 @@ window.ArticleView = {
         } catch (e) {
             console.error("[CRITICAL]: Failed to retrieve archival node by ID.", e);
             return null;
+        }
+    },
+
+    /**
+     * Renders the article title to the DOM.
+     */
+    renderTitle: function(title) {
+        const titleEl = document.getElementById('article-title');
+        if (titleEl) {
+            titleEl.textContent = title;
         }
     }
 };
