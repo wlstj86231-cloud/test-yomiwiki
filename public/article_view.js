@@ -46,7 +46,7 @@ window.ArticleView = {
                 classBar.style.fontSize = '0.85rem';
                 titleEl.parentNode.insertBefore(classBar, titleEl.parentNode.firstChild);
             }
-            classBar.innerHTML = `<span style="color:var(--text-dim);">[CLASSIFICATION]:</span> <span style="color:var(--accent-orange); font-weight:bold;">${classification || 'UNCLASSIFIED'}</span>`;
+            classBar.innerHTML = `<span style="color:var(--text-dim);">[CLASSIFICATION]:</span> <a href="/w/Category:${encodeURIComponent(classification || 'UNCLASSIFIED')}" style="color:var(--accent-orange); font-weight:bold; text-decoration:none;">${classification || 'UNCLASSIFIED'}</a>`;
 
             // Item 48: Add 'HISTORY' button in a metadata sub-header
 ...

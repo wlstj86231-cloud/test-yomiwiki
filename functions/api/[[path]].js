@@ -268,7 +268,8 @@ export async function onRequest(context) {
 
         else if (path.startsWith('/category/') && method === "GET") {
             const categoryName = decodeURIComponent(path.substring(10));
-            const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE categories LIKE ? AND is_deleted = 0 ORDER BY title ASC").bind(`%${categoryName}%`).all();
+            // Item 63: Search both specific categories and classification field
+            const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE (categories LIKE ? OR classification = ?) AND is_deleted = 0 ORDER BY title ASC").bind(`%${categoryName}%`, categoryName).all();
             resData = { category: categoryName, members: results };
         }
 
