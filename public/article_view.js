@@ -59,16 +59,25 @@ window.ArticleView = {
             }
         }
     },
+/**
+ * Renders the article body content to the DOM and adds TOC/ad placeholders.
+ */
+renderContent: function(content) {
+    const bodyEl = document.querySelector('.article-body');
+    if (bodyEl) {
+        bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
 
-    /**
-     * Renders the article body content to the DOM and adds the bottom ad placeholder.
-     */
-    renderContent: function(content) {
-        const bodyEl = document.querySelector('.article-body');
-        if (bodyEl) {
-            bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
+        // Item 36: Add TOC placeholder at the very top of the body
+        let tocBox = document.getElementById('wiki-toc-placeholder');
+        if (!tocBox) {
+            tocBox = document.createElement('div');
+            tocBox.id = 'wiki-toc-placeholder';
+            tocBox.className = 'wiki-toc'; // Styles already in style.css
+            bodyEl.insertBefore(tocBox, bodyEl.firstChild);
+        }
 
-            // Item 32: Add ad placeholder at the end of the body
+        // Item 32: Add ad placeholder at the end of the body
+...
             let adBox = document.getElementById('ad-bottom-placeholder');
             if (!adBox) {
                 adBox = document.createElement('div');
