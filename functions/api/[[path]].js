@@ -150,9 +150,11 @@ export async function onRequest(context) {
             }
         }
 
-        else if (path.startsWith('/article/') && method === "GET") {
+        if (path.startsWith('/article/') && method === "GET") {
             try {
-                const title = normalizeTitle(path.substring(9));
+                // Improved title extraction: handle sub-paths correctly
+                const rawTitle = path.replace('/article/', '');
+                const title = normalizeTitle(rawTitle);
                 const revId = url.searchParams.get('rev');
                 
                 let article;

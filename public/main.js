@@ -528,14 +528,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
             
-            // Assemble: Content (contains TOC) -> Footer -> Comments
-            // If it's a board, the content is the protocol description
-            let finalOutput = contentHtml + footer + commentsHtml;
+            // Assemble: Content (contains TOC) -> Board (if applicable) -> Comments -> Footer
+            // This ensures comments are more prominent on long boards
+            let finalOutput = contentHtml;
             
             if (isBoard && !revId) {
-                // For boards, put the post list (boardHtml) between the protocol and footer
-                finalOutput = contentHtml + boardHtml + footer + commentsHtml;
+                finalOutput += boardHtml;
             }
+            
+            finalOutput += footer + commentsHtml;
 
             articleBody.innerHTML = finalOutput;
 
@@ -835,8 +836,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let title = 'Main_Page';
         if (path.startsWith('/w/')) {
-            // Extract everything after /w/ and decode via helper
-            title = window.slugToTitle(path.substring(3));
+            // Correctly handle slashes by taking everything after /w/
+            const slug = path.substring(3);
+            title = window.slugToTitle(slug);
         }
         
         const mode = urlParams.get('mode');
