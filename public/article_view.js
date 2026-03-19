@@ -91,5 +91,24 @@ window.ArticleView = {
         const bodyEl = document.querySelector('.article-body');
         if (!bodyEl) return [];
         return bodyEl.querySelectorAll('h2, h3');
+    },
+
+    /**
+     * Extracts text and level data from heading elements.
+     * @returns {Array} List of structured heading objects.
+     */
+    generateTocData: function() {
+        const headings = this.getHeadings();
+        const tocData = Array.from(headings).map((el, index) => {
+            // Assign an ID to the heading if it doesn't have one for scroll anchoring
+            if (!el.id) el.id = `section-${index + 1}`;
+            
+            return {
+                text: el.innerText.trim(),
+                level: el.tagName.toLowerCase() === 'h2' ? 1 : 2,
+                id: el.id
+            };
+        });
+        return tocData;
     }
 };
