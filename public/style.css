@@ -532,6 +532,114 @@ html, body {
     width: 100%;
 }
 
+/* --- [Visual Infobox Builder in Editor] --- */
+.infobox-builder {
+    background: #000;
+    border: 1px solid var(--accent-orange);
+    padding: 0;
+    width: 320px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-glow);
+}
+
+.builder-title-input {
+    width: 100%;
+    background: var(--accent-orange);
+    color: #000;
+    border: none;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    outline: none;
+}
+
+.builder-drop-zone {
+    width: 100%;
+    height: 180px;
+    border-bottom: 1px solid var(--accent-orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 153, 0, 0.02);
+}
+
+.builder-drop-zone.dragover {
+    background: rgba(255, 153, 0, 0.1);
+}
+
+.builder-drop-zone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.builder-placeholder {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent-orange);
+    text-align: center;
+    padding: 20px;
+    opacity: 0.6;
+}
+
+.builder-rows {
+    padding: 10px;
+}
+
+.builder-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.builder-key {
+    width: 80px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent-orange);
+    background: transparent;
+    border: none;
+    outline: none;
+    text-transform: uppercase;
+}
+
+.builder-val {
+    flex: 1;
+    background: #050505;
+    border: 1px solid #222;
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    outline: none;
+}
+
+.builder-val:focus {
+    border-color: var(--accent-orange);
+}
+
+/* --- [Editor Drag & Drop] --- */
+.editor-drop-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 153, 0, 0.1);
+    border: 2px dashed var(--accent-orange);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.textarea-container.dragover .editor-drop-overlay {
+    display: flex;
+}
+
 /* --- [UI Elements] --- */
 .btn-clinical-toggle {
     background: transparent; border: 1px solid var(--accent-orange); color: var(--accent-orange);

@@ -273,6 +273,42 @@ export async function onRequest(context) {
             } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
         }
 
+        // 12. ASSETS (Upload & Serve)
+        else if (path === '/assets/upload' && method === "POST") {
+            if (!user) return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 401, headers: securityHeaders });
+
+            const formData = await request.formData();
+            const file = formData.get('file');
+            if (!file || !(file instanceof File)) return new Response(JSON.stringify({ error: "INVALID_FILE" }), { status: 400, headers: securityHeaders });
+
+            // 3.0MB Limit Check
+            if (file.size > 3 * 1024 * 1024) return new Response(JSON.stringify({ error: "FILE_TOO_LARGE", message: "Maximum size is 3.0MB" }), { status: 413, headers: securityHeaders });
+
+            const fileName = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            const uploadKey = `archives/images/${fileName}`;
+            
+            await env.ASSETS_BUCKET.put(uploadKey, file.stream(), {
+                httpMetadata: { contentType: file.type }
+            });
+
+            const publicUrl = `/api/assets/${fileName}`;
+            await env.DB.prepare("INSERT INTO assets (filename, url, uploader) VALUES (?, ?, ?)").bind(fileName, publicUrl, user.username).run();
+            
+            resData = { success: true, url: publicUrl, filename: fileName };
+        }
+
+        else if (path.startsWith('/assets/') && method === "GET") {
+            const fileName = path.split('/')[2];
+            const object = await env.ASSETS_BUCKET.get(`archives/images/${fileName}`);
+            if (!object) return new Response("SIGNAL_NOT_FOUND", { status: 404 });
+            
+            const headers = new Headers();
+            object.writeHttpMetadata(headers);
+            headers.set("etag", object.httpEtag);
+            headers.set("Cache-Control", "public, max-age=31536000");
+            return new Response(object.body, { headers });
+        }
+
         else { status = 404; resData = { error: "PATH_NOT_FOUND" }; }
 
         return new Response(JSON.stringify(resData), { status, headers: securityHeaders });

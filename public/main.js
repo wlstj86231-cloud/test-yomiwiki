@@ -454,6 +454,170 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("[CRITICAL]: Purge sequence aborted."); }
     };
 
+    async function uploadImage(file) {
+        if (file.size > 3 * 1024 * 1024) {
+            alert("[ACCESS_DENIED]: File size exceeds 3.0MB clinical limit.");
+            return null;
+        }
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/assets/upload`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'Content-Type': undefined } // Fetch handles multipart correctly when undefined
+            });
+            const data = await res.json();
+            if (data.url) return data.url;
+            else throw new Error(data.error);
+        } catch (e) {
+            alert(`[SIGNAL_ERROR]: Upload failed. ${e.message}`);
+            return null;
+        }
+    }
+
+    async function handleEditorDrop(e, targetTextarea) {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    const url = await uploadImage(file);
+                    if (url) {
+                        const insertion = `\n[[File:${url}|width=300px|caption=IMAGE_DATA]]\n`;
+                        const start = targetTextarea.selectionStart;
+                        const end = targetTextarea.selectionEnd;
+                        targetTextarea.value = targetTextarea.value.substring(0, start) + insertion + targetTextarea.value.substring(end);
+                    }
+                }
+            }
+        }
+    }
+
+    async function handleInfoboxDrop(e, imgEl, urlInput) {
+        e.preventDefault();
+        e.stopPropagation();
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0 && files[0].type.startsWith('image/')) {
+            const url = await uploadImage(files[0]);
+            if (url) {
+                imgEl.src = url;
+                imgEl.style.display = 'block';
+                urlInput.value = url;
+                // Hide placeholder
+                imgEl.parentElement.querySelector('.builder-placeholder').style.display = 'none';
+            }
+        }
+    }
+
+    async function loadEditor(titleOrId) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        mainTitle.textContent = `EDITING: ${titleOrId}`;
+
+        let currentContent = "";
+        let existingInfobox = { title: "", image: "", caption: "", type: "", data: [] };
+
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(titleOrId))}`);
+            const data = await res.json();
+            if (!data.error) {
+                currentContent = data.current_content;
+                // Basic Infobox Extraction
+                const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/);
+                if (infoMatch) {
+                    const body = infoMatch[1];
+                    currentContent = currentContent.replace(infoMatch[0], "").trim();
+                    const rows = body.split('|').map(r => r.trim()).filter(r => r);
+                    rows.forEach(row => {
+                        if (row.includes('=')) {
+                            const [k, ...vParts] = row.split('=');
+                            const key = k.trim().toLowerCase();
+                            const val = vParts.join('=').trim();
+                            if (key === 'title') existingInfobox.title = val;
+                            else if (key === 'image') existingInfobox.image = val;
+                            else if (key === 'caption') existingInfobox.caption = val;
+                            else if (key === 'type') existingInfobox.type = val;
+                            else existingInfobox.data.push({ key: k.trim(), val });
+                        }
+                    });
+                }
+            }
+        } catch (e) {}
+
+        articleBody.innerHTML = `
+            <div style="display:flex; gap:30px; align-items:flex-start;">
+                <div style="flex:1;">
+                    <div class="textarea-container" style="position:relative;">
+                        <textarea id="editor-text" style="width:100%; height:600px; background:#000; color:#0f0; padding:15px; border:1px solid #333; font-family:var(--font-mono); resize:vertical;">${currentContent}</textarea>
+                        <div class="editor-drop-overlay">[DRAG_DROP_IMAGE_TO_INCLUDE]</div>
+                    </div>
+                    <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle" style="width:100%; padding:15px; margin-top:10px;">[TRANSMIT_TO_ARCHIVE]</button>
+                </div>
+                
+                <div class="infobox-builder">
+                    <div style="padding:10px; font-family:var(--font-mono); font-size:0.65rem; color:var(--accent-orange); border-bottom:1px solid #222;">[VISUAL_INFOBOX_CONSTRUCTOR]</div>
+                    <input type="text" id="ib-title" placeholder="ARCHIVAL_TITLE" class="builder-title-input" value="${existingInfobox.title}">
+                    <div id="ib-drop-zone" class="builder-drop-zone">
+                        <img id="ib-preview" src="${existingInfobox.image}" style="${existingInfobox.image ? 'display:block;' : 'display:none;'}">
+                        <div class="builder-placeholder" style="${existingInfobox.image ? 'display:none;' : ''}">[DRAG_DROP_PRIMARY_IMAGE]</div>
+                        <input type="hidden" id="ib-image-url" value="${existingInfobox.image}">
+                    </div>
+                    <div class="builder-rows">
+                        <div class="builder-row">
+                            <input type="text" value="caption" class="builder-key" readonly>
+                            <input type="text" id="ib-caption" placeholder="IMAGE_CAPTION" class="builder-val" value="${existingInfobox.caption}">
+                        </div>
+                        <div class="builder-row">
+                            <input type="text" value="type" class="builder-key" readonly>
+                            <input type="text" id="ib-type" placeholder="NODE_TYPE" class="builder-val" value="${existingInfobox.type}">
+                        </div>
+                        <div id="ib-extra-rows">
+                            ${existingInfobox.data.map((d, i) => `
+                                <div class="builder-row">
+                                    <input type="text" placeholder="KEY" class="builder-key ib-extra-key" value="${d.key}">
+                                    <input type="text" placeholder="VALUE" class="builder-val ib-extra-val" value="${d.val}">
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button onclick="window.addInfoboxRow()" class="btn-clinical-toggle" style="width:100%; font-size:0.6rem; padding:4px; opacity:0.6;">[ADD_METADATA_FIELD]</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const textarea = document.getElementById('editor-text');
+        const container = textarea.parentElement;
+        const ibDropZone = document.getElementById('ib-drop-zone');
+        const ibPreview = document.getElementById('ib-preview');
+        const ibUrlInput = document.getElementById('ib-image-url');
+
+        // Textarea Drag & Drop
+        container.addEventListener('dragover', (e) => { e.preventDefault(); container.classList.add('dragover'); });
+        container.addEventListener('dragleave', () => container.classList.remove('dragover'));
+        container.addEventListener('drop', async (e) => {
+            container.classList.remove('dragover');
+            await handleEditorDrop(e, textarea);
+        });
+
+        // Infobox Drag & Drop
+        ibDropZone.addEventListener('dragover', (e) => { e.preventDefault(); ibDropZone.classList.add('dragover'); });
+        ibDropZone.addEventListener('dragleave', () => ibDropZone.classList.remove('dragover'));
+        ibDropZone.addEventListener('drop', async (e) => {
+            ibDropZone.classList.remove('dragover');
+            await handleInfoboxDrop(e, ibPreview, ibUrlInput);
+        });
+    }
+
+    window.addInfoboxRow = () => {
+        const container = document.getElementById('ib-extra-rows');
+        const div = document.createElement('div');
+        div.className = 'builder-row';
+        div.innerHTML = `<input type="text" placeholder="KEY" class="builder-key ib-extra-key"> <input type="text" placeholder="VALUE" class="builder-val ib-extra-val">`;
+        container.appendChild(div);
+    };
+
     async function init() {
         const path = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
@@ -472,10 +636,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mode === 'login' || mode === 'register') {
             await renderAuthForm(mode);
         } else if (mode === 'edit') {
-            const mainTitle = document.getElementById('article-title');
-            const articleBody = document.querySelector('.article-body');
-            mainTitle.textContent = `EDITING: ${titleOrId}`;
-            articleBody.innerHTML = `<textarea id="editor-text" style="width:100%; height:400px; background:#000; color:#0f0; padding:15px; border:1px solid #333;"></textarea> <br> <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle" style="width:100%; padding:15px; margin-top:10px;">[TRANSMIT_TO_ARCHIVE]</button>`;
+            await loadEditor(titleOrId);
         } else {
             await renderArticle(titleOrId);
         }
@@ -484,10 +645,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.transmitEdit = async (title) => {
-        const content = document.getElementById('editor-text').value;
+        const bodyText = document.getElementById('editor-text').value;
+        const ibTitle = document.getElementById('ib-title').value.trim();
+        const ibImage = document.getElementById('ib-image-url').value.trim();
+        const ibCaption = document.getElementById('ib-caption').value.trim();
+        const ibType = document.getElementById('ib-type').value.trim();
+        
+        let infoboxMarkup = "";
+        if (ibTitle || ibImage) {
+            infoboxMarkup = `{{infobox\n| title = ${ibTitle}\n| image = ${ibImage}\n| caption = ${ibCaption}\n| type = ${ibType}\n`;
+            const extraKeys = document.querySelectorAll('.ib-extra-key');
+            const extraVals = document.querySelectorAll('.ib-extra-val');
+            extraKeys.forEach((k, i) => {
+                if (k.value.trim()) infoboxMarkup += `| ${k.value.trim()} = ${extraVals[i].value.trim()}\n`;
+            });
+            infoboxMarkup += `}}\n\n`;
+        }
+
+        const finalContent = infoboxMarkup + bodyText;
+
         try {
             await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}`, {
-                method: 'POST', body: JSON.stringify({ content })
+                method: 'POST', body: JSON.stringify({ content: finalContent })
             });
             window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(title))}`);
         } catch (e) { alert("FAILED"); }
