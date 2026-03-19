@@ -52,6 +52,26 @@ function wikiParse(content) {
         return `§§§INFOBOX§${num}§${SECRET_SALT}§§§`;
     });
 
+    // Wiki Links & Images (Early extraction to protect from markdown processing)
+    const wikiLinks = [];
+    content = content.replace(/\[\[File:([^|\]]+)(?:\|([^\]]+))?\]\]/g, (match, url, options) => {
+        const num = wikiLinks.length;
+        wikiLinks.push({ type: 'file', url: url.trim(), options });
+        return `§§§WIKILINK§${num}§${SECRET_SALT}§§§`;
+    });
+
+    content = content.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
+        const num = wikiLinks.length;
+        wikiLinks.push({ type: 'link', title: title.trim(), alias: alias.trim() });
+        return `§§§WIKILINK§${num}§${SECRET_SALT}§§§`;
+    });
+
+    content = content.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
+        const num = wikiLinks.length;
+        wikiLinks.push({ type: 'link', title: title.trim() });
+        return `§§§WIKILINK§${num}§${SECRET_SALT}§§§`;
+    });
+
     // Clinical Blocks
     content = content.replace(/\[CLINICAL\]([\s\S]*?)\[\/CLINICAL\]/g, (match, body) => {
         const num = clinicalBlocks.length;
@@ -99,35 +119,13 @@ function wikiParse(content) {
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
 
-    // --- 5. Links & Images ---
-    html = html.replace(/\[\[File:([^|\]]+)(?:\|([^\]]+))?\]\]/g, (match, url, options) => {
-        const params = {};
-        if (options) {
-            options.split('|').forEach(opt => {
-                if (opt.includes('=')) {
-                    const [key, val] = opt.split('=');
-                    params[key.trim().toLowerCase()] = val.trim();
-                } else params[opt.trim().toLowerCase()] = true;
-            });
-        }
-        let alignClass = params.left ? "align-left" : (params.right ? "align-right" : (params.center ? "align-center" : ""));
-        const widthStyle = params.width ? `width:${params.width};` : "";
-        const caption = params.caption || "";
-        return `<div class="media-container ${alignClass}" style="${widthStyle}"><img src="${encodeURI(url.trim())}" class="wiki-image" alt="${caption}">${caption ? `<div class="media-caption">${caption}</div>` : ''}</div>`;
-    });
-
-    html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
-        const cleanTitle = title.trim();
-        if (cleanTitle.toLowerCase().startsWith('category:')) return "";
-        if (cleanTitle.startsWith('File:')) return match; 
-        const slug = cleanTitle.replace(/ /g, '_'); 
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
-    });
-    html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
-        const cleanTitle = title.trim();
-        if (cleanTitle.startsWith('File:')) return match; 
-        const slug = cleanTitle.replace(/ /g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(alias.trim())}</a>`;
+    // --- 5. Footnotes ---
+    const footnotes = [];
+    html = html.replace(/\[\* +(.+?)\]/g, (match, fnContent) => {
+        const num = footnotes.length + 1;
+        const cleanContent = fnContent.trim();
+        footnotes.push(cleanContent);
+        return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
 
     html = html.replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, '<a href="$1" class="external-link" target="_blank" rel="noopener noreferrer">$2</a>');
@@ -234,11 +232,38 @@ function wikiParse(content) {
         let bodyHtml = "";
         info.data.forEach(item => {
             const key = item.key.toLowerCase();
-            if (key === 'image') bodyHtml += `<tr><td colspan="2" class="infobox-image-cell"><img src="${encodeURI(item.val)}" class="wiki-image"></td></tr>`;
+            if (key === 'image') bodyHtml += `<tr><td colspan="2" class="infobox-image-cell"><img src="${item.val.trim()}" class="wiki-image"></td></tr>`;
             else if (key === 'caption') bodyHtml += `<tr><td colspan="2" class="infobox-caption-cell">${item.val}</td></tr>`;
             else bodyHtml += `<tr><th>${item.key}</th><td>${wikiParse(item.val)}</td></tr>`;
         });
         return `<aside class="infobox"><div class="infobox-title">${info.title}</div><table>${bodyHtml}</table></aside>`;
+    });
+
+    parsedContent = parsedContent.replace(/§§§WIKILINK§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
+        if (salt !== SECRET_SALT) return match;
+        const link = wikiLinks[num];
+        if (link.type === 'file') {
+            const params = {};
+            if (link.options) {
+                link.options.split('|').forEach(opt => {
+                    if (opt.includes('=')) {
+                        const [key, val] = opt.split('=');
+                        params[key.trim().toLowerCase()] = val.trim();
+                    } else params[opt.trim().toLowerCase()] = true;
+                });
+            }
+            let alignClass = params.left ? "align-left" : (params.right ? "align-right" : (params.center ? "align-center" : ""));
+            const widthStyle = params.width ? `width:${params.width};` : "";
+            const caption = params.caption || "";
+            return `<div class="media-container ${alignClass}" style="${widthStyle}"><img src="${link.url}" class="wiki-image" alt="${escapeHTML(caption)}">${caption ? `<div class="media-caption">${escapeHTML(caption)}</div>` : ''}</div>`;
+        } else if (link.type === 'link') {
+            const cleanTitle = link.title;
+            const displayTitle = link.alias || cleanTitle;
+            if (cleanTitle.toLowerCase().startsWith('category:')) return "";
+            const slug = cleanTitle.replace(/ /g, '_'); 
+            return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(displayTitle)}</a>`;
+        }
+        return match;
     });
 
     parsedContent = parsedContent.replace(/§§§CLINICAL§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
