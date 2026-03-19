@@ -18,12 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('scroll', () => {
         if (window.innerWidth <= 768 && headerEl) {
             const currentScrollY = window.scrollY;
-            if (currentScrollY > lastScrollY && currentScrollY > 50) {
-                headerEl.classList.add('header-hidden');
-            } else {
+            // Prevent iOS rubber-band scroll issues
+            if (currentScrollY <= 0) {
                 headerEl.classList.remove('header-hidden');
+            } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                headerEl.classList.add('header-hidden'); // Scroll down: Hide
+            } else if (currentScrollY < lastScrollY) {
+                headerEl.classList.remove('header-hidden'); // Scroll up: Show
             }
-            lastScrollY = currentScrollY;
+            lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
         }
     });
 
@@ -34,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tapLength < 300 && tapLength > 0) {
                 // Double tap detected
                 headerEl.classList.remove('header-hidden');
+                e.preventDefault(); // Prevent double-tap to zoom fallback
             }
             lastTapTime = currentTime;
         }
