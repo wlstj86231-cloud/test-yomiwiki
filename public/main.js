@@ -508,12 +508,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3 style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
                         <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[ESTABLISH_NEW_NODE]</button>
                     </div>
-                    <div class="node-list" style="display:flex; flex-direction:column; gap:10px;">
-                        ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
-                            <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:10px 15px; display:flex; align-items:center;">
-                                <a href="/w/${sub.id}" style="font-weight:bold; color:var(--accent-cyan); font-family:var(--font-mono); text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
-                            </div>
-                        `).join('') : '<div style="opacity:0.3; font-style:italic; padding:20px;">No transmissions detected. [AWAITING_DATA]</div>'}
+                    
+                    <!-- Item 5: Common Table Framework -->
+                    <div class="wiki-table-container" style="overflow-x:auto;">
+                        <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.85rem;">
+                            <thead id="board-table-head">
+                                <!-- Headers will be added in Item 6 -->
+                            </thead>
+                            <tbody id="board-table-body">
+                                <!-- Rows will be added in Item 7 -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>`;
                 
