@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS articles (
     is_chunked INTEGER DEFAULT 0,
     is_deleted INTEGER DEFAULT 0
 );
+-- 35. 분류 기반 조회 성능 향상을 위한 인덱스 (Item 60)
+CREATE INDEX IF NOT EXISTS idx_articles_classification ON articles(classification);
 
 -- article_chunks: 대용량 문서 본문 분할 저장용 (Step 39)
 CREATE TABLE IF NOT EXISTS article_chunks (
