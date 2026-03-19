@@ -86,21 +86,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const subComments = children.filter(child => child.parent_id === c.id);
             
             return `
-                <div class="comment-item" style="margin-left:${depth * 25}px; background:rgba(255,255,255,${isReply ? '0' : '0.01'}); border-left:2px solid ${isReply ? '#333' : 'var(--accent-orange)'}; padding:15px 20px; position:relative; margin-bottom:5px;">
-                    <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--text-muted); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <div class="comment-item" style="margin-left:${depth * 25}px; background:rgba(255,255,255,${isReply ? '0' : '0.005'}); border-left:2px solid ${isReply ? '#222' : 'var(--accent-orange)'}; padding:12px 18px; position:relative; margin-bottom:2px; border-bottom:1px solid rgba(255,255,255,0.02);">
+                    <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.80rem; color:var(--text-dim); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
                         <span>
                             <span style="color:var(--accent-orange); font-weight:bold; margin-right:10px;">${indexStr}</span>
                             AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span>
-                            ${c.author_tier ? `<span style="margin-left:8px; padding:1px 4px; background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.3); color:var(--accent-orange); font-size:0.75rem; border-radius:2px;">LV.${c.author_tier.level} ${c.author_tier.title}</span>` : ''}
+                            ${c.author_tier ? `<span style="margin-left:8px; padding:1px 4px; background:rgba(255,153,0,0.05); border:1px solid rgba(255,153,0,0.2); color:var(--accent-orange); font-size:0.70rem; border-radius:2px;">LV.${c.author_tier.level} ${c.author_tier.title}</span>` : ''}
                         </span>
-                        <span>[${c.timestamp}]</span>
+                        <span style="opacity:0.6;">[${c.timestamp}]</span>
                     </div>
-                    <div class="comment-body" style="font-size:0.9rem; line-height:1.6; color:var(--text-main); margin-bottom:10px;">
+                    <div class="comment-body" style="font-size:0.92rem; line-height:1.5; color:var(--text-main); margin-bottom:8px;">
                         ${escapeHTML(c.content).replace(/\n/g, '<br>')}
                     </div>
-                    <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        ${currentUser?.role === 'admin' ? `<button onclick="window.terminateAccess('${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.70rem; padding:2px 6px; color:var(--hazard-red); border-color:var(--hazard-red); opacity:0.8;">[TERMINATE_ACCESS]</button>` : ''}
-                        <button onclick="window.prepareReply(${c.id}, '${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.70rem; padding:2px 6px; opacity:0.7;">[REPLY]</button>
+                    <div style="display:flex; justify-content:flex-end; gap:8px;">
+                        ${currentUser?.role === 'admin' ? `<button onclick="window.terminateAccess('${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.65rem; padding:1px 5px; color:var(--hazard-red); border-color:var(--hazard-red); opacity:0.6;">[TERMINATE]</button>` : ''}
+                        <button onclick="window.prepareReply(${c.id}, '${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.65rem; padding:1px 5px; opacity:0.6;">[REPLY]</button>
                     </div>
                 </div>
                 ${subComments.map((sub, i) => buildCommentItem(sub, `${indexStr}.${i + 1}`, depth + 1)).join('')}
@@ -108,31 +108,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let html = `
-        <div id="integrated-discussion" class="integrated-discussion" style="margin-top:100px; border-top:1px solid #222; padding-top:40px;">
-            <div class="discussion-header" style="background:#111; padding:10px 15px; border:1px solid #222; border-left:4px solid var(--accent-orange); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-family:var(--font-mono); color:var(--accent-orange); font-weight:bold; font-size:1.00rem; letter-spacing:1px;">
+        <div id="integrated-discussion" class="integrated-discussion" style="margin-top:10px;">
+            <div class="discussion-header" style="background:#151515; padding:8px 15px; border:1px solid #222; border-left:4px solid var(--accent-orange); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-family:var(--font-mono); color:var(--accent-orange); font-weight:bold; font-size:0.90rem; letter-spacing:1px;">
                     [NODE_DISCUSSION_STREAM: ${escapeHTML(title)}]
                 </span>
-                <span style="font-family:var(--font-mono); font-size:0.80rem; color:var(--text-dim);">
+                <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim);">
                     LOGGED_ENTRIES: ${commentCount}
                 </span>
             </div>
-            <div class="comment-list" style="display:flex; flex-direction:column; gap:5px;">
+            <div class="comment-list" style="display:flex; flex-direction:column; gap:2px;">
                 ${rootComments.map((c, i) => buildCommentItem(c, `#${i + 1}`)).join('') || `
-                    <div style="text-align:center; padding:50px; border:1px dashed #151515; color:var(--text-dim); font-family:var(--font-mono); font-size:0.95rem;">
+                    <div style="text-align:center; padding:40px; border:1px dashed #151515; color:var(--text-dim); font-family:var(--font-mono); font-size:0.90rem;">
                         [SIGNAL_QUIET]: No archival discussions detected at this coordinate.
                     </div>
                 `}
             </div>
-            <div id="comment-form-container" class="comment-form" style="margin-top:30px; background:#000; border:1px solid #222; padding:20px;">
-                <div id="reply-indicator" style="display:none; font-family:var(--font-mono); font-size:0.80rem; color:var(--accent-cyan); margin-bottom:12px; background:rgba(91,192,222,0.05); padding:8px; border-left:2px solid var(--accent-cyan);">
+            <div id="comment-form-container" class="comment-form" style="margin-top:20px; background:#050505; border:1px solid #111; padding:15px;">
+                <div id="reply-indicator" style="display:none; font-family:var(--font-mono); font-size:0.75rem; color:var(--accent-cyan); margin-bottom:10px; background:rgba(91,192,222,0.03); padding:6px; border-left:2px solid var(--accent-cyan);">
                     REPLYING_TO_AGENT: <span id="reply-target-agent" style="font-weight:bold;"></span> 
-                    <span onclick="window.cancelReply()" style="float:right; cursor:pointer; color:var(--hazard-red); text-decoration:underline;">[ABORT_REPLY]</span>
+                    <span onclick="window.cancelReply()" style="float:right; cursor:pointer; color:var(--hazard-red); text-decoration:underline;">[ABORT]</span>
                 </div>
-                <div style="font-family:var(--font-mono); font-size:0.80rem; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase;">[INITIATE_TRANSMISSION]</div>
-                <textarea id="new-comment-content" data-parent-id="" placeholder="Enter transmission data..." style="width:100%; height:80px; background:#050505; border:1px solid #222; color:#0f0; padding:15px; font-family:var(--font-mono); font-size:1.00rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#222'"></textarea>
-                <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                    <button id="transmit-btn" onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" style="padding:10px 20px; font-size:0.85rem;">[TRANSMIT_TO_NODE]</button>
+                <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase;">[INITIATE_TRANSMISSION]</div>
+                <textarea id="new-comment-content" data-parent-id="" placeholder="Enter transmission data..." style="width:100%; height:60px; background:#000; border:1px solid #222; color:#0f0; padding:12px; font-family:var(--font-mono); font-size:0.95rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#222'"></textarea>
+                <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+                    <button id="transmit-btn" onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" style="padding:8px 16px; font-size:0.80rem;">[TRANSMIT]</button>
                 </div>
             </div>
         </div>`;
