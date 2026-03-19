@@ -204,8 +204,15 @@ export async function onRequest(context) {
             const title = normalizeTitle(path.substring(9));
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
             const { content, summary, classification } = await request.json();
+            
             if (!session) { status = 401; resData = { error: "UNAUTH" }; }
             else {
+                // Check Lock Status
+                const article = await env.DB.prepare("SELECT is_locked FROM articles WHERE title = ?").bind(title).first();
+                if (article?.is_locked && session.role !== 'admin') {
+                    return new Response(JSON.stringify({ error: "NODE_LOCKED", msg: "This archival node is under administrative lockdown." }), { status: 403, headers: securityHeaders });
+                }
+
                 const linkRegex = /\[\[(.*?)\]\]/g;
                 let match;
                 const foundLinks = new Set();
@@ -306,6 +313,38 @@ export async function onRequest(context) {
             
             if (batch.length > 0) await env.DB.batch(batch);
             resData = { success: true, message: "ACCESS_TERMINATED" };
+        }
+
+        else if (path === '/admin/article/lock' && method === "POST") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            
+            const { title } = await request.json();
+            const normalized = normalizeTitle(title);
+            await env.DB.prepare("UPDATE articles SET is_locked = 1 - is_locked WHERE title = ?").bind(normalized).run();
+            resData = { success: true };
+        }
+
+        else if (path === '/admin/article/purge' && method === "DELETE") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            
+            const { title } = await request.json();
+            const normalized = normalizeTitle(title);
+            const article = await env.DB.prepare("SELECT id FROM articles WHERE title = ?").bind(normalized).first();
+            
+            if (article) {
+                await env.DB.batch([
+                    env.DB.prepare("DELETE FROM revisions WHERE article_id = ?").bind(article.id),
+                    env.DB.prepare("DELETE FROM article_chunks WHERE article_id = ?").bind(article.id),
+                    env.DB.prepare("DELETE FROM comments WHERE article_title = ?").bind(normalized),
+                    env.DB.prepare("DELETE FROM links WHERE from_title = ? OR to_title = ?").bind(normalized, normalized),
+                    env.DB.prepare("DELETE FROM articles WHERE id = ?").bind(article.id)
+                ]);
+                resData = { success: true, message: "NODE_PURGED" };
+            } else {
+                status = 404; resData = { error: "NODE_NOT_FOUND" };
+            }
         }
 
         else if (path === '/assets/upload' && method === "POST") {

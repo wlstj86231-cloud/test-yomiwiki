@@ -454,11 +454,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 2. FOOTER (Metadata, Categories, Backlinks)
-            let footer = `<div class="article-footer" style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:20px; font-size:0.85rem;">
+            let footer = `<div class="article-footer" style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:20px; font-size:0.85rem;">`;
+            
+            if (data.is_locked) {
+                contentHtml = `<div class="lock-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:0.85rem;">
+                    [LOCKED_NODE]: THIS ARCHIVAL RECORD IS UNDER ADMINISTRATIVE LOCKDOWN. MODIFICATIONS RESTRICTED TO OVERSEERS.
+                </div>` + contentHtml;
+            }
+
+            footer += `
                 <div style="color:var(--text-dim); margin-bottom:15px; font-family:var(--font-mono);">
                     REV: ${data.updated_at} | AUTH: ${data.author} 
                     ${data.author_tier ? `<span style="color:var(--accent-orange); margin-left:5px;">[LV.${data.author_tier.level} ${data.author_tier.title}]</span>` : ''} 
-                    [SECURE_NODE] | <a href="?mode=edit" style="color:var(--accent-orange);">[EDIT]</a> | <a href="?mode=history" style="color:var(--accent-orange);">[HISTORY]</a>
+                    [SECURE_NODE] | 
+                    ${data.is_locked && currentUser?.role !== 'admin' ? '<span style="opacity:0.5;">[EDIT_LOCKED]</span>' : `<a href="?mode=edit" style="color:var(--accent-orange);">[EDIT]</a>`} | 
+                    <a href="?mode=history" style="color:var(--accent-orange);">[HISTORY]</a>
                 </div>`;
             if (data.categories) footer += `<div style="margin-bottom:10px;"><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}" style="color:var(--accent-orange); margin-right:8px;">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
             if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}" style="color:var(--accent-cyan); margin-right:8px;">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
@@ -576,12 +586,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 
+                <div id="node-management" style="margin-top:50px; border:1px solid var(--accent-cyan); background:#000505; padding:30px;">
+                    <h3 style="color:var(--accent-cyan); font-family:var(--font-mono); margin-top:0;">[NODE_ADMIN_OVERRIDE]</h3>
+                    <div style="margin-top:20px; display:flex; gap:10px;">
+                        <input type="text" id="admin-node-title" placeholder="ENTER_TARGET_NODE_TITLE..." style="flex:1; background:#000; border:1px solid #333; color:#0f0; padding:10px; font-family:var(--font-mono);">
+                        <button onclick="window.adminLockNode()" class="btn-clinical-toggle" style="border-color:var(--accent-orange); color:var(--accent-orange);">[TOGGLE_LOCK]</button>
+                        <button onclick="window.adminPurgeNode()" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red);">[PURGE_NODE]</button>
+                    </div>
+                    <div style="font-size:0.65rem; color:var(--text-dim); margin-top:10px; font-family:var(--font-mono);">
+                        [CAUTION]: PURGE_NODE IS IRREVERSIBLE. ALL REVISIONS AND COMMENTS WILL BE ERASED.
+                    </div>
+                </div>
+
                 <div style="margin-top:50px; border:1px solid #222; background:#050505; padding:30px;">
                     <h3 style="color:var(--accent-orange); font-family:var(--font-mono); margin-top:0;">[SYSTEM_CONTROL_PANEL]</h3>
                     <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
-                        <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[ACCESS_LOGS]</button>
+                        <button onclick="alert('Audit logs pending...')" class="btn-clinical-toggle">[ACCESS_LOGS]</button>
                         <button onclick="document.getElementById('blacklist-management').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[MANAGE_BLACKLIST]</button>
-                        <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[GLOBAL_LOCKDOWN]</button>
+                        <button onclick="document.getElementById('node-management').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[NODE_OVERRIDE]</button>
                     </div>
                 </div>
                 
@@ -684,6 +706,36 @@ document.addEventListener('DOMContentLoaded', () => {
             articleBody.innerHTML = "CRITICAL_SIGNAL_ERROR: Failed to load category index.";
         }
     }
+
+    window.adminLockNode = async () => {
+        const title = document.getElementById('admin-node-title').value.trim();
+        if (!title) return alert("[ERROR]: No target title specified.");
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/article/lock`, {
+                method: 'POST', body: JSON.stringify({ title })
+            });
+            if (res.ok) alert(`[SYSTEM]: Lockdown status toggled for node "${title}".`);
+            else alert("[ERROR]: Node not found or unauthorized.");
+        } catch (e) { alert("[CRITICAL]: Admin signal failure."); }
+    };
+
+    window.adminPurgeNode = async () => {
+        const title = document.getElementById('admin-node-title').value.trim();
+        if (!title) return;
+        if (!confirm(`[ULTIMATE_WARNING]: PURGE node "${title}"? All associated transmissions will be permanently erased.`)) return;
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/article/purge`, {
+                method: 'DELETE', body: JSON.stringify({ title })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`[SYSTEM]: Node "${title}" has been purged from the grid.`);
+                loadAdminDashboard();
+            } else {
+                alert(`[ERROR]: ${data.error}`);
+            }
+        } catch (e) { alert("[CRITICAL]: Purge sequence aborted due to connection error."); }
+    };
 
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);
