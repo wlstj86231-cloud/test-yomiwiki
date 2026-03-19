@@ -99,6 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('scroll', () => {
         if (window.innerWidth <= 768 && headerEl) {
+            // Prevent header from hiding during pinch-zoom
+            if (window.visualViewport && window.visualViewport.scale > 1.0) {
+                headerEl.classList.remove('header-hidden');
+                return;
+            }
+
             const currentScrollY = window.scrollY;
             // Show only at the absolute top, otherwise hide
             if (currentScrollY <= 10) {
