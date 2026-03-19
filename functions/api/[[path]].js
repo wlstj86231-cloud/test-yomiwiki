@@ -277,24 +277,32 @@ export async function onRequest(context) {
         else if (path === '/assets/upload' && method === "POST") {
             if (!user) return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 401, headers: securityHeaders });
 
-            const formData = await request.formData();
-            const file = formData.get('file');
-            if (!file || !(file instanceof File)) return new Response(JSON.stringify({ error: "INVALID_FILE" }), { status: 400, headers: securityHeaders });
+            try {
+                const formData = await request.formData();
+                const file = formData.get('file');
+                if (!file || !(file instanceof File)) return new Response(JSON.stringify({ error: "INVALID_FILE" }), { status: 400, headers: securityHeaders });
 
-            // 3.0MB Limit Check
-            if (file.size > 3 * 1024 * 1024) return new Response(JSON.stringify({ error: "FILE_TOO_LARGE", message: "Maximum size is 3.0MB" }), { status: 413, headers: securityHeaders });
+                // 3.0MB Limit Check
+                if (file.size > 3 * 1024 * 1024) return new Response(JSON.stringify({ error: "FILE_TOO_LARGE", message: "Maximum size is 3.0MB" }), { status: 413, headers: securityHeaders });
 
-            const fileName = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-            const uploadKey = `archives/images/${fileName}`;
-            
-            await env.ASSETS_BUCKET.put(uploadKey, file.stream(), {
-                httpMetadata: { contentType: file.type }
-            });
+                if (!env.ASSETS_BUCKET) {
+                    return new Response(JSON.stringify({ error: "R2_BUCKET_NOT_BOUND", message: "Storage system is not configured." }), { status: 500, headers: securityHeaders });
+                }
 
-            const publicUrl = `/api/assets/${fileName}`;
-            await env.DB.prepare("INSERT INTO assets (filename, url, uploader) VALUES (?, ?, ?)").bind(fileName, publicUrl, user.username).run();
-            
-            resData = { success: true, url: publicUrl, filename: fileName };
+                const fileName = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                const uploadKey = `archives/images/${fileName}`;
+                
+                await env.ASSETS_BUCKET.put(uploadKey, file.stream(), {
+                    httpMetadata: { contentType: file.type }
+                });
+
+                const publicUrl = `/api/assets/${fileName}`;
+                await env.DB.prepare("INSERT INTO assets (filename, url, uploader) VALUES (?, ?, ?)").bind(fileName, publicUrl, user.username).run();
+                
+                resData = { success: true, url: publicUrl, filename: fileName };
+            } catch (uploadErr) {
+                return new Response(JSON.stringify({ error: "UPLOAD_PROCESS_FAILED", message: uploadErr.message }), { status: 500, headers: securityHeaders });
+            }
         }
 
         else if (path.startsWith('/assets/') && method === "GET") {

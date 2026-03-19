@@ -72,8 +72,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const securedFetch = async (url, options = {}) => {
-        const headers = { 'X-Yomi-Request': 'true', 'Content-Type': 'application/json', ...options.headers };
+        const headers = { 'X-Yomi-Request': 'true', ...options.headers };
         if (currentUser?.token) headers['Authorization'] = `Bearer ${currentUser.token}`;
+        
+        // Only set JSON content type if body is present and NOT FormData
+        if (options.body && !(options.body instanceof FormData) && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
+        
         return await fetch(url, { ...options, headers });
     };
 
@@ -464,12 +470,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await securedFetch(`${API_ENDPOINT}/assets/upload`, {
                 method: 'POST',
-                body: formData,
-                headers: { 'Content-Type': undefined } // Fetch handles multipart correctly when undefined
+                body: formData
             });
             const data = await res.json();
             if (data.url) return data.url;
-            else throw new Error(data.error);
+            else {
+                const errorMsg = data.message ? `${data.error}: ${data.message}` : data.error;
+                throw new Error(errorMsg);
+            }
         } catch (e) {
             alert(`[SIGNAL_ERROR]: Upload failed. ${e.message}`);
             return null;
