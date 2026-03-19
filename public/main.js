@@ -526,26 +526,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}" style="color:var(--accent-cyan); margin-right:8px;">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
             footer += '</div>';
 
-            // 3. COMMENTS (Exclude active commenting on top-level Sector boards to preserve context)
+            // 3. COMMENTS (Exclude commenting on top-level Sector boards to preserve context)
             let commentsHtml = "";
-            if (isBoard && !revId) {
-                commentsHtml = `
-                <div id="integrated-discussion" style="margin-top:100px; border-top:1px solid #222; padding-top:40px;">
-                    <div class="discussion-header" style="background:#111; padding:10px 15px; border:1px solid #222; border-left:4px solid var(--accent-orange); margin-bottom:20px;">
-                        <span style="font-family:var(--font-mono); color:var(--accent-orange); font-weight:bold; font-size:1.00rem; letter-spacing:1px;">
-                            [SYSTEM_NOTICE]: SECTOR_PROTOCOL_ACTIVE
-                        </span>
-                    </div>
-                    <div style="text-align:center; padding:50px; border:1px dashed #222; color:var(--text-dim); font-family:var(--font-mono); font-size:0.95rem;">
-                        [NOTICE]: Archival discussions are restricted to individual document nodes to maintain clinical context. 
-                        <br>Please establish or select a specific archival node above to initiate transmission.
-                    </div>
-                </div>`;
-            } else {
+            if (!isBoard || revId) {
                 commentsHtml = renderCommentsHTML(data.title, data.comments || []);
             }
             
-            // Assemble: Content (contains TOC) -> Board (if applicable) -> Comments -> Footer
+            // Assemble: Content (contains TOC) -> Board (if applicable) -> Comments (if not Board) -> Footer
             let finalOutput = contentHtml;
             if (isBoard && !revId) finalOutput += boardHtml;
             finalOutput += footer + commentsHtml;
