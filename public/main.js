@@ -930,6 +930,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    async function updateSidebarActivity() {
+        const sidebarRecent = document.getElementById('sidebar-recent-list');
+        if (!sidebarRecent) {
+            // Create the recent list container if it doesn't exist
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                const recentBox = document.createElement('section');
+                recentBox.className = 'sidebar-box';
+                recentBox.style.marginTop = '20px';
+                recentBox.innerHTML = `
+                    <h3 class="sidebar-title">[RECENT_DECRYPTIONS]</h3>
+                    <ul id="sidebar-recent-list" style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.8rem;">
+                        <li style="opacity:0.5;">[AWAITING_SIGNAL...]</li>
+                    </ul>
+                `;
+                sidebar.appendChild(recentBox);
+            }
+        }
+
+        const listEl = document.getElementById('sidebar-recent-list');
+        if (!listEl) return;
+
+        try {
+            const res = await fetch(`${API_ENDPOINT}/articles/recent`, { headers: { 'X-Yomi-Request': 'true' } });
+            const data = await res.json();
+            
+            listEl.innerHTML = data.map(item => `
+                <li style="border-left:2px solid #333; padding-left:10px;">
+                    <a href="/w/${encodeURIComponent(window.titleToSlug(item.title))}" style="color:var(--accent-cyan); text-decoration:none; display:block;">▶ ${escapeHTML(item.title.split('/').pop())}</a>
+                </li>
+            `).join('') || '<li style="opacity:0.5;">[NO_RECENT_ACTIVITY]</li>';
+        } catch (e) {
+            console.error("[SYSTEM]: Failed to update sidebar activity.", e);
+        }
+    }
+
     init();
-    setInterval(updateSidebarActivity, 30000);
+    updateSidebarActivity(); // Initial load
+    setInterval(updateSidebarActivity, 60000); // Update every minute
 });
