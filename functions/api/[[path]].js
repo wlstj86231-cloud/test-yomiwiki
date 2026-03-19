@@ -80,13 +80,13 @@ export async function onRequest(context) {
         return count < limit;
     }
 
-    // --- [IMPORTANT: CONSISTENT TITLE NORMALIZATION] ---
     function normalizeTitle(rawTitle) { 
         try {
             const decoded = decodeURIComponent(rawTitle || "");
-            return decoded.replace(/[_\s]+/g, '_').trim();
+            // Item 3 Final Fix: Convert spaces to underscores but KEEP slashes for hierarchy
+            return decoded.trim().replace(/\s+/g, '_');
         } catch (e) {
-            return (rawTitle || "").replace(/[_\s]+/g, '_').trim();
+            return (rawTitle || "").trim().replace(/\s+/g, '_');
         }
     }
 
@@ -189,22 +189,27 @@ export async function onRequest(context) {
                         author_tier: await getAgentTier(c.author)
                     })));
 
-                    // BOARD LOGIC: Robust matching (Item 3 Fix 3)
+                    // BOARD LOGIC: Diagnostic Overhaul (Item 3 Fix 4)
                     let subArticles = [];
                     if (identifier.startsWith('Sector:')) {
                         const baseTitle = normalizeTitle(identifier);
-                        const prefixWithSlash = baseTitle + '/';
                         
-                        // Use instr for prefix checking to be more reliable in some SQLite environments
-                        const { results } = await env.DB.prepare(`
+                        // BROAD SCAN: Fetch all possible candidates to find the discrepancy
+                        const { results: allCandidates } = await env.DB.prepare(`
                             SELECT id, title, author, updated_at 
                             FROM articles 
-                            WHERE (instr(title, ?) = 1 OR instr(title, ?) = 1)
-                            AND title != ?
-                            AND is_deleted = 0 
-                            ORDER BY updated_at DESC LIMIT 100
-                        `).bind(prefixWithSlash, prefixWithSlash.replace(/_/g, ' '), baseTitle).all();
-                        subArticles = results;
+                            WHERE is_deleted = 0 
+                            ORDER BY updated_at DESC LIMIT 500
+                        `).all();
+
+                        // Filter manually to be 100% sure about the matching logic
+                        subArticles = allCandidates.filter(a => {
+                            const normalizedCandidate = normalizeTitle(a.title);
+                            const normalizedTarget = baseTitle + "_"; // Look for children
+                            return normalizedCandidate.startsWith(normalizedTarget) && a.title !== identifier;
+                        }).slice(0, 100);
+
+                        console.log(`[BOARD_DIAGNOSTIC]: Sector=${identifier}, Found_Total=${allCandidates.length}, Matched=${subArticles.length}`);
                     }
 
                     resData = { 
