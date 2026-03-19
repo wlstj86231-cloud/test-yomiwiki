@@ -1,6 +1,6 @@
 /**
- * ArticleView Component (Item 37)
- * This component handles extraction, fetching, and rendering of article content and TOC.
+ * ArticleView Component (Item 43)
+ * This component handles extraction, fetching, rendering, and link validation.
  */
 
 window.ArticleView = {
@@ -46,7 +46,7 @@ window.ArticleView = {
         }
     },
 
-    renderContent: function(content) {
+    renderContent: async function(content) {
         const bodyEl = document.querySelector('.article-body');
         if (bodyEl) {
             bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
@@ -67,6 +67,37 @@ window.ArticleView = {
                 adBox.style.textAlign = 'center';
                 bodyEl.appendChild(adBox);
             }
+
+            // Item 43: Validate links after rendering
+            await this.validateLinks();
+        }
+    },
+
+    /**
+     * Item 43: Checks if linked articles exist and marks missing ones as 'not-found' (red links).
+     */
+    validateLinks: async function() {
+        const links = document.querySelectorAll('.wiki-link');
+        if (links.length === 0) return;
+
+        const titles = Array.from(links).map(l => l.getAttribute('data-title'));
+        try {
+            const res = await fetch('/api/articles/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Yomi-Request': 'true' },
+                body: JSON.stringify({ titles })
+            });
+            const data = await res.json();
+            const existingTitles = new Set(data.existing || []);
+
+            links.forEach(link => {
+                const title = link.getAttribute('data-title');
+                if (!existingTitles.has(title)) {
+                    link.classList.add('not-found');
+                }
+            });
+        } catch (e) {
+            console.error("[SYSTEM]: Link validation failed.", e);
         }
     },
 
@@ -80,28 +111,13 @@ window.ArticleView = {
         const headings = this.getHeadings();
         let h2Count = 0;
         let h3Count = 0;
-
         return Array.from(headings).map((el, index) => {
             if (!el.id) el.id = `section-${index + 1}`;
-            
             const level = el.tagName.toLowerCase() === 'h2' ? 1 : 2;
             let numberStr = "";
-
-            if (level === 1) {
-                h2Count++;
-                h3Count = 0;
-                numberStr = `${h2Count}.`;
-            } else {
-                h3Count++;
-                numberStr = `${h2Count}.${h3Count}.`;
-            }
-
-            return {
-                text: el.innerText.trim(),
-                level: level,
-                id: el.id,
-                number: numberStr
-            };
+            if (level === 1) { h2Count++; h3Count = 0; numberStr = `${h2Count}.`; }
+            else { h3Count++; numberStr = `${h2Count}.${h3Count}.`; }
+            return { text: el.innerText.trim(), level, id: el.id, number: numberStr };
         });
     },
 
@@ -128,15 +144,8 @@ window.ArticleView = {
         `;
     },
 
-    /**
-     * Smoothly scrolls to a specific section by its ID.
-     * @param {string} id - The ID of the heading element.
-     */
     scrollToSection: function(id) {
         const target = document.getElementById(id);
-        if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            // Add a small highlight effect if possible (design preservation)
-        }
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 };

@@ -332,6 +332,16 @@ export async function onRequest(context) {
             resData = results;
         }
 
+        else if (path === '/api/articles/check' && method === "POST") {
+            const { titles } = await request.json();
+            if (!titles || !Array.isArray(titles)) return new Response(JSON.stringify({ existing: [] }), { status: 200, headers: securityHeaders });
+            
+            const placeholders = titles.map(() => "?").join(",");
+            const { results } = await env.DB.prepare(`SELECT title FROM articles WHERE title IN (${placeholders}) AND is_deleted = 0`).bind(...titles).all();
+            
+            resData = { existing: results.map(r => r.title) };
+        }
+
         else if (path === '/api/comments' && method === "GET") {
             const articleId = url.searchParams.get('article_id');
             const { results } = await env.DB.prepare("SELECT * FROM comments WHERE article_id = ? ORDER BY timestamp ASC").bind(articleId).all();

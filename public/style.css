@@ -350,6 +350,7 @@ html, body {
 
 /* --- [Links Styling] --- */
 .wiki-link { color: var(--accent-cyan); border-bottom: 1px solid transparent; }
+.wiki-link.not-found { color: var(--hazard-red) !important; }
 .wiki-link:hover { border-bottom-color: var(--accent-cyan); }
 .external-link { color: var(--accent-orange-dim); }
 .external-link:after { content: ' ↗'; font-size: 0.85rem; }
