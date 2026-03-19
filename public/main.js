@@ -956,11 +956,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(`${API_ENDPOINT}/articles/recent`, { headers: { 'X-Yomi-Request': 'true' } });
             const data = await res.json();
             
-            listEl.innerHTML = data.map(item => `
-                <li style="border-left:2px solid #333; padding-left:10px;">
-                    <a href="/w/${encodeURIComponent(window.titleToSlug(item.title))}" style="color:var(--accent-cyan); text-decoration:none; display:block;">▶ ${escapeHTML(item.title.split('/').pop())}</a>
-                </li>
-            `).join('') || '<li style="opacity:0.5;">[NO_RECENT_ACTIVITY]</li>';
+            listEl.innerHTML = data.map(item => {
+                // Item 58: Format timestamp to a shorter version
+                const timeStr = item.updated_at ? item.updated_at.split(' ')[1] || item.updated_at : "??:??";
+                return `
+                    <li style="border-left:2px solid #333; padding-left:10px; display:flex; justify-content:space-between; align-items:center;">
+                        <a href="/w/${encodeURIComponent(window.titleToSlug(item.title))}" style="color:var(--accent-cyan); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:70%;">▶ ${escapeHTML(item.title.split('/').pop())}</a>
+                        <span style="font-size:0.65rem; color:var(--text-dim); opacity:0.5; font-family:var(--font-mono);">[${timeStr}]</span>
+                    </li>
+                `;
+            }).join('') || '<li style="opacity:0.5;">[NO_RECENT_ACTIVITY]</li>';
         } catch (e) {
             console.error("[SYSTEM]: Failed to update sidebar activity.", e);
         }
