@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS article_chunks (
 );
 CREATE INDEX IF NOT EXISTS idx_chunks_article ON article_chunks(article_id);
 
--- revisions: 문서 변경 이력
+-- revisions: 문서 수정 이력 (역사)
 CREATE TABLE IF NOT EXISTS revisions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     article_id INTEGER NOT NULL,
@@ -36,11 +36,10 @@ CREATE TABLE IF NOT EXISTS revisions (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(article_id) REFERENCES articles(id)
 );
--- 33. 히스토리 및 사용자 기여 조회를 위한 인덱스
-CREATE INDEX IF NOT EXISTS idx_revisions_article_id ON revisions(article_id);
-CREATE INDEX IF NOT EXISTS idx_revisions_timestamp ON revisions(timestamp DESC);
-CREATE INDEX IF NOT EXISTS idx_revisions_editor ON revisions(editor_info, timestamp DESC);
+-- 34. 역사 및 기여도 조회를 위한 최적화 인덱스
 CREATE INDEX IF NOT EXISTS idx_revisions_article_history ON revisions(article_id, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_revisions_editor_activity ON revisions(editor_info, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_revisions_timestamp_sort ON revisions(timestamp DESC);
 
 -- 33. 문서 상태 및 작성자 필터링 최적화
 CREATE INDEX IF NOT EXISTS idx_articles_status ON articles(is_deleted, updated_at DESC);
