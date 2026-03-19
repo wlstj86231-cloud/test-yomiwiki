@@ -10,6 +10,7 @@ const SECURITY_CONFIG = {
     MAX_REGISTER_ATTEMPTS: 3,
     MAX_COMMENT_PER_MIN: 5,
     MAX_SEARCH_PER_MIN: 30,
+    MAX_WRITE_PER_MIN: 10,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 20,
     MIN_PASSWORD_LENGTH: 8
@@ -115,7 +116,7 @@ export async function onRequest(context) {
     try {
         console.log(`[API_REQUEST]: ${method} ${path}`);
         if (["POST", "DELETE", "PUT"].includes(method)) {
-            if (!(await logAndCheckRateLimit(clientIP, "WRITE_ACTION"))) return new Response(JSON.stringify({ error: "RATE_LIMIT" }), { status: 429, headers: securityHeaders });
+            if (!(await logAndCheckRateLimit(clientIP, "WRITE_ACTION", SECURITY_CONFIG.MAX_WRITE_PER_MIN))) return new Response(JSON.stringify({ error: "RATE_LIMIT" }), { status: 429, headers: securityHeaders });
             const sessionForBan = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
             const ban = await checkBan(clientIP, sessionForBan?.sub);
             if (ban) return new Response(JSON.stringify({ error: "ACCESS_REVOKED", reason: ban.reason }), { status: 403, headers: securityHeaders });
