@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${escapeHTML(c.content).replace(/\n/g, '<br>')}
                     </div>
                     <div style="display:flex; justify-content:flex-end; gap:10px;">
+                        ${currentUser?.role === 'admin' ? `<button onclick="window.terminateAccess('${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.55rem; padding:2px 6px; color:var(--hazard-red); border-color:var(--hazard-red); opacity:0.8;">[TERMINATE_ACCESS]</button>` : ''}
                         <button onclick="window.prepareReply(${c.id}, '${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.55rem; padding:2px 6px; opacity:0.7;">[REPLY]</button>
                     </div>
                 </div>
@@ -116,6 +117,29 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
         return html;
     }
+
+    window.terminateAccess = async (targetUser) => {
+        if (!confirm(`[SYSTEM_WARNING]: Are you sure you want to terminate access for AGENT_${targetUser}? This action is irreversible without OVERSEER intervention.`)) return;
+        
+        const reason = prompt("Enter ARCHIVAL_PROTOCOL_VIOLATION details:", "Repeated violation of clinical neutrality.");
+        if (reason === null) return;
+
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/ban`, {
+                method: 'POST',
+                body: JSON.stringify({ target_user: targetUser, reason })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`[TERMINATION_COMPLETE]: AGENT_${targetUser} has been purged from the active archival grid.`);
+                init();
+            } else {
+                alert(`[ERROR]: ${data.error || "TERMINATION_FAILED"}`);
+            }
+        } catch (e) {
+            alert("[CRITICAL_FAILURE]: Admin signal lost.");
+        }
+    };
 
     window.prepareReply = (parentId, author) => {
         const textarea = document.getElementById('new-comment-content');

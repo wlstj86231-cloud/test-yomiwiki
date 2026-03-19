@@ -233,6 +233,19 @@ export async function onRequest(context) {
             resData = { success: true };
         }
 
+        else if (path === '/admin/ban' && method === "POST") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED_ACCESS" }), { status: 403, headers: securityHeaders });
+            
+            const { target_user, target_ip, reason } = await request.json();
+            const batch = [];
+            if (target_user) batch.push(env.DB.prepare("INSERT OR REPLACE INTO bans (target_type, target_value, reason, banned_by) VALUES ('user', ?, ?, ?)").bind(target_user, reason || "Violation of Archival Protocols", session.sub));
+            if (target_ip) batch.push(env.DB.prepare("INSERT OR REPLACE INTO bans (target_type, target_value, reason, banned_by) VALUES ('ip', ?, ?, ?)").bind(target_ip, reason || "Violation of Archival Protocols", session.sub));
+            
+            if (batch.length > 0) await env.DB.batch(batch);
+            resData = { success: true, message: "ACCESS_TERMINATED" };
+        }
+
         else { status = 404; resData = { error: "NOT_FOUND" }; }
 
         return new Response(JSON.stringify(resData), { status, headers: securityHeaders });
