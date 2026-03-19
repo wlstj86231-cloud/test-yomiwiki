@@ -506,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // 2. FOOTER (Metadata, Categories, Backlinks)
-            let footer = `<div class="article-footer" style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:20px; font-size:1.00rem;">`;
+            let footer = `<div class="article-footer" style="margin-top:30px; border-top:1px solid var(--border-color); padding-top:15px; font-size:0.95rem;">`;
             
             if (data.is_locked) {
                 contentHtml = `<div class="lock-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:1.00rem;">
@@ -515,21 +515,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             footer += `
-                <div style="color:var(--text-dim); margin-bottom:15px; font-family:var(--font-mono);">
+                <div style="color:var(--text-dim); margin-bottom:12px; font-family:var(--font-mono);">
                     REV: ${data.updated_at} | AUTH: ${data.author} 
                     ${data.author_tier ? `<span style="color:var(--accent-orange); margin-left:5px;">[LV.${data.author_tier.level} ${data.author_tier.title}]</span>` : ''} 
                     [SECURE_NODE] | 
                     ${data.is_locked && currentUser?.role !== 'admin' ? '<span style="opacity:0.5;">[EDIT_LOCKED]</span>' : `<a href="?mode=edit" style="color:var(--accent-orange);">[EDIT]</a>`} | 
                     <a href="?mode=history" style="color:var(--accent-orange);">[HISTORY]</a>
                 </div>`;
-            if (data.categories) footer += `<div style="margin-bottom:10px;"><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}" style="color:var(--accent-orange); margin-right:8px;">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
+            if (data.categories) footer += `<div style="margin-bottom:8px;"><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}" style="color:var(--accent-orange); margin-right:8px;">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
             if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}" style="color:var(--accent-cyan); margin-right:8px;">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;
             footer += '</div>';
 
             // 3. COMMENTS (Exclude commenting on top-level Sector boards to preserve context)
             let commentsHtml = "";
             if (!isBoard || revId) {
-                commentsHtml = renderCommentsHTML(data.title, data.comments || []);
+                // Modified renderCommentsHTML call with reduced margin
+                commentsHtml = renderCommentsHTML(data.title, data.comments || []).replace('margin-top:100px;', 'margin-top:10px; border-top:none;');
             }
             
             // Assemble: Content (contains TOC) -> Board (if applicable) -> Comments (if not Board) -> Footer
