@@ -136,10 +136,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            mainTitle.textContent = data.title;
-            metaText.innerHTML = `REV: ${data.updated_at || "N/A"} | AUTH: ${data.author || "SYSTEM"}`;
+            mainTitle.textContent = data.title || title;
+            metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"}`;
 
-            const isBoard = data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
+            const isBoard = data.title && data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
             // Assemble Output
