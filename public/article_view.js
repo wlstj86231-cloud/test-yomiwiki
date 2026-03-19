@@ -81,5 +81,15 @@ window.ArticleView = {
                 bodyEl.appendChild(adBox);
             }
         }
+    },
+
+    /**
+     * Extracts all header elements (h2, h3) from the article body.
+     * @returns {NodeList} List of heading elements.
+     */
+    getHeadings: function() {
+        const bodyEl = document.querySelector('.article-body');
+        if (!bodyEl) return [];
+        return bodyEl.querySelectorAll('h2, h3');
     }
 };
