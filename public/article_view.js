@@ -28,26 +28,28 @@ window.ArticleView = {
         }
     },
 
-    renderTitle: function(title) {
+    renderTitle: function(title, classification) {
         document.title = `${title} | YomiWiki Archival Node`;
         const titleEl = document.getElementById('article-title');
         if (titleEl) {
-            // Item 48: Add 'HISTORY' button in a metadata sub-header
-            let metaHeader = document.getElementById('article-meta-header');
-            if (!metaHeader) {
-                metaHeader = document.createElement('div');
-                metaHeader.id = 'article-meta-header';
-                metaHeader.style.marginBottom = '10px';
-                metaHeader.style.fontFamily = 'var(--font-mono)';
-                metaHeader.style.fontSize = '0.80rem';
-                metaHeader.style.color = 'var(--text-dim)';
-                titleEl.parentNode.insertBefore(metaHeader, titleEl);
+            // Item 61: Add classification bar at the very top
+            let classBar = document.getElementById('article-classification-bar');
+            if (!classBar) {
+                classBar = document.createElement('div');
+                classBar.id = 'article-classification-bar';
+                classBar.style.background = 'rgba(255,153,0,0.03)';
+                classBar.style.border = '1px solid #222';
+                classBar.style.borderLeft = '4px solid var(--accent-orange)';
+                classBar.style.padding = '8px 15px';
+                classBar.style.marginBottom = '20px';
+                classBar.style.fontFamily = 'var(--font-mono)';
+                classBar.style.fontSize = '0.85rem';
+                titleEl.parentNode.insertBefore(classBar, titleEl.parentNode.firstChild);
             }
-            metaHeader.innerHTML = `
-                [ARCHIVAL_NODE] | <a href="?mode=history" style="color:var(--accent-orange); text-decoration:none;">[VIEW_HISTORY]</a>
-            `;
+            classBar.innerHTML = `<span style="color:var(--text-dim);">[CLASSIFICATION]:</span> <span style="color:var(--accent-orange); font-weight:bold;">${classification || 'UNCLASSIFIED'}</span>`;
 
-            titleEl.textContent = title;
+            // Item 48: Add 'HISTORY' button in a metadata sub-header
+...
             let adBox = document.getElementById('ad-top-placeholder');
             if (!adBox) {
                 adBox = document.createElement('div');
