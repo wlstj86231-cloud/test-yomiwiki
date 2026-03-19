@@ -1,17 +1,17 @@
 #!/bin/bash
-# YomiWiki V3 DB Sync - 정석 복구 모드
+# YomiWiki V3 DB Sync - 'Community' Grid Activation
 
-# 1. 인증 정보 설정 (새로운 토큰 및 기존 계정 ID 적용)
+# 1. 인증 정보 설정 (새 토큰 및 기존 계정 ID 적용)
 export CLOUDFLARE_API_TOKEN="cfut_U4T4ar93F1VBSpyacOBfvTbysfbVvB9RbO3hokGD58c12d27"
 export CLOUDFLARE_ACCOUNT_ID="e56e1153c80086f2470940d664b46eb3"
 
-echo "[SYSTEM]: Accessing the archival grid with 'community' credentials..."
+echo "[SYSTEM]: Handshaking with Cloudflare D1 'community' node..."
 
-# 2. 데이터베이스 실행 (가장 확실한 이름 'yomi-db' 사용 및 자동 승인)
-npx wrangler d1 execute yomi-db --remote --file=./schema.sql -y
+# 2. 데이터베이스 실행 (DB 이름을 'community'로 지정)
+npx wrangler d1 execute community --remote --file=./schema.sql -y
 
 if [ $? -eq 0 ]; then
-    echo "[SYSTEM]: SUCCESS. All regional sector nodes are now ONLINE."
+    echo "[SYSTEM]: SUCCESS. All archival sectors in 'community' grid are now active."
 else
-    echo "[ERROR]: Connection failed. Please ensure the token is correctly linked to the 'community' project."
+    echo "[ERROR]: Connection failed. If 'community' is not the name, please check the D1 dashboard for the exact name."
 fi
