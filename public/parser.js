@@ -1,5 +1,5 @@
 /**
- * YomiWiki Core Parser (V3 Advanced)
+ * YomiWiki Core Parser (V4 Advanced)
  * Decodes wiki markup into HTML with high precision.
  */
 
@@ -21,7 +21,7 @@ function wikiParse(content) {
     const clinicalBlocks = [];
     const codeBlocks = [];
 
-    // Infobox
+    // Infobox (V2 Enhanced with Image support)
     content = content.replace(/\{\{infobox([\s\S]*?)\}\}/g, (match, body) => {
         const num = infoboxes.length;
         const rows = body.split('|').map(r => r.trim()).filter(r => r);
@@ -29,7 +29,9 @@ function wikiParse(content) {
         const data = [];
         rows.forEach(row => {
             if (row.includes('=')) {
-                const [key, val] = row.split('=').map(s => s.trim());
+                const parts = row.split('=');
+                const key = parts[0].trim();
+                const val = parts.slice(1).join('=').trim();
                 if (key.toLowerCase() === 'title') title = val;
                 else data.push({ key, val });
             }
@@ -91,7 +93,7 @@ function wikiParse(content) {
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${escapeHTML(cleanContent)}">[${num}]</a></sup>`;
     });
 
-    // --- 4. Links & Lists ---
+    // --- 4. Links & Lists & Tables ---
     // Wiki Links
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const slug = title.trim().replace(/[_\s]+/g, '_');
@@ -105,15 +107,44 @@ function wikiParse(content) {
     // External Links
     html = html.replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, '<a href="$1" class="external-link" target="_blank" rel="noopener noreferrer">$2</a>');
     
-    // Lists and Blockquotes
+    // Process lines for Lists, Tables, and Blockquotes
     const lines = html.split('\n');
     let finalHtml = [];
     let listStack = [];
+    let inTable = false;
+    let tableHtml = "";
     
     lines.forEach(line => {
         const trimmed = line.trim();
-        const listMatch = line.match(/^([\*\#]+)\s*(.*)$/);
         
+        // --- Table Logic (Standard Wiki Syntax) ---
+        if (trimmed.startsWith('{|')) {
+            inTable = true;
+            tableHtml = '<table class="wikitable clinical-table">';
+            return;
+        } else if (trimmed.startsWith('|}')) {
+            inTable = false;
+            tableHtml += '</table>';
+            finalHtml.push(tableHtml);
+            tableHtml = "";
+            return;
+        } else if (inTable) {
+            if (trimmed.startsWith('|+')) {
+                tableHtml += `<caption>${trimmed.substring(2).trim()}</caption>`;
+            } else if (trimmed.startsWith('|-')) {
+                tableHtml += '<tr>';
+            } else if (trimmed.startsWith('!')) {
+                const cells = trimmed.substring(1).split('!!');
+                cells.forEach(c => tableHtml += `<th>${wikiParse(c.trim())}</th>`);
+            } else if (trimmed.startsWith('|')) {
+                const cells = trimmed.substring(1).split('||');
+                cells.forEach(c => tableHtml += `<td>${wikiParse(c.trim())}</td>`);
+            }
+            return;
+        }
+
+        // --- List Logic ---
+        const listMatch = line.match(/^([\*\#]+)\s*(.*)$/);
         if (listMatch) {
             const prefix = listMatch[1];
             const itemContent = listMatch[2];
@@ -129,7 +160,7 @@ function wikiParse(content) {
         } else {
             while (listStack.length > 0) finalHtml.push(`</${listStack.pop()}>`);
             if (trimmed.startsWith('----')) finalHtml.push('<hr>');
-            else finalHtml.push(line + '<br>');
+            else if (line.trim()) finalHtml.push(line + '<br>');
         }
     });
     let parsedContent = finalHtml.join('');
@@ -164,7 +195,7 @@ function wikiParse(content) {
         parsedContent = tocHtml + parsedContent;
     }
 
-    // --- 6. Footnote List Injection (V3 Advanced) ---
+    // --- 6. Footnote List Injection ---
     if (footnotes.length > 0) {
         let fnHtml = `
             <div class="wiki-footnotes">
@@ -191,12 +222,23 @@ function wikiParse(content) {
 
     parsedContent = parsedContent.replace(/%%%INFOBOX_(\d+)%%%/g, (match, num) => {
         const info = infoboxes[num];
-        let table = `<aside class="infobox"><div class="infobox-title">${escapeHTML(info.title)}</div><table>`;
+        let bodyHtml = "";
         info.data.forEach(item => {
-            table += `<tr><th>${escapeHTML(item.key)}</th><td>${item.val}</td></tr>`;
+            const key = item.key.toLowerCase();
+            if (key === 'image') {
+                bodyHtml += `<tr><td colspan="2" class="infobox-image-cell"><img src="${encodeURI(item.val)}" class="wiki-image"></td></tr>`;
+            } else if (key === 'caption') {
+                bodyHtml += `<tr><td colspan="2" class="infobox-caption-cell">${escapeHTML(item.val)}</td></tr>`;
+            } else {
+                bodyHtml += `<tr><th>${escapeHTML(item.key)}</th><td>${wikiParse(item.val)}</td></tr>`;
+            }
         });
-        table += `</table></aside>`;
-        return table;
+        return `<aside class="infobox"><div class="infobox-title">${escapeHTML(info.title)}</div><table>${bodyHtml}</table></aside>`;
+    });
+
+    parsedContent = parsedContent.replace(/%%%CODE_(\d+)%%%/g, (match, num) => {
+        const block = codeBlocks[num];
+        return `<pre class="wiki-code"><code>${escapeHTML(block.code)}</code></pre>`;
     });
 
     return parsedContent;
