@@ -523,8 +523,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <tbody id="board-table-body">
                                 ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
                                     <tr style="border-bottom:1px solid #222;">
-                                        <!-- Columns 8-12 will be implemented in subsequent steps -->
-                                        <td style="padding:10px 15px;">[PENDING_TITLE]</td>
+                                        <!-- Item 8: Display Title -->
+                                        <td style="padding:10px 15px; color:var(--accent-cyan); font-weight:bold;">
+                                            ▶ ${escapeHTML(sub.title.split('/').pop())}
+                                        </td>
                                         <td style="padding:10px 15px; text-align:center;">[ACTION]</td>
                                         <td style="padding:10px 15px;">[AGENT]</td>
                                         <td style="padding:10px 15px; text-align:right;">[TIMESTAMP]</td>
