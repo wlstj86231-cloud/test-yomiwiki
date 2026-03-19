@@ -334,6 +334,11 @@ export async function onRequest(context) {
             resData = results;
         }
 
+        else if (path === '/api/articles/recent' && method === "GET") {
+            const { results } = await env.DB.prepare("SELECT title, updated_at FROM articles WHERE is_deleted = 0 ORDER BY updated_at DESC LIMIT 10").all();
+            resData = results;
+        }
+
         else if (path === '/api/articles/check' && method === "POST") {
             const { titles } = await request.json();
             if (!titles || !Array.isArray(titles)) return new Response(JSON.stringify({ existing: [] }), { status: 200, headers: securityHeaders });
