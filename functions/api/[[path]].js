@@ -205,7 +205,7 @@ export async function onRequest(context) {
                         // Filter manually to be 100% sure about the matching logic
                         subArticles = allCandidates.filter(a => {
                             const normalizedCandidate = normalizeTitle(a.title);
-                            const normalizedTarget = baseTitle + "_"; // Look for children
+                            const normalizedTarget = baseTitle + "/"; // Item 3 Final Fix: Use slash, not underscore
                             return normalizedCandidate.startsWith(normalizedTarget) && a.title !== identifier;
                         }).slice(0, 100);
 

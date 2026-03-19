@@ -437,10 +437,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = new Date(dateStr);
         const now = new Date();
         const diff = Math.floor((now - date) / 1000);
-        if (diff < 60) return '방금 전';
-        if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
-        return `${Math.floor(diff / 86400)}일 전`;
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        return `${Math.floor(diff / 86400)}d ago`;
     };
 
     async function renderArticle(title) {
@@ -476,17 +476,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = revId 
                     ? `${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}?rev=${revId}`
                     : `${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}`;
-                const res = await securedFetch(url);
+                const res = await fetch(url, { headers: { 'X-Yomi-Request': 'true' } });
                 data = await res.json();
                 
-                // Cache successful responses (non-revision only)
                 if (!revId && !data.error) {
                     articleCache.set(normalizedTitle.toLowerCase(), data);
                 }
             }
             
             if (data.error === "RECORD_NOT_FOUND") {
-                // ... (previous 404 logic)
+                mainTitle.textContent = `[NODE_NOT_ESTABLISHED]: ${data.title || normalizedTitle}`;
+                articleBody.innerHTML = `
+                    <div style="background:rgba(255,0,0,0.05); border:1px solid var(--hazard-red); padding:30px; color:var(--text-main); font-family:var(--font-mono);">
+                        [ALERT]: ARCHIVAL COORDINATE NOT FOUND. 
+                        <br><br>
+                        This signal has not been established in the central database. 
+                        You may initiate a new archival node at this coordinate.
+                        <br><br>
+                        <button onclick="window.navigateTo('?mode=edit')" class="btn-clinical-toggle">[ESTABLISH_NODE]</button>
+                    </div>
+                `;
                 return;
             }
 
@@ -494,9 +503,6 @@ document.addEventListener('DOMContentLoaded', () => {
             metaText.innerHTML = ""; 
 
             const isBoard = data.title.startsWith('Sector:') && !data.title.includes('/');
-            
-            // CRITICAL: Always use wikiParse on RAW content to ensure TOC/Footnotes are generated correctly
-            // SSR content is just a fallback for SEO/initial paint
             let contentHtml = wikiParse(data.current_content);
 
             if (revId) {
@@ -507,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <br><span style="font-size:0.8rem; color:var(--text-dim);">THIS IS NOT THE LIVE TRANSMISSION.</span>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <button onclick="window.navigateTo('?mode=edit&rev=${revId}')" class="btn-clinical-toggle" style="background:var(--accent-orange); color:#000; font-weight:bold;">[RESTORE_THIS_VERSION]</button>
+                        <button onclick="window.navigateTo('?mode=edit&rev=${revId}')" class="btn-clinical-toggle" style="background:var(--accent-orange); color:#000; font-weight:bold;">[RESTORE_SNAPSHOT]</button>
                         <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}" class="btn-clinical-toggle" style="text-decoration:none;">[RETURN_TO_LIVE]</a>
                     </div>
                 </div>` + contentHtml;
@@ -528,10 +534,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.85rem;">
                             <thead>
                                 <tr style="background:#111; border-bottom:2px solid var(--border-color); text-align:left;">
-                                    <th style="padding:12px 15px; color:var(--accent-orange);">문서</th>
-                                    <th style="padding:12px 15px; color:var(--accent-orange); text-align:center; width:80px;">기능</th>
-                                    <th style="padding:12px 15px; color:var(--accent-orange); width:120px;">수정자</th>
-                                    <th style="padding:12px 15px; color:var(--accent-orange); text-align:right; width:150px;">수정 시간</th>
+                                    <th style="padding:12px 15px; color:var(--accent-orange);">NODE</th>
+                                    <th style="padding:12px 15px; color:var(--accent-orange); text-align:center; width:80px;">ACTION</th>
+                                    <th style="padding:12px 15px; color:var(--accent-orange); width:120px;">AGENT</th>
+                                    <th style="padding:12px 15px; color:var(--accent-orange); text-align:right; width:150px;">TIMESTAMP</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -541,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             <a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); text-decoration:none; font-weight:bold;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
                                         </td>
                                         <td style="padding:12px 15px; text-align:center;">
-                                            <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; padding:2px 5px; opacity:0.7; text-decoration:none;">역사</a>
+                                            <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; padding:2px 5px; opacity:0.7; text-decoration:none;">[HISTORY]</a>
                                         </td>
                                         <td style="padding:12px 15px; color:var(--text-dim); font-size:0.80rem;">
                                             ${escapeHTML(sub.author || "Anonymous")}
