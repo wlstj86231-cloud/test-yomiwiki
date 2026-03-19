@@ -26,7 +26,7 @@ function wikiParse(content) {
     content = content.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
         const num = codeBlocks.length;
         codeBlocks.push(code.trim());
-        return `%%%CODE_${num}_${SECRET_SALT}%%%`;
+        return `§§§CODE§${num}§${SECRET_SALT}§§§`;
     });
 
     // Infobox
@@ -45,14 +45,14 @@ function wikiParse(content) {
             }
         });
         infoboxes.push({ title, data });
-        return `%%%INFOBOX_${num}_${SECRET_SALT}%%%`;
+        return `§§§INFOBOX§${num}§${SECRET_SALT}§§§`;
     });
 
     // Clinical Blocks
     content = content.replace(/\[CLINICAL\]([\s\S]*?)\[\/CLINICAL\]/g, (match, body) => {
         const num = clinicalBlocks.length;
         clinicalBlocks.push(body.trim());
-        return `%%%CLINICAL_${num}_${SECRET_SALT}%%%`;
+        return `§§§CLINICAL§${num}§${SECRET_SALT}§§§`;
     });
 
     // --- 2. Security Escaping (Now safe because blocks are hidden) ---
@@ -211,7 +211,7 @@ function wikiParse(content) {
     }
 
     // --- 9. Injection Phase (Restore special blocks) ---
-    parsedContent = parsedContent.replace(/%%%INFOBOX_(\d+)_([a-z0-9]+)%%%/g, (match, num, salt) => {
+    parsedContent = parsedContent.replace(/§§§INFOBOX§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
         const info = infoboxes[num];
         let bodyHtml = "";
@@ -224,12 +224,12 @@ function wikiParse(content) {
         return `<aside class="infobox"><div class="infobox-title">${info.title}</div><table>${bodyHtml}</table></aside>`;
     });
 
-    parsedContent = parsedContent.replace(/%%%CLINICAL_(\d+)_([a-z0-9]+)%%%/g, (match, num, salt) => {
+    parsedContent = parsedContent.replace(/§§§CLINICAL§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
         return `<div class="clinical-report-block"><div class="clinical-report-header">[OFFICIAL_CLINICAL_RECORD]</div><div class="clinical-report-content">${wikiParse(clinicalBlocks[num])}</div><div class="clinical-report-footer">VALIDATED_BY_ARCHIVE_SYSTEM</div></div>`;
     });
 
-    parsedContent = parsedContent.replace(/%%%CODE_(\d+)_([a-z0-9]+)%%%/g, (match, num, salt) => {
+    parsedContent = parsedContent.replace(/§§§CODE§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
         return `<pre class="wiki-code"><code>${escapeHTML(codeBlocks[num])}</code></pre>`;
     });
