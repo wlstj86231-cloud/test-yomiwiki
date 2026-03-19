@@ -471,12 +471,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const commentsHtml = renderCommentsHTML(data.title, data.comments || []);
             
-            // Assemble: Content -> Footer -> Comments
+            // Assemble: Content (contains TOC) -> Footer -> Comments
+            // If it's a board, the content is the protocol description
+            let finalOutput = contentHtml + footer + commentsHtml;
+            
             if (isBoard && !revId) {
-                articleBody.innerHTML = boardHtml + contentHtml + footer + commentsHtml;
-            } else {
-                articleBody.innerHTML = contentHtml + footer + commentsHtml;
+                // For boards, put the post list (boardHtml) between the protocol and footer
+                finalOutput = contentHtml + boardHtml + footer + commentsHtml;
             }
+
+            articleBody.innerHTML = finalOutput;
 
             // --- [SCROLL ANCHORING: Phase 2 FIX] ---
             if (window.location.hash) {

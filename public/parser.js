@@ -67,7 +67,7 @@ function wikiParse(content) {
     html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
 
     const headers = [];
-    const headerRegex = /^(#{1,6})\s+(.*?)$|^(={2,})\s*(.*?)\s*\3$/gm;
+    const headerRegex = /^ *(#{1,6}) +(.+?)$|^ *(={2,}) *(.+?) *\3 *$/gm;
     html = html.replace(headerRegex, (match, hashes, mTitle, wikiHashes, wTitle) => {
         const level = hashes ? hashes.length : wikiHashes.length;
         const title = (mTitle || wTitle).trim();
@@ -76,14 +76,17 @@ function wikiParse(content) {
         return `<h${level} id="${id}">${title}</h${level}>`;
     });
 
-    // --- 4. Footnotes ---
+    // --- 4. Footnotes (Precision Match) ---
     const footnotes = [];
-    html = html.replace(/\[\* (.*?)\]/g, (match, fnContent) => {
+    html = html.replace(/\[\* +(.+?)\]/g, (match, fnContent) => {
         const num = footnotes.length + 1;
         const cleanContent = fnContent.trim();
         footnotes.push(cleanContent);
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
+
+    // --- Debug Stats ---
+    console.log(`[PARSER_STATS]: Headers=${headers.length}, Footnotes=${footnotes.length}`);
 
     // --- 5. Links & Images ---
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
@@ -157,8 +160,8 @@ function wikiParse(content) {
     });
     let parsedContent = finalHtml.join('');
 
-    // --- 7. TOC Generation (MUST BE INTEGRATED) ---
-    if (headers.length >= 3) {
+    // --- 7. TOC Generation (INTEGRATED) ---
+    if (headers.length >= 1) { // Lowered from 3 for debugging/validation
         const counts = [0, 0, 0, 0, 0, 0, 0];
         let lastLevel = 0;
         let tocHtml = `<div class="wiki-toc"><div class="toc-title">CONTENTS <span class="toc-toggle" onclick="window.toggleTOC()">[hide]</span></div><ul id="toc-list">`;
@@ -177,7 +180,8 @@ function wikiParse(content) {
     if (footnotes.length > 0) {
         let fnHtml = `<div class="wiki-footnotes"><div class="footnotes-title">[ARCHIVAL_FOOTNOTES]</div><ol>`;
         footnotes.forEach((content, i) => {
-            fnHtml += `<li id="fn-${i+1}">${wikiParse(content)} <a href="#fn-ref-${i+1}" class="footnote-backlink">↩</a></li>`;
+            const num = i + 1;
+            fnHtml += `<li id="fn-${num}">${wikiParse(content)} <a href="#fn-ref-${num}" class="footnote-backlink">↩</a></li>`;
         });
         fnHtml += `</ol></div>`;
         parsedContent += fnHtml;
