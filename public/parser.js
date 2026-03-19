@@ -1,6 +1,6 @@
 /**
- * YomiWiki Core Parser (V5.4 Fixed)
- * Decodes wiki markup into HTML with precision.
+ * YomiWiki Core Parser (V5.5 Advanced SCP Mode)
+ * Decodes wiki markup into HTML with precision and handles intentional HTML components.
  */
 
 function escapeHTML(str) {
@@ -16,10 +16,14 @@ function escapeHTML(str) {
 function wikiParse(content) {
     if (!content) return "";
     
+    // Fix literal \n strings if they exist (common in some DB transmission modes)
+    content = content.replace(/\\n/g, '\n');
+
     // --- 1. Collection Phase (Preserve special blocks before any escaping) ---
     const infoboxes = [];
     const clinicalBlocks = [];
     const codeBlocks = [];
+    const safeHtmlBlocks = [];
     const SECRET_SALT = Math.random().toString(36).substring(7);
 
     // Code Blocks (Highest priority)
@@ -55,6 +59,15 @@ function wikiParse(content) {
         return `§§§CLINICAL§${num}§${SECRET_SALT}§§§`;
     });
 
+    // --- 1.1 Safe HTML Extraction (SCP Style Support) ---
+    // Specifically allow certain tags used in our templates
+    const safeTagsRegex = /<(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)\b[^>]*>|<\/(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)>/gi;
+    content = content.replace(safeTagsRegex, (match) => {
+        const num = safeHtmlBlocks.length;
+        safeHtmlBlocks.push(match);
+        return `§§§SAFEHTML§${num}§${SECRET_SALT}§§§`;
+    });
+
     // --- 2. Security Escaping (Now safe because blocks are hidden) ---
     let html = escapeHTML(content);
 
@@ -62,8 +75,9 @@ function wikiParse(content) {
     // Markdown Bold/Italic/Stroke
     html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
     html = html.replace(/__(.*?)__/g, '<b>$1</b>');
-    html = html.replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<i>$1</i>');
-    html = html.replace(/(?<!_)_(?!_)(.*?)(?<!_)_(?!_)/g, '<i>$1</i>');
+    // Improved italic regex to prevent eating underscores in words/IDs
+    html = html.replace(/(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)/g, '<i>$1</i>');
+    html = html.replace(/(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g, '<i>$1</i>');
     html = html.replace(/~~(.*?)~~/g, '<del>$1</del>');
 
     const headers = [];
@@ -84,13 +98,10 @@ function wikiParse(content) {
         footnotes.push(cleanContent);
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
-    window.lastFootnotes = footnotes; // Item 53 support
-
-    // --- Debug Stats ---
-    console.log(`[PARSER_STATS]: Headers=${headers.length}, Footnotes=${footnotes.length}`);
+    window.lastFootnotes = footnotes; 
 
     // --- 5. Links & Images (V4.1 Advanced) ---
-    // Item 41: Handle Images first to prevent link regex collision
+    // Handle Images first to prevent link regex collision
     html = html.replace(/\[\[File:([^|\]]+)(?:\|([^\]]+))?\]\]/g, (match, url, options) => {
         const params = {};
         if (options) {
@@ -108,7 +119,6 @@ function wikiParse(content) {
     });
 
     // Wiki Links (Data-Title for routing)
-    // Item 41: Replace [[title]] with <a> tag
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const cleanTitle = title.trim();
         if (cleanTitle.toLowerCase().startsWith('category:')) return "";
@@ -116,10 +126,9 @@ function wikiParse(content) {
         const slug = cleanTitle.replace(/ /g, '_'); 
         return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
     });
-    // Item 41: Replace [[title|alias]] with <a> tag
     html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
         const cleanTitle = title.trim();
-        if (cleanTitle.startsWith('File:')) return match; // Safeguard
+        if (cleanTitle.startsWith('File:')) return match; 
         const slug = cleanTitle.replace(/ /g, '_');
         return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(alias.trim())}</a>`;
     });
@@ -135,6 +144,11 @@ function wikiParse(content) {
     
     lines.forEach(line => {
         const trimmed = line.trim();
+        if (trimmed.startsWith('§§§SAFEHTML')) {
+            finalHtml.push(line); // Pass through placeholders
+            return;
+        }
+        
         if (trimmed.startsWith('{|')) {
             inTable = true;
             tableHtml = '<table class="wikitable clinical-table">';
@@ -159,7 +173,6 @@ function wikiParse(content) {
             else if (trimmed.startsWith('|')) {
                 trimmed.substring(1).split('||').forEach(c => {
                     const parts = c.split('|');
-                    // Check if the first part is an attribute (contains =)
                     if (parts.length > 1 && parts[0].includes('=')) {
                         tableHtml += `<td ${parts[0].trim()}>${wikiParse(parts.slice(1).join('|').trim())}</td>`;
                     } else {
@@ -185,8 +198,8 @@ function wikiParse(content) {
     });
     let parsedContent = finalHtml.join('');
 
-    // --- 7. TOC Generation (INTEGRATED) ---
-    if (headers.length >= 1) { // Lowered from 3 for debugging/validation
+    // --- 7. TOC Generation ---
+    if (headers.length >= 1) {
         const counts = [0, 0, 0, 0, 0, 0, 0];
         let lastLevel = 0;
         let tocHtml = `<div class="wiki-toc"><div class="toc-title">CONTENTS <span class="toc-toggle" onclick="window.toggleTOC()">[hide]</span></div><ul id="toc-list">`;
@@ -213,6 +226,13 @@ function wikiParse(content) {
     }
 
     // --- 9. Injection Phase (Restore special blocks) ---
+    
+    // Restore Safe HTML
+    parsedContent = parsedContent.replace(/§§§SAFEHTML§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
+        if (salt !== SECRET_SALT) return match;
+        return safeHtmlBlocks[num];
+    });
+
     parsedContent = parsedContent.replace(/§§§INFOBOX§(\d+)§([a-z0-9]+)§§§/g, (match, num, salt) => {
         if (salt !== SECRET_SALT) return match;
         const info = infoboxes[num];
