@@ -102,7 +102,15 @@ window.CommentView = {
             if (data.error) throw new Error(data.error);
 
             inputEl.value = '';
-            // Refresh logic will follow in Item 30
+            
+            // Item 30: Refresh only the comment section
+            const updatedComments = await this.fetchComments(this.currentArticleId);
+            this.renderComments(updatedComments);
+            
+            // Scroll to the bottom of the comment list to show the new entry
+            const lastItem = document.querySelector('.comment-item:last-child');
+            if (lastItem) lastItem.scrollIntoView({ behavior: 'smooth' });
+
         } catch (e) {
             console.error("[CRITICAL]: Transmission failure.", e);
             alert(`[ERROR]: ${e.message}`);
