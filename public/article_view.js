@@ -58,13 +58,25 @@ window.ArticleView = {
     },
 
     /**
-     * Renders the article body content to the DOM.
+     * Renders the article body content to the DOM and adds the bottom ad placeholder.
      */
     renderContent: function(content) {
         const bodyEl = document.querySelector('.article-body');
         if (bodyEl) {
-            // Assume wikiParse is globally available from parser.js
             bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
+
+            // Item 32: Add ad placeholder at the end of the body
+            let adBox = document.getElementById('ad-bottom-placeholder');
+            if (!adBox) {
+                adBox = document.createElement('div');
+                adBox.id = 'ad-bottom-placeholder';
+                adBox.className = 'ad-placeholder';
+                adBox.style.margin = '40px 0 20px 0';
+                adBox.style.minHeight = '100px';
+                adBox.style.textAlign = 'center';
+                // adBox.innerHTML = '<!-- ADSENSE_CODE_BOTTOM -->';
+                bodyEl.appendChild(adBox);
+            }
         }
     }
 };
