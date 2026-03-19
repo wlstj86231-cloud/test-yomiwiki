@@ -825,6 +825,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function renderSearchResults(query) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        mainTitle.textContent = `SEARCH_RESULTS: "${query}"`;
+        articleBody.innerHTML = '<div class="loading">[SCANNING_DATABASE_COORDINATES...]</div>';
+
+        try {
+            const res = await fetch(`${API_ENDPOINT}/api/search/full?q=${encodeURIComponent(query)}`, { headers: { 'X-Yomi-Request': 'true' } });
+            const data = await res.json();
+
+            articleBody.innerHTML = `
+                <div class="search-info" style="background:rgba(0,255,255,0.02); border:1px solid #222; padding:20px; margin-bottom:30px; font-size:0.9rem; color:var(--text-dim);">
+                    [SYSTEM]: Found <strong>${data.length}</strong> archival nodes matching your transmission query.
+                </div>
+                <div class="node-list" style="display:flex; flex-direction:column; gap:15px;">
+                    ${data.map(item => `
+                        <div class="node-item" style="background:#0a0a0a; border:1px solid var(--border-color); padding:15px; border-left:3px solid var(--accent-cyan);">
+                            <a href="/w/${encodeURIComponent(window.titleToSlug(item.title))}" style="font-family:var(--font-mono); color:var(--accent-cyan); font-weight:bold; text-decoration:none; display:block; margin-bottom:5px;">▶ ${escapeHTML(item.title)}</a>
+                            <div style="font-size:0.80rem; color:var(--text-muted); font-family:var(--font-mono);">
+                                AGENT: ${escapeHTML(item.author)} | LAST_UPDATE: ${item.updated_at}
+                            </div>
+                        </div>
+                    `).join('') || '<div style="text-align:center; padding:50px; opacity:0.5;">[NULL_RESULTS]: No matching data found in titles or content.</div>'}
+                </div>
+            `;
+        } catch (e) {
+            articleBody.innerHTML = `<div style="color:var(--hazard-red); border:1px solid var(--hazard-red); padding:30px;">[SCAN_FAILURE]: Failed to query the central database.</div>`;
+        }
+    }
+
+    const searchBtn = document.getElementById('search-btn');
+    if (searchBtn) {
+        searchBtn.onclick = () => {
+            const query = searchInput.value.trim();
+            if (query) window.navigateTo(`/?mode=search&q=${encodeURIComponent(query)}`);
+        };
+    }
+
     async function renderCategoryPage(categoryName) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
@@ -903,6 +941,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const mode = urlParams.get('mode');
+        const q = urlParams.get('q');
+        
+        if (mode === 'search' && q) {
+            await renderSearchResults(q);
+            return;
+        }
         
         if (typeof titleOrId === 'string' && titleOrId.startsWith('Category:')) {
             await renderCategoryPage(titleOrId.substring(9));

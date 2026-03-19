@@ -278,6 +278,18 @@ export async function onRequest(context) {
             resData = results;
         }
 
+        else if (path === '/api/search/full' && method === "GET") {
+            if (!(await logAndCheckRateLimit(clientIP, "SEARCH_ACTION", SECURITY_CONFIG.MAX_SEARCH_PER_MIN))) {
+                return new Response(JSON.stringify({ error: "SEARCH_THROTTLED" }), { status: 429, headers: securityHeaders });
+            }
+            const query = url.searchParams.get('q');
+            if (!query) return new Response(JSON.stringify([]), { headers: securityHeaders });
+            
+            // Item 68: Search both title and content
+            const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE (title LIKE ? OR current_content LIKE ?) AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 50").bind(`%${query}%`, `%${query}%`).all();
+            resData = results;
+        }
+
         else if (path === '/search/suggest' && method === "GET") {
             if (!(await logAndCheckRateLimit(clientIP, "SEARCH_ACTION", SECURITY_CONFIG.MAX_SEARCH_PER_MIN))) {
                 return new Response(JSON.stringify({ error: "SEARCH_THROTTLED" }), { status: 429, headers: securityHeaders });
