@@ -346,6 +346,10 @@ export async function onRequest(context) {
             if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED_ACCESS" }), { status: 403, headers: securityHeaders });
             
             const { target_user, target_ip, reason } = await request.json();
+
+            // Safety: Prevent self-ban
+            if (target_user === session.sub) return new Response(JSON.stringify({ error: "SELF_TERMINATION_PROHIBITED", message: "You cannot terminate your own access." }), { status: 400, headers: securityHeaders });
+
             const batch = [];
             if (target_user) batch.push(env.DB.prepare("INSERT OR REPLACE INTO bans (target_type, target_value, reason, banned_by) VALUES ('user', ?, ?, ?)").bind(target_user, reason || "Violation of Archival Protocols", session.sub));
             if (target_ip) batch.push(env.DB.prepare("INSERT OR REPLACE INTO bans (target_type, target_value, reason, banned_by) VALUES ('ip', ?, ?, ?)").bind(target_ip, reason || "Violation of Archival Protocols", session.sub));
