@@ -219,7 +219,7 @@ html, body {
 .article-title {
     font-family: var(--font-sans);
     color: var(--accent-orange);
-    font-size: 2.8rem;
+    font-size: 2.0rem;
     margin-bottom: 1.2rem;
     font-weight: 900;
     border-bottom: 3px solid var(--accent-orange);
@@ -472,7 +472,7 @@ html, body {
 /* 3. Mobile Phones (Up to 768px) */
 @media (max-width: 768px) {
     .container { padding: 1rem; }
-    .article-title { font-size: 2rem; }
+    .article-title { font-size: 1.6rem; }
     .logo { font-size: 1.4rem; }
     .search-input { font-size: 0.9rem; padding: 8px 15px; }
     .btn-clinical-toggle { padding: 10px 12px; font-size: 0.8rem; }

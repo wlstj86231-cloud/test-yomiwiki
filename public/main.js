@@ -193,8 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            mainTitle.textContent = data.title || title;
             const isBoard = data.title && data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
+            const displayTitle = (data.title || title).split('/').pop();
+            mainTitle.textContent = displayTitle;
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${purgeBtn}`;
 
