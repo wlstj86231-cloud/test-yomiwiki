@@ -523,9 +523,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <tbody id="board-table-body">
                                 ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
                                     <tr style="border-bottom:1px solid #222;">
-                                        <!-- Item 8: Display Title -->
-                                        <td style="padding:10px 15px; color:var(--accent-cyan); font-weight:bold;">
-                                            ▶ ${escapeHTML(sub.title.split('/').pop())}
+                                        <!-- Item 8 & 9: Display Title as Link -->
+                                        <td style="padding:10px 15px;">
+                                            <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}" style="font-weight:bold; color:var(--accent-cyan); text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
                                         </td>
                                         <td style="padding:10px 15px; text-align:center;">[ACTION]</td>
                                         <td style="padding:10px 15px;">[AGENT]</td>
