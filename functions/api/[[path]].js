@@ -359,11 +359,16 @@ export async function onRequest(context) {
             resData = { success: true };
         }
 
-        else if (path === '/admin/ban' && method === "POST") {
-            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED_ACCESS" }), { status: 403, headers: securityHeaders });
+        else if (path === '/api/comments' && method === "POST") {
+            const { article_id, content } = await request.json();
+            const author = "Anonymous_Agent"; // Default for now
             
-            const { target_user, target_ip, reason } = await request.json();
+            await env.DB.prepare("INSERT INTO comments (article_id, article_title, author, content) SELECT ?, title, ?, ? FROM articles WHERE id = ?").bind(article_id, author, content, article_id).run();
+            
+            resData = { success: true };
+        }
+
+        else if (path === '/admin/ban' && method === "POST") {
 
             // Safety: Prevent self-ban
             if (target_user === session.sub) return new Response(JSON.stringify({ error: "SELF_TERMINATION_PROHIBITED", message: "You cannot terminate your own access." }), { status: 400, headers: securityHeaders });
