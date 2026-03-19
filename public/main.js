@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             const query = e.target.value.trim();
-            searchTimeout = setTimeout(() => performSearch(query), 1); // 1ms for absolute instant reaction
+            searchTimeout = setTimeout(() => performSearch(query), 0); // 0ms for absolute instant reaction
         });
 
         searchInput.addEventListener('keydown', (e) => {
