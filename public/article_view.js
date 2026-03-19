@@ -119,12 +119,24 @@ window.ArticleView = {
             <ul class="toc-list" style="list-style:none; padding:0; margin:0;">
                 ${tocData.map(item => `
                     <li class="toc-item level-${item.level}" style="margin-bottom:5px; padding-left:${(item.level - 1) * 15}px;">
-                        <span style="color:var(--accent-cyan); font-family:var(--font-mono); cursor:pointer;">
+                        <span onclick="window.ArticleView.scrollToSection('${item.id}')" style="color:var(--accent-cyan); font-family:var(--font-mono); cursor:pointer; text-decoration:underline;">
                             <span style="color:var(--accent-orange); margin-right:8px;">${item.number}</span> ${escapeHTML(item.text)}
                         </span>
                     </li>
                 `).join('')}
             </ul>
         `;
+    },
+
+    /**
+     * Smoothly scrolls to a specific section by its ID.
+     * @param {string} id - The ID of the heading element.
+     */
+    scrollToSection: function(id) {
+        const target = document.getElementById(id);
+        if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Add a small highlight effect if possible (design preservation)
+        }
     }
 };
