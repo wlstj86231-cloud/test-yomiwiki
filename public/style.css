@@ -366,11 +366,14 @@ html, body {
     gap: 3rem; 
 }
 
-.sidebar { 
-    width: var(--sidebar-width); 
-    flex-shrink: 0; 
+.sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px; /* Aligned with header height + margin */
+    align-self: flex-start;
+    height: fit-content;
 }
-
 .main-content {
     flex: 1;
     min-width: 0; 
