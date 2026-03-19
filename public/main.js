@@ -263,23 +263,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const articleBody = document.querySelector('.article-body');
         mainTitle.textContent = `EDITING: ${title}`;
         
+        const urlParams = new URLSearchParams(window.location.search);
+        const revId = urlParams.get('rev');
+
         try {
-            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`);
+            const url = revId 
+                ? `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}?rev=${revId}`
+                : `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`;
+            
+            const res = await securedFetch(url);
             const data = await res.json();
             const originalContent = data.current_content || "";
             
-            // Draft Logic
-            const draftKey = `yomi_draft_${title.replace(/[_\s]+/g, '_')}`;
-            const savedDraft = localStorage.getItem(draftKey);
+            // Draft Logic (Only for live edits, skip if restoring)
             let content = originalContent;
-
-            if (savedDraft && savedDraft !== originalContent) {
-                if (confirm("[SYSTEM_NOTICE]: A saved draft was found for this node. Load it?")) {
-                    content = savedDraft;
+            const draftKey = `yomi_draft_${title.replace(/[_\s]+/g, '_')}`;
+            
+            if (!revId) {
+                const savedDraft = localStorage.getItem(draftKey);
+                if (savedDraft && savedDraft !== originalContent) {
+                    if (confirm("[SYSTEM_NOTICE]: A saved draft was found for this node. Load it?")) {
+                        content = savedDraft;
+                    }
                 }
             }
 
             articleBody.innerHTML = `
+                ${revId ? `<div style="background:rgba(91,192,222,0.1); border:1px solid var(--accent-cyan); padding:10px; margin-bottom:15px; font-family:var(--font-mono); font-size:0.85rem; color:var(--accent-cyan);">[MODE]: RESTORING_HISTORICAL_SNAPSHOT (REV_ID: ${revId})</div>` : ''}
                 <div class="editor-toolbar" style="margin-bottom:10px; display:flex; gap:5px; align-items:center;">
                     <button onclick="window.insertEditorTag('image')" class="btn-clinical-toggle" style="font-size:0.75rem;">[+IMG_TAG]</button>
                     <button onclick="document.getElementById('image-upload-input').click()" class="btn-clinical-toggle" style="font-size:0.75rem; color:var(--accent-cyan); border-color:var(--accent-cyan);">[+UPLOAD_IMG]</button>
@@ -288,6 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span id="upload-status" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--accent-orange); margin-left:10px;"></span>
                 </div>
                 <textarea id="editor-textarea" style="width:100%; height:500px; background:#000; color:#0f0; font-family:var(--font-mono); padding:15px; border:1px solid #333;">${escapeHTML(content)}</textarea>
+                <div style="margin-top:15px;">
+                    <input type="text" id="edit-summary" placeholder="ENTER_EDIT_SUMMARY (e.g. Fixed typo, Reverted to Rev ${revId || 'X'})" style="width:100%; background:#050505; border:1px solid #222; color:#aaa; padding:10px; font-family:var(--font-mono); font-size:0.85rem; margin-bottom:10px;" value="${revId ? `REVERTED_TO_SNAPSHOT_${revId}` : ''}">
+                </div>
                 <div style="margin-top:10px; display:flex; gap:10px;">
                     <button onclick="window.submitEdit('${escapeHTML(title)}')" class="btn-clinical-toggle" style="flex:1; padding:15px;">[TRANSMIT_TO_ARCHIVE]</button>
                     <button onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}')" class="btn-clinical-toggle" style="padding:15px;">[ABORT]</button>
@@ -304,12 +317,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.submitEdit = async (title) => {
         const content = document.getElementById('editor-textarea').value;
-        const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`, {
-            method: 'POST', body: JSON.stringify({ content })
-        });
-        if (res.ok) {
-            localStorage.removeItem(`yomi_draft_${title.replace(/[_\s]+/g, '_')}`);
-            window.navigateTo(`/w/${encodeURIComponent(title.replace(/ /g, '_'))}`);
+        const summaryEl = document.getElementById('edit-summary');
+        const summary = summaryEl ? summaryEl.value : "";
+        const normalizedTitle = title.replace(/[_\s]+/g, '_');
+        
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}`, {
+                method: 'POST', body: JSON.stringify({ content, summary })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                localStorage.removeItem(`yomi_draft_${normalizedTitle}`);
+                window.navigateTo(`/w/${encodeURIComponent(normalizedTitle)}`);
+            } else {
+                alert(`[TRANSMISSION_ERROR]: ${data.msg || data.error}`);
+            }
+        } catch (e) {
+            alert("[CRITICAL_FAILURE]: Handshake lost during transmission.");
         }
     };
 
@@ -336,39 +361,43 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadHistory(title) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
-        mainTitle.textContent = `HISTORY: ${title}`;
+        mainTitle.textContent = `REVISION_HISTORY: ${title}`;
         
         try {
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}/history`);
             const logs = await res.json();
             
             articleBody.innerHTML = `
-                <div class="history-container">
-                    <p style="color:var(--text-dim); font-size:0.95rem; margin-bottom:20px;">[ARCHIVAL_LOG_FOUND: ${logs.length} ENTRIES]</p>
-                    <div class="node-list" style="display:flex; flex-direction:column; gap:10px;">
+                <div class="history-container" style="margin-top:20px;">
+                    <div style="background:rgba(255,153,0,0.02); border:1px solid #222; padding:15px; margin-bottom:30px; font-size:0.95rem; color:var(--text-dim); font-family:var(--font-mono);">
+                        [SYSTEM_AUDIT]: Total of ${logs.length} historical snapshots found for this archival node.
+                    </div>
+                    <div class="history-list" style="display:flex; flex-direction:column; gap:15px;">
                         ${logs.map(log => `
-                            <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:15px; display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <div style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-orange);">REV_${log.id}</div>
-                                    <div style="font-size:0.90rem; color:var(--text-muted); margin-top:4px;">
-                                        AGENT: ${escapeHTML(log.author)} | ${log.timestamp}
+                            <div class="history-item" style="background:#111; border:1px solid var(--border-color); padding:20px; display:flex; justify-content:space-between; align-items:center; border-left:4px solid #444;">
+                                <div style="flex:1;">
+                                    <div style="font-family:var(--font-mono); font-size:0.90rem; color:var(--accent-orange); font-weight:bold; margin-bottom:5px;">
+                                        REV_ID: ${log.id} | TIMESTAMP: ${log.timestamp}
                                     </div>
-                                    <div style="font-size:1.00rem; margin-top:8px; color:var(--text-main); font-style:italic;">
-                                        ${escapeHTML(log.edit_summary || "NO_SUMMARY_PROVIDED")}
+                                    <div style="font-size:0.95rem; color:var(--text-main);">
+                                        AGENT: <span style="color:var(--accent-cyan); font-weight:bold;">${escapeHTML(log.author)}</span>
+                                    </div>
+                                    <div style="font-size:0.90rem; margin-top:8px; color:var(--text-main); font-style:italic; background:rgba(255,255,255,0.02); padding:10px; border-left:2px solid var(--accent-orange);">
+                                        [LOG_SUMMARY]: ${escapeHTML(log.edit_summary || "NO_SUMMARY_PROVIDED")}
                                     </div>
                                 </div>
-                                <div>
-                                    <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}?rev=${log.id}" class="btn-clinical-toggle" style="text-decoration:none; display:inline-block;">[VIEW]</a>
+                                <div style="margin-left:20px;">
+                                    <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}?rev=${log.id}" class="btn-clinical-toggle" style="text-decoration:none; display:inline-block; padding:10px 20px;">[DECRYPT_SNAPSHOT]</a>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
-                    <div style="margin-top:30px;">
-                        <button onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}')" class="btn-clinical-toggle">[BACK_TO_LIVE_NODE]</button>
+                    <div style="margin-top:40px;">
+                        <button onclick="window.navigateTo('/w/${encodeURIComponent(title.replace(/ /g, '_'))}')" class="btn-clinical-toggle" style="padding:15px 30px;">[BACK_TO_LIVE_NODE]</button>
                     </div>
                 </div>
             `;
-        } catch (e) { articleBody.innerHTML = "HISTORY_LOAD_FAILED"; }
+        } catch (e) { articleBody.innerHTML = "CRITICAL_HISTORY_FAILURE"; }
     }
 
     window.toggleTOC = () => {
@@ -426,9 +455,16 @@ document.addEventListener('DOMContentLoaded', () => {
             let contentHtml = wikiParse(data.current_content);
 
             if (revId) {
-                contentHtml = `<div class="revision-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:1.00rem;">
-                    [WARNING]: YOU ARE VIEWING A HISTORICAL SNAPSHOT (ID: ${revId}). 
-                    <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}" style="color:#fff; text-decoration:underline; margin-left:10px;">[RETURN_TO_LIVE_NODE]</a>
+                contentHtml = `
+                <div class="revision-warning" style="background:rgba(255,153,0,0.05); border:1px solid var(--accent-orange); padding:20px; margin-bottom:30px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-family:var(--font-mono); font-size:0.95rem; color:var(--accent-orange);">
+                        [WARNING]: DECRYPTING HISTORICAL SNAPSHOT (REV_ID: ${revId}). 
+                        <br><span style="font-size:0.8rem; color:var(--text-dim);">THIS IS NOT THE LIVE TRANSMISSION.</span>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="window.navigateTo('?mode=edit&rev=${revId}')" class="btn-clinical-toggle" style="background:var(--accent-orange); color:#000; font-weight:bold;">[RESTORE_THIS_VERSION]</button>
+                        <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}" class="btn-clinical-toggle" style="text-decoration:none;">[RETURN_TO_LIVE]</a>
+                    </div>
                 </div>` + contentHtml;
             }
 
