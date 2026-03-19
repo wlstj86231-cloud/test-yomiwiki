@@ -38,6 +38,9 @@ window.ArticleView = {
      * Renders the article title to the DOM and ensures the ad placeholder is present.
      */
     renderTitle: function(title) {
+        // Item 33: Update the <title> tag for SEO and user experience
+        document.title = `${title} | YomiWiki Archival Node`;
+
         const titleEl = document.getElementById('article-title');
         if (titleEl) {
             titleEl.textContent = title;
