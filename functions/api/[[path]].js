@@ -249,9 +249,11 @@ export async function onRequest(context) {
                 }
 
                 const editSummary = summary || "ARCHIVAL_LOG_UPDATE";
+                const editorInfo = session?.sub || clientIP || "Unknown_Agent";
+
                 const batch = [
-                    env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, Array.from(foundCategories).join(',')),
-                    env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, session.sub, editSummary, title),
+                    env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, editorInfo, classification || null, Array.from(foundCategories).join(',')),
+                    env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, editorInfo, editSummary, title),
                     env.DB.prepare("DELETE FROM links WHERE from_title = ?").bind(title)
                 ];
                 
