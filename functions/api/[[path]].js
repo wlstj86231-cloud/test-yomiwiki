@@ -90,9 +90,10 @@ export async function onRequest(context) {
         const { count: commCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM comments WHERE author = ?").bind(username).first();
         const total = revCount + commCount;
         
-        if (total >= 100) return { level: "IV", title: "OVERSEER", count: total };
-        if (total >= 50) return { level: "III", title: "FIELD LEAD", count: total };
-        if (total >= 10) return { level: "II", title: "SENIOR AGENT", count: total };
+        // Tier requirements significantly increased for realistic progression
+        if (total >= 2000) return { level: "IV", title: "OVERSEER", count: total };
+        if (total >= 500) return { level: "III", title: "FIELD LEAD", count: total };
+        if (total >= 100) return { level: "II", title: "SENIOR AGENT", count: total };
         return { level: "I", title: "JUNIOR AGENT", count: total };
     }
 

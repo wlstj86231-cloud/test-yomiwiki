@@ -66,11 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             return `
                 <div class="comment-item" style="margin-left:${depth * 25}px; background:rgba(255,255,255,${isReply ? '0' : '0.01'}); border-left:2px solid ${isReply ? '#333' : 'var(--accent-orange)'}; padding:15px 20px; position:relative; margin-bottom:5px;">
-                    <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.85rem; color:var(--text-muted); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
                         <span>
                             <span style="color:var(--accent-orange); font-weight:bold; margin-right:10px;">${indexStr}</span>
                             AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span>
-                            ${c.author_tier ? `<span style="margin-left:8px; padding:1px 4px; background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.3); color:var(--accent-orange); font-size:0.6rem; border-radius:2px;">LV.${c.author_tier.level} ${c.author_tier.title}</span>` : ''}
+                            ${c.author_tier ? `<span style="margin-left:8px; padding:1px 4px; background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.3); color:var(--accent-orange); font-size:0.75rem; border-radius:2px;">LV.${c.author_tier.level} ${c.author_tier.title}</span>` : ''}
                         </span>
                         <span>[${c.timestamp}]</span>
                     </div>
@@ -78,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${escapeHTML(c.content).replace(/\n/g, '<br>')}
                     </div>
                     <div style="display:flex; justify-content:flex-end; gap:10px;">
-                        ${currentUser?.role === 'admin' ? `<button onclick="window.terminateAccess('${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.55rem; padding:2px 6px; color:var(--hazard-red); border-color:var(--hazard-red); opacity:0.8;">[TERMINATE_ACCESS]</button>` : ''}
-                        <button onclick="window.prepareReply(${c.id}, '${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.55rem; padding:2px 6px; opacity:0.7;">[REPLY]</button>
+                        ${currentUser?.role === 'admin' ? `<button onclick="window.terminateAccess('${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.70rem; padding:2px 6px; color:var(--hazard-red); border-color:var(--hazard-red); opacity:0.8;">[TERMINATE_ACCESS]</button>` : ''}
+                        <button onclick="window.prepareReply(${c.id}, '${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.70rem; padding:2px 6px; opacity:0.7;">[REPLY]</button>
                     </div>
                 </div>
                 ${subComments.map((sub, i) => buildCommentItem(sub, `${indexStr}.${i + 1}`, depth + 1)).join('')}
@@ -89,29 +89,29 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = `
         <div id="integrated-discussion" class="integrated-discussion" style="margin-top:100px; border-top:1px solid #222; padding-top:40px;">
             <div class="discussion-header" style="background:#111; padding:10px 15px; border:1px solid #222; border-left:4px solid var(--accent-orange); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-family:var(--font-mono); color:var(--accent-orange); font-weight:bold; font-size:0.85rem; letter-spacing:1px;">
+                <span style="font-family:var(--font-mono); color:var(--accent-orange); font-weight:bold; font-size:1.00rem; letter-spacing:1px;">
                     [NODE_DISCUSSION_STREAM: ${escapeHTML(title)}]
                 </span>
-                <span style="font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim);">
+                <span style="font-family:var(--font-mono); font-size:0.80rem; color:var(--text-dim);">
                     LOGGED_ENTRIES: ${commentCount}
                 </span>
             </div>
             <div class="comment-list" style="display:flex; flex-direction:column; gap:5px;">
                 ${rootComments.map((c, i) => buildCommentItem(c, `#${i + 1}`)).join('') || `
-                    <div style="text-align:center; padding:50px; border:1px dashed #151515; color:var(--text-dim); font-family:var(--font-mono); font-size:0.8rem;">
+                    <div style="text-align:center; padding:50px; border:1px dashed #151515; color:var(--text-dim); font-family:var(--font-mono); font-size:0.95rem;">
                         [SIGNAL_QUIET]: No archival discussions detected at this coordinate.
                     </div>
                 `}
             </div>
             <div id="comment-form-container" class="comment-form" style="margin-top:30px; background:#000; border:1px solid #222; padding:20px;">
-                <div id="reply-indicator" style="display:none; font-family:var(--font-mono); font-size:0.65rem; color:var(--accent-cyan); margin-bottom:12px; background:rgba(91,192,222,0.05); padding:8px; border-left:2px solid var(--accent-cyan);">
+                <div id="reply-indicator" style="display:none; font-family:var(--font-mono); font-size:0.80rem; color:var(--accent-cyan); margin-bottom:12px; background:rgba(91,192,222,0.05); padding:8px; border-left:2px solid var(--accent-cyan);">
                     REPLYING_TO_AGENT: <span id="reply-target-agent" style="font-weight:bold;"></span> 
                     <span onclick="window.cancelReply()" style="float:right; cursor:pointer; color:var(--hazard-red); text-decoration:underline;">[ABORT_REPLY]</span>
                 </div>
-                <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase;">[INITIATE_TRANSMISSION]</div>
-                <textarea id="new-comment-content" data-parent-id="" placeholder="Enter transmission data..." style="width:100%; height:80px; background:#050505; border:1px solid #222; color:#0f0; padding:15px; font-family:var(--font-mono); font-size:0.85rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#222'"></textarea>
+                <div style="font-family:var(--font-mono); font-size:0.80rem; color:var(--text-dim); margin-bottom:8px; text-transform:uppercase;">[INITIATE_TRANSMISSION]</div>
+                <textarea id="new-comment-content" data-parent-id="" placeholder="Enter transmission data..." style="width:100%; height:80px; background:#050505; border:1px solid #222; color:#0f0; padding:15px; font-family:var(--font-mono); font-size:1.00rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#222'"></textarea>
                 <div style="margin-top:12px; display:flex; justify-content:flex-end;">
-                    <button id="transmit-btn" onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" style="padding:10px 20px; font-size:0.7rem;">[TRANSMIT_TO_NODE]</button>
+                    <button id="transmit-btn" onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" style="padding:10px 20px; font-size:0.85rem;">[TRANSMIT_TO_NODE]</button>
                 </div>
             </div>
         </div>`;
@@ -275,11 +275,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             articleBody.innerHTML = `
                 <div class="editor-toolbar" style="margin-bottom:10px; display:flex; gap:5px; align-items:center;">
-                    <button onclick="window.insertEditorTag('image')" class="btn-clinical-toggle" style="font-size:0.6rem;">[+IMG_TAG]</button>
-                    <button onclick="document.getElementById('image-upload-input').click()" class="btn-clinical-toggle" style="font-size:0.6rem; color:var(--accent-cyan); border-color:var(--accent-cyan);">[+UPLOAD_IMG]</button>
-                    <button onclick="window.insertEditorTag('footnote')" class="btn-clinical-toggle" style="font-size:0.6rem;">[+FOOTNOTE]</button>
+                    <button onclick="window.insertEditorTag('image')" class="btn-clinical-toggle" style="font-size:0.75rem;">[+IMG_TAG]</button>
+                    <button onclick="document.getElementById('image-upload-input').click()" class="btn-clinical-toggle" style="font-size:0.75rem; color:var(--accent-cyan); border-color:var(--accent-cyan);">[+UPLOAD_IMG]</button>
+                    <button onclick="window.insertEditorTag('footnote')" class="btn-clinical-toggle" style="font-size:0.75rem;">[+FOOTNOTE]</button>
                     <input type="file" id="image-upload-input" style="display:none" accept="image/*" onchange="window.uploadEditorImage(event)">
-                    <span id="upload-status" style="font-family:var(--font-mono); font-size:0.6rem; color:var(--accent-orange); margin-left:10px;"></span>
+                    <span id="upload-status" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--accent-orange); margin-left:10px;"></span>
                 </div>
                 <textarea id="editor-textarea" style="width:100%; height:500px; background:#000; color:#0f0; font-family:var(--font-mono); padding:15px; border:1px solid #333;">${escapeHTML(content)}</textarea>
                 <div style="margin-top:10px; display:flex; gap:10px;">
@@ -338,16 +338,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             articleBody.innerHTML = `
                 <div class="history-container">
-                    <p style="color:var(--text-dim); font-size:0.8rem; margin-bottom:20px;">[ARCHIVAL_LOG_FOUND: ${logs.length} ENTRIES]</p>
+                    <p style="color:var(--text-dim); font-size:0.95rem; margin-bottom:20px;">[ARCHIVAL_LOG_FOUND: ${logs.length} ENTRIES]</p>
                     <div class="node-list" style="display:flex; flex-direction:column; gap:10px;">
                         ${logs.map(log => `
                             <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:15px; display:flex; justify-content:space-between; align-items:center;">
                                 <div>
                                     <div style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-orange);">REV_${log.id}</div>
-                                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
+                                    <div style="font-size:0.90rem; color:var(--text-muted); margin-top:4px;">
                                         AGENT: ${escapeHTML(log.author)} | ${log.timestamp}
                                     </div>
-                                    <div style="font-size:0.85rem; margin-top:8px; color:var(--text-main); font-style:italic;">
+                                    <div style="font-size:1.00rem; margin-top:8px; color:var(--text-main); font-style:italic;">
                                         ${escapeHTML(log.edit_summary || "NO_SUMMARY_PROVIDED")}
                                     </div>
                                 </div>
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let contentHtml = wikiParse(data.current_content);
 
             if (revId) {
-                contentHtml = `<div class="revision-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:0.85rem;">
+                contentHtml = `<div class="revision-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:1.00rem;">
                     [WARNING]: YOU ARE VIEWING A HISTORICAL SNAPSHOT (ID: ${revId}). 
                     <a href="/w/${encodeURIComponent(title.replace(/ /g, '_'))}" style="color:#fff; text-decoration:underline; margin-left:10px;">[RETURN_TO_LIVE_NODE]</a>
                 </div>` + contentHtml;
@@ -438,21 +438,21 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
                             <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
                                 <a href="/w/${encodeURIComponent(sub.title.replace(/ /g, '_'))}" style="font-weight:bold; color:var(--accent-cyan); font-family:var(--font-mono); text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
-                                <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono);">AGENT: ${sub.author} | ${sub.updated_at}</div>
+                                <div style="font-size:0.85rem; color:var(--text-dim); font-family:var(--font-mono);">AGENT: ${sub.author} | ${sub.updated_at}</div>
                             </div>
                         `).join('') : '<div style="opacity:0.3; font-style:italic; padding:20px;">No transmissions detected. [AWAITING_DATA]</div>'}
                     </div>
                 </div>`;
                 
                 // Hide board content behind a toggle
-                contentHtml = `<details style="margin-bottom:30px; border:1px solid #222; padding:10px;"><summary style="cursor:pointer; font-size:0.8rem; font-family:var(--font-mono); color:var(--text-dim);">[VIEW_SECTOR_PROTOCOL]</summary><div style="padding-top:15px;">${contentHtml}</div></details>`;
+                contentHtml = `<details style="margin-bottom:30px; border:1px solid #222; padding:10px;"><summary style="cursor:pointer; font-size:0.95rem; font-family:var(--font-mono); color:var(--text-dim);">[VIEW_SECTOR_PROTOCOL]</summary><div style="padding-top:15px;">${contentHtml}</div></details>`;
             }
 
             // 2. FOOTER (Metadata, Categories, Backlinks)
-            let footer = `<div class="article-footer" style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:20px; font-size:0.85rem;">`;
+            let footer = `<div class="article-footer" style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:20px; font-size:1.00rem;">`;
             
             if (data.is_locked) {
-                contentHtml = `<div class="lock-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:0.85rem;">
+                contentHtml = `<div class="lock-warning" style="background:rgba(255,153,0,0.1); border:1px solid var(--accent-orange); padding:15px; margin-bottom:25px; color:var(--accent-orange); font-family:var(--font-mono); font-size:1.00rem;">
                     [LOCKED_NODE]: THIS ARCHIVAL RECORD IS UNDER ADMINISTRATIVE LOCKDOWN. MODIFICATIONS RESTRICTED TO OVERSEERS.
                 </div>` + contentHtml;
             }
@@ -547,19 +547,19 @@ document.addEventListener('DOMContentLoaded', () => {
             articleBody.innerHTML = `
                 <div class="admin-dashboard" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-top:30px;">
                     <div class="stat-card" style="background:#111; border:1px solid var(--accent-orange); padding:25px; text-align:center; box-shadow:var(--shadow-glow);">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_ARTICLES</div>
+                        <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_ARTICLES</div>
                         <div style="font-size:2rem; color:var(--accent-orange); font-family:var(--font-mono); font-weight:900;">${statsData.stats.articleCount}</div>
                     </div>
                     <div class="stat-card" style="background:#111; border:1px solid var(--accent-cyan); padding:25px; text-align:center;">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">VERIFIED_AGENTS</div>
+                        <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">VERIFIED_AGENTS</div>
                         <div style="font-size:2rem; color:var(--accent-cyan); font-family:var(--font-mono); font-weight:900;">${statsData.stats.userCount}</div>
                     </div>
                     <div class="stat-card" style="background:#111; border:1px solid var(--hazard-red); padding:25px; text-align:center;">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">BANNED_SIGNALS</div>
+                        <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">BANNED_SIGNALS</div>
                         <div style="font-size:2rem; color:var(--hazard-red); font-family:var(--font-mono); font-weight:900;">${statsData.stats.banCount}</div>
                     </div>
                     <div class="stat-card" style="background:#111; border:1px solid #444; padding:25px; text-align:center;">
-                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_REVISIONS</div>
+                        <div style="font-size:0.85rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_REVISIONS</div>
                         <div style="font-size:2rem; color:#fff; font-family:var(--font-mono); font-weight:900;">${statsData.stats.revCount}</div>
                     </div>
                 </div>
@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3 style="color:#eee; font-family:var(--font-mono); margin-top:0;">[SYSTEM_AUDIT_LOG]</h3>
                     <div class="log-timeline" style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
                         ${logsData.map(log => `
-                            <div class="log-entry" style="font-family:var(--font-mono); font-size:0.75rem; display:flex; gap:15px; padding:8px; border-bottom:1px solid #111;">
+                            <div class="log-entry" style="font-family:var(--font-mono); font-size:0.90rem; display:flex; gap:15px; padding:8px; border-bottom:1px solid #111;">
                                 <span style="color:var(--text-dim); width:140px; flex-shrink:0;">[${log.timestamp}]</span>
                                 <span style="color:${getLogColor(log.type)}; font-weight:bold; width:50px; flex-shrink:0;">${log.type}</span>
                                 <span style="color:var(--text-main); flex:1;">
@@ -583,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div id="blacklist-management" style="margin-top:50px; border:1px solid var(--hazard-red); background:#050000; padding:30px;">
                     <h3 style="color:var(--hazard-red); font-family:var(--font-mono); margin-top:0;">[ACTIVE_BLACKLIST_PROTOCOLS]</h3>
                     <div class="ban-list" style="margin-top:20px; overflow-x:auto;">
-                        <table style="width:100%; border-collapse:collapse; font-size:0.8rem; font-family:var(--font-mono);">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.95rem; font-family:var(--font-mono);">
                             <thead>
                                 <tr style="border-bottom:1px solid #333; text-align:left; color:var(--text-dim);">
                                     <th style="padding:10px;">TYPE</th>
@@ -599,9 +599,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px; color:${b.target_type === 'ip' ? 'var(--accent-cyan)' : 'var(--accent-orange)'};">[${b.target_type.toUpperCase()}]</td>
                                         <td style="padding:10px;">${escapeHTML(b.target_value)}</td>
                                         <td style="padding:10px; color:var(--text-muted); font-style:italic;">${escapeHTML(b.reason)}</td>
-                                        <td style="padding:10px; font-size:0.7rem;">${b.timestamp}</td>
+                                        <td style="padding:10px; font-size:0.85rem;">${b.timestamp}</td>
                                         <td style="padding:10px;">
-                                            <button onclick="window.revokeBan(${b.id})" class="btn-clinical-toggle" style="font-size:0.6rem; padding:4px 8px; border-color:var(--accent-cyan); color:var(--accent-cyan);">[REVOKE_SIGNAL]</button>
+                                            <button onclick="window.revokeBan(${b.id})" class="btn-clinical-toggle" style="font-size:0.75rem; padding:4px 8px; border-color:var(--accent-cyan); color:var(--accent-cyan);">[REVOKE_SIGNAL]</button>
                                         </td>
                                     </tr>
                                 `).join('') || '<tr><td colspan="5" style="padding:20px; text-align:center; opacity:0.3;">NO_ACTIVE_RESTRICTIONS_DETECTED</td></tr>'}
@@ -617,7 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button onclick="window.adminLockNode()" class="btn-clinical-toggle" style="border-color:var(--accent-orange); color:var(--accent-orange);">[TOGGLE_LOCK]</button>
                         <button onclick="window.adminPurgeNode()" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red);">[PURGE_NODE]</button>
                     </div>
-                    <div style="font-size:0.65rem; color:var(--text-dim); margin-top:10px; font-family:var(--font-mono);">
+                    <div style="font-size:0.80rem; color:var(--text-dim); margin-top:10px; font-family:var(--font-mono);">
                         [CAUTION]: PURGE_NODE IS IRREVERSIBLE. ALL REVISIONS AND COMMENTS WILL BE ERASED.
                     </div>
                 </div>
@@ -631,7 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 
-                <div style="margin-top:30px; font-family:var(--font-mono); font-size:0.65rem; color:#333; text-align:right;">
+                <div style="margin-top:30px; font-family:var(--font-mono); font-size:0.80rem; color:#333; text-align:right;">
                     AUTH_SESSION: ${Math.random().toString(36).substring(2, 15).toUpperCase()} | GRID_STATUS: ${statsData.system_status}
                 </div>
             `;
@@ -719,7 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${data.members.map(member => `
                         <div class="node-item" style="background:#111; border:1px solid var(--border-color); padding:15px; border-left:3px solid var(--accent-cyan);">
                             <a href="/w/${encodeURIComponent(member.title.replace(/ /g, '_'))}" style="font-family:var(--font-mono); color:var(--accent-cyan); font-weight:bold; text-decoration:none; display:block; margin-bottom:5px;">▶ ${escapeHTML(member.title)}</a>
-                            <div style="font-size:0.65rem; color:var(--text-muted); font-family:var(--font-mono);">
+                            <div style="font-size:0.80rem; color:var(--text-muted); font-family:var(--font-mono);">
                                 LAST_REVISION: ${member.updated_at} | AUTH: ${member.author}
                             </div>
                         </div>
