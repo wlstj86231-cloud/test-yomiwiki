@@ -462,28 +462,61 @@ document.addEventListener('DOMContentLoaded', () => {
         mainTitle.textContent = "OVERSEER_COMMAND_CENTER";
         
         try {
-            const res = await securedFetch(`${API_ENDPOINT}/admin/stats`);
-            const data = await res.json();
+            const statsRes = await securedFetch(`${API_ENDPOINT}/admin/stats`);
+            const statsData = await statsRes.json();
             
-            if (data.error) throw new Error(data.error);
+            const bansRes = await securedFetch(`${API_ENDPOINT}/admin/bans`);
+            const bansData = await bansRes.json();
+            
+            if (statsData.error) throw new Error(statsData.error);
 
             articleBody.innerHTML = `
                 <div class="admin-dashboard" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-top:30px;">
                     <div class="stat-card" style="background:#111; border:1px solid var(--accent-orange); padding:25px; text-align:center; box-shadow:var(--shadow-glow);">
                         <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_ARTICLES</div>
-                        <div style="font-size:2rem; color:var(--accent-orange); font-family:var(--font-mono); font-weight:900;">${data.stats.articleCount}</div>
+                        <div style="font-size:2rem; color:var(--accent-orange); font-family:var(--font-mono); font-weight:900;">${statsData.stats.articleCount}</div>
                     </div>
                     <div class="stat-card" style="background:#111; border:1px solid var(--accent-cyan); padding:25px; text-align:center;">
                         <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">VERIFIED_AGENTS</div>
-                        <div style="font-size:2rem; color:var(--accent-cyan); font-family:var(--font-mono); font-weight:900;">${data.stats.userCount}</div>
+                        <div style="font-size:2rem; color:var(--accent-cyan); font-family:var(--font-mono); font-weight:900;">${statsData.stats.userCount}</div>
                     </div>
                     <div class="stat-card" style="background:#111; border:1px solid var(--hazard-red); padding:25px; text-align:center;">
                         <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">BANNED_SIGNALS</div>
-                        <div style="font-size:2rem; color:var(--hazard-red); font-family:var(--font-mono); font-weight:900;">${data.stats.banCount}</div>
+                        <div style="font-size:2rem; color:var(--hazard-red); font-family:var(--font-mono); font-weight:900;">${statsData.stats.banCount}</div>
                     </div>
                     <div class="stat-card" style="background:#111; border:1px solid #444; padding:25px; text-align:center;">
                         <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_REVISIONS</div>
-                        <div style="font-size:2rem; color:#fff; font-family:var(--font-mono); font-weight:900;">${data.stats.revCount}</div>
+                        <div style="font-size:2rem; color:#fff; font-family:var(--font-mono); font-weight:900;">${statsData.stats.revCount}</div>
+                    </div>
+                </div>
+                
+                <div id="blacklist-management" style="margin-top:50px; border:1px solid var(--hazard-red); background:#050000; padding:30px;">
+                    <h3 style="color:var(--hazard-red); font-family:var(--font-mono); margin-top:0;">[ACTIVE_BLACKLIST_PROTOCOLS]</h3>
+                    <div class="ban-list" style="margin-top:20px; overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.8rem; font-family:var(--font-mono);">
+                            <thead>
+                                <tr style="border-bottom:1px solid #333; text-align:left; color:var(--text-dim);">
+                                    <th style="padding:10px;">TYPE</th>
+                                    <th style="padding:10px;">TARGET_VALUE</th>
+                                    <th style="padding:10px;">REASON</th>
+                                    <th style="padding:10px;">TIMESTAMP</th>
+                                    <th style="padding:10px;">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${bansData.map(b => `
+                                    <tr style="border-bottom:1px solid #151515;">
+                                        <td style="padding:10px; color:${b.target_type === 'ip' ? 'var(--accent-cyan)' : 'var(--accent-orange)'};">[${b.target_type.toUpperCase()}]</td>
+                                        <td style="padding:10px;">${escapeHTML(b.target_value)}</td>
+                                        <td style="padding:10px; color:var(--text-muted); font-style:italic;">${escapeHTML(b.reason)}</td>
+                                        <td style="padding:10px; font-size:0.7rem;">${b.timestamp}</td>
+                                        <td style="padding:10px;">
+                                            <button onclick="window.revokeBan(${b.id})" class="btn-clinical-toggle" style="font-size:0.6rem; padding:4px 8px; border-color:var(--accent-cyan); color:var(--accent-cyan);">[REVOKE_SIGNAL]</button>
+                                        </td>
+                                    </tr>
+                                `).join('') || '<tr><td colspan="5" style="padding:20px; text-align:center; opacity:0.3;">NO_ACTIVE_RESTRICTIONS_DETECTED</td></tr>'}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 
@@ -491,19 +524,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3 style="color:var(--accent-orange); font-family:var(--font-mono); margin-top:0;">[SYSTEM_CONTROL_PANEL]</h3>
                     <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
                         <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[ACCESS_LOGS]</button>
-                        <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[MANAGE_BLACKIST]</button>
+                        <button onclick="document.getElementById('blacklist-management').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[MANAGE_BLACKLIST]</button>
                         <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[GLOBAL_LOCKDOWN]</button>
                     </div>
                 </div>
                 
                 <div style="margin-top:30px; font-family:var(--font-mono); font-size:0.65rem; color:#333; text-align:right;">
-                    AUTH_SESSION: ${Math.random().toString(36).substring(2, 15).toUpperCase()} | GRID_STATUS: ${data.system_status}
+                    AUTH_SESSION: ${Math.random().toString(36).substring(2, 15).toUpperCase()} | GRID_STATUS: ${statsData.system_status}
                 </div>
             `;
         } catch (e) {
             articleBody.innerHTML = `<div style="color:var(--hazard-red); border:1px solid var(--hazard-red); padding:30px;">[CRITICAL_AUTH_ERROR]: Handshake failed. Signal origin unverified.</div>`;
         }
     }
+
+    window.revokeBan = async (banId) => {
+        if (!confirm("[SYSTEM_CONFIRMATION]: Do you want to restore access for this signal?")) return;
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/ban/${banId}`, { method: 'DELETE' });
+            if (res.ok) {
+                alert("[SIGNAL_RESTORED]: Access restriction has been lifted.");
+                loadAdminDashboard();
+            }
+        } catch (e) { alert("[ERROR]: Failed to reach central command."); }
+    };
 
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);

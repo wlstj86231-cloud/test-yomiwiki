@@ -249,6 +249,21 @@ export async function onRequest(context) {
             };
         }
 
+        else if (path === '/admin/bans' && method === "GET") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const { results } = await env.DB.prepare("SELECT * FROM bans ORDER BY timestamp DESC").all();
+            resData = results;
+        }
+
+        else if (path.startsWith('/admin/ban/') && method === "DELETE") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const banId = path.split('/')[3];
+            await env.DB.prepare("DELETE FROM bans WHERE id = ?").bind(banId).run();
+            resData = { success: true };
+        }
+
         else if (path === '/admin/ban' && method === "POST") {
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
             if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED_ACCESS" }), { status: 403, headers: securityHeaders });
