@@ -692,6 +692,21 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSidebarActivity();
     }
 
+    window.scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.addEventListener('scroll', () => {
+        const btnTop = document.getElementById('btn-top');
+        if (btnTop) {
+            if (window.scrollY > 300) {
+                btnTop.style.display = 'block';
+            } else {
+                btnTop.style.display = 'none';
+            }
+        }
+    });
+
     init();
     setInterval(updateSidebarActivity, 30000);
 });
