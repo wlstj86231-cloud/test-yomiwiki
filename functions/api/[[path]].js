@@ -233,6 +233,22 @@ export async function onRequest(context) {
             resData = { success: true };
         }
 
+        else if (path === '/admin/stats' && method === "GET") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            
+            const { count: articleCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM articles WHERE is_deleted = 0").first();
+            const { count: userCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM users").first();
+            const { count: banCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM bans").first();
+            const { count: revCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM revisions").first();
+            
+            resData = { 
+                stats: { articleCount, userCount, banCount, revCount },
+                system_status: "OPTIMAL",
+                grid_load: "2.4%" 
+            };
+        }
+
         else if (path === '/admin/ban' && method === "POST") {
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
             if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED_ACCESS" }), { status: 403, headers: securityHeaders });

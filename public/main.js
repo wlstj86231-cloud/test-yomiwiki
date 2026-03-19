@@ -451,13 +451,74 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { sidebarLog.textContent = "SYNC_OFFLINE"; }
     }
 
+    async function loadAdminDashboard() {
+        if (currentUser?.role !== 'admin') {
+            window.navigateTo('/');
+            return;
+        }
+
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        mainTitle.textContent = "OVERSEER_COMMAND_CENTER";
+        
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/stats`);
+            const data = await res.json();
+            
+            if (data.error) throw new Error(data.error);
+
+            articleBody.innerHTML = `
+                <div class="admin-dashboard" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-top:30px;">
+                    <div class="stat-card" style="background:#111; border:1px solid var(--accent-orange); padding:25px; text-align:center; box-shadow:var(--shadow-glow);">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_ARTICLES</div>
+                        <div style="font-size:2rem; color:var(--accent-orange); font-family:var(--font-mono); font-weight:900;">${data.stats.articleCount}</div>
+                    </div>
+                    <div class="stat-card" style="background:#111; border:1px solid var(--accent-cyan); padding:25px; text-align:center;">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">VERIFIED_AGENTS</div>
+                        <div style="font-size:2rem; color:var(--accent-cyan); font-family:var(--font-mono); font-weight:900;">${data.stats.userCount}</div>
+                    </div>
+                    <div class="stat-card" style="background:#111; border:1px solid var(--hazard-red); padding:25px; text-align:center;">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">BANNED_SIGNALS</div>
+                        <div style="font-size:2rem; color:var(--hazard-red); font-family:var(--font-mono); font-weight:900;">${data.stats.banCount}</div>
+                    </div>
+                    <div class="stat-card" style="background:#111; border:1px solid #444; padding:25px; text-align:center;">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_REVISIONS</div>
+                        <div style="font-size:2rem; color:#fff; font-family:var(--font-mono); font-weight:900;">${data.stats.revCount}</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top:50px; border:1px solid #222; background:#050505; padding:30px;">
+                    <h3 style="color:var(--accent-orange); font-family:var(--font-mono); margin-top:0;">[SYSTEM_CONTROL_PANEL]</h3>
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
+                        <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[ACCESS_LOGS]</button>
+                        <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[MANAGE_BLACKIST]</button>
+                        <button onclick="alert('Module loading...')" class="btn-clinical-toggle">[GLOBAL_LOCKDOWN]</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top:30px; font-family:var(--font-mono); font-size:0.65rem; color:#333; text-align:right;">
+                    AUTH_SESSION: ${Math.random().toString(36).substring(2, 15).toUpperCase()} | GRID_STATUS: ${data.system_status}
+                </div>
+            `;
+        } catch (e) {
+            articleBody.innerHTML = `<div style="color:var(--hazard-red); border:1px solid var(--hazard-red); padding:30px;">[CRITICAL_AUTH_ERROR]: Handshake failed. Signal origin unverified.</div>`;
+        }
+    }
+
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         const path = window.location.pathname;
+        
+        handleInternalLinks();
+        
+        if (path === '/admin') {
+            await loadAdminDashboard();
+            return;
+        }
+
         let title = path.startsWith('/w/') ? decodeURIComponent(path.substring(3)).replace(/[_\s]+/g, ' ').trim() : 'Main_Page';
         const mode = urlParams.get('mode');
         
-        handleInternalLinks();
         if (mode === 'edit') await loadEditor(title);
         else if (mode === 'history') await loadHistory(title);
         else await renderArticle(title);
