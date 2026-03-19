@@ -531,7 +531,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px 15px; text-align:center;">
                                             <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.70rem; padding:2px 6px; text-decoration:none;">역사</a>
                                         </td>
-                                        <td style="padding:10px 15px;">[AGENT]</td>
+                                        <!-- Item 11: Display Last Editor -->
+                                        <td style="padding:10px 15px; color:var(--text-dim); font-size:0.80rem;">
+                                            ${escapeHTML(sub.author || "Unknown_Agent")}
+                                        </td>
                                         <td style="padding:10px 15px; text-align:right;">[TIMESTAMP]</td>
                                     </tr>
                                 `).join('') : `
