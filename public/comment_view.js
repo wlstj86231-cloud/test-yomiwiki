@@ -63,6 +63,9 @@ window.CommentView = {
             <div id="comment-form-container" class="comment-form" style="margin-top:20px; background:#050505; border:1px solid #111; padding:15px;">
                 <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-bottom:6px; text-transform:uppercase;">[INITIATE_TRANSMISSION]</div>
                 <textarea id="new-comment-content" placeholder="Enter transmission data..." style="width:100%; height:60px; background:#000; border:1px solid #222; color:#0f0; padding:12px; font-family:var(--font-mono); font-size:0.95rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#222'"></textarea>
+                <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+                    <button id="transmit-comment-btn" class="btn-clinical-toggle" style="padding:8px 16px; font-size:0.80rem;">[TRANSMIT]</button>
+                </div>
             </div>
         `;
 
