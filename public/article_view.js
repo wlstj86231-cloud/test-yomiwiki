@@ -77,6 +77,25 @@ window.ArticleView = {
                 bodyEl.insertBefore(tocBox, bodyEl.firstChild);
             }
 
+            // Item 69: Add Related Nodes placeholder
+            let relatedBox = document.getElementById('article-related-nodes');
+            if (!relatedBox) {
+                relatedBox = document.createElement('div');
+                relatedBox.id = 'article-related-nodes';
+                relatedBox.style.margin = '40px 0';
+                relatedBox.style.padding = '20px';
+                relatedBox.style.background = 'rgba(0,255,255,0.01)';
+                relatedBox.style.border = '1px solid #111';
+                relatedBox.style.borderLeft = '4px solid var(--accent-cyan)';
+                relatedBox.innerHTML = `
+                    <div style="font-family:var(--font-mono); font-size:0.80rem; color:var(--accent-cyan); margin-bottom:15px; text-transform:uppercase;">[RELATED_ARCHIVAL_NODES]</div>
+                    <div id="related-nodes-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:15px;">
+                        <div style="opacity:0.3; font-style:italic; font-size:0.85rem;">[INITIALIZING_COORDINATES...]</div>
+                    </div>
+                `;
+                bodyEl.appendChild(relatedBox);
+            }
+
             // Item 53: Render Footnotes at the bottom
             const footnotes = window.lastFootnotes || [];
             if (footnotes.length > 0) {
