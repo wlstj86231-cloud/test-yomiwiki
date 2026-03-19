@@ -517,8 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>`;
                 
-                // Show board content directly without a toggle
-                contentHtml = `<div style="margin-bottom:30px; border:1px solid #222; padding:10px;"><div style="font-size:0.95rem; font-family:var(--font-mono); color:var(--accent-orange); margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:5px;">[SECTOR_PROTOCOL]</div><div style="padding-top:5px;">${contentHtml}</div></div>`;
+                // Item 2: Content (Protocol) is no longer displayed on board views
+                contentHtml = "";
             }
 
             // 2. FOOTER (Metadata, Categories, Backlinks)
