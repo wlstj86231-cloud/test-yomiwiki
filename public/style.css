@@ -130,28 +130,44 @@ html, body {
 .blink { animation: blink 1s infinite; color: var(--accent-orange); }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-/* Center the search bar */
-.search-bar { 
-    position: relative; 
+.search-bar {
+    position: relative;
     width: 100%;
-    min-width: 400px; /* Ensure it doesn't get too small */
+    max-width: 600px;
     display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.search-btn {
+    background: #ffffff;
+    border: 1px solid #cccccc;
+    border-left: none;
+    color: #333;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
     justify-content: center;
+}
+.search-btn:hover {
+    color: var(--accent-orange);
+    background: #f9f9f9;
 }
 
 .search-input {
-    width: 100%;
-    max-width: 600px;
-    background: #ffffff; /* White background as requested */
+    flex: 1;
+    background: #ffffff; 
     border: 1px solid #cccccc;
-    color: #000000; /* Dark text for contrast */
+    color: #000000;
     padding: 10px 20px;
     font-family: var(--font-mono);
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
-}
-.search-input:focus {
+}.search-input:focus {
     border-color: var(--accent-orange);
     box-shadow: var(--shadow-glow);
 }
