@@ -156,17 +156,17 @@ CREATE INDEX IF NOT EXISTS idx_links_from ON links(from_title);
 INSERT INTO articles (title, current_content, author, classification, threatLevel)
 VALUES (
     'Main_Page',
-    '{{infobox
+    '<div class="scp-warning-block">
+    <div class="scp-warning-header">WARNING: ACCESS RESTRICTED</div>
+    THE ARCHIVAL DATABASE IS <b>CLASSIFIED</b>. UNAUTHORIZED ACCESS TO THESE FILES IS PUNISHABLE BY IMMEDIATE TERMINATION OF CURRENT IP UPLINK AND PHYSICAL RETRIEVAL BY FIELD AGENTS.
+</div>
+
+{{infobox
 | title = YomiWiki Archival Gateway
 | image = https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=300
 | caption = GATEWAY_TERMINAL_NODE_7
 | type = SYSTEM_CORE
 }}
-
-<div class="scp-warning-block">
-    <div class="scp-warning-header">WARNING: ACCESS RESTRICTED</div>
-    THE ARCHIVAL DATABASE IS <b>CLASSIFIED</b>. UNAUTHORIZED ACCESS TO THESE FILES IS PUNISHABLE BY IMMEDIATE TERMINATION OF CURRENT IP UPLINK AND PHYSICAL RETRIEVAL BY FIELD AGENTS.
-</div>
 
 == WELCOME_AGENT ==
 Welcome to the ''''''YomiWiki Archival Gateway''''''. This is a secure repository for occult, paranormal, and clinical data. All transmissions are monitored and encrypted using RSA-4096 protocols.

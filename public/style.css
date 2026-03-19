@@ -648,6 +648,7 @@ html, body {
     margin: 2rem 0;
     text-align: center;
     position: relative;
+    display: flow-root; /* Fix for overlapping with floated infobox */
 }
 
 .scp-warning-header {
@@ -664,6 +665,7 @@ html, body {
     background: rgba(255, 255, 255, 0.02);
     padding: 25px;
     margin: 1.5rem 0;
+    display: flow-root; /* Fix for overlapping with floated infobox */
 }
 
 .scp-header-line {
