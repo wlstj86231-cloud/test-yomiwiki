@@ -1,6 +1,6 @@
 {
   "name": "test-yomiwiki",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "scripts": {
     "dev": "wrangler pages dev public --d1=DB --r2=ASSETS_BUCKET",
     "deploy": "wrangler pages deploy public",
