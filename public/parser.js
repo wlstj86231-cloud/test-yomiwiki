@@ -84,6 +84,7 @@ function wikiParse(content) {
         footnotes.push(cleanContent);
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
+    window.lastFootnotes = footnotes; // Item 53 support
 
     // --- Debug Stats ---
     console.log(`[PARSER_STATS]: Headers=${headers.length}, Footnotes=${footnotes.length}`);

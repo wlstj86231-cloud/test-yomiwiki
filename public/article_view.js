@@ -64,7 +64,9 @@ window.ArticleView = {
     renderContent: async function(content) {
         const bodyEl = document.querySelector('.article-body');
         if (bodyEl) {
+            // Assume wikiParse sets window.lastFootnotes
             bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
+            
             let tocBox = document.getElementById('wiki-toc-placeholder');
             if (!tocBox) {
                 tocBox = document.createElement('div');
@@ -72,6 +74,29 @@ window.ArticleView = {
                 tocBox.className = 'wiki-toc';
                 bodyEl.insertBefore(tocBox, bodyEl.firstChild);
             }
+
+            // Item 53: Render Footnotes at the bottom
+            const footnotes = window.lastFootnotes || [];
+            if (footnotes.length > 0) {
+                const fnArea = document.createElement('div');
+                fnArea.id = 'article-footnotes';
+                fnArea.style.marginTop = '40px';
+                fnArea.style.borderTop = '1px solid #222';
+                fnArea.style.paddingTop = '20px';
+                fnArea.innerHTML = `
+                    <div style="font-family:var(--font-mono); font-size:0.80rem; color:var(--text-dim); margin-bottom:15px; text-transform:uppercase;">[SUPPLEMENTARY_DATA_CHUNKS]</div>
+                    <ul style="list-style:none; padding:0; margin:0; font-size:0.85rem; color:var(--text-dim); font-family:var(--font-mono);">
+                        ${footnotes.map((fn, i) => `
+                            <li id="fn-${i + 1}" style="margin-bottom:8px; display:flex; gap:10px;">
+                                <span style="color:var(--accent-cyan); min-width:25px;">[${i + 1}]</span>
+                                <span>${escapeHTML(fn)}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+                bodyEl.appendChild(fnArea);
+            }
+
             let adBox = document.getElementById('ad-bottom-placeholder');
             if (!adBox) {
                 adBox = document.createElement('div');
