@@ -196,6 +196,10 @@ html, body {
     font-size: 1rem;
     color: var(--text-main);
     line-height: 1.8;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
 }
 
 /* --- [Image & Media Layouts] --- */
