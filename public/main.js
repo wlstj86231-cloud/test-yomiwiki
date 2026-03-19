@@ -427,6 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- [Cache System: Item 24] ---
+    const articleCache = new Map();
+
     async function renderArticle(title) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
@@ -434,25 +437,39 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const urlParams = new URLSearchParams(window.location.search);
         const revId = urlParams.get('rev');
+        const normalizedTitle = title.replace(/[_\s]+/g, '_');
 
         let data = null;
+
+        // 1. Try SSR Hydration (Only on first load)
         const ssrDataEl = document.getElementById('ssr-data');
         if (ssrDataEl && !revId) {
             try {
                 const ssrData = JSON.parse(ssrDataEl.textContent);
-                if (title.replace(/[_\s]+/g, '_').toLowerCase() === ssrData.title.replace(/[_\s]+/g, '_').toLowerCase()) {
+                if (normalizedTitle.toLowerCase() === ssrData.title.replace(/[_\s]+/g, '_').toLowerCase()) {
                     data = ssrData;
+                    ssrDataEl.remove(); // Use once and remove
                 }
             } catch (e) { console.error("HYDRATION_FAILED", e); }
+        }
+
+        // 2. Try Memory Cache
+        if (!data && !revId && articleCache.has(normalizedTitle.toLowerCase())) {
+            data = articleCache.get(normalizedTitle.toLowerCase());
         }
 
         try {
             if (!data) {
                 const url = revId 
-                    ? `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}?rev=${revId}`
-                    : `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`;
+                    ? `${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}?rev=${revId}`
+                    : `${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}`;
                 const res = await securedFetch(url);
                 data = await res.json();
+                
+                // Cache successful responses (non-revision only)
+                if (!revId && !data.error) {
+                    articleCache.set(normalizedTitle.toLowerCase(), data);
+                }
             }
             
             if (data.error === "RECORD_NOT_FOUND") {
