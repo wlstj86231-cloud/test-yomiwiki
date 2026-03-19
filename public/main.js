@@ -297,10 +297,174 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { logEl.textContent = "SYNC_OFFLINE"; }
     }
 
+    async function loadAdminDashboard() {
+        if (currentUser?.role !== 'admin') {
+            window.navigateTo('/w/Main_Page');
+            return;
+        }
+
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        mainTitle.textContent = "OVERSEER_COMMAND_CENTER";
+        
+        articleBody.innerHTML = '<div class="loading">[INITIALIZING_COMMAND_STREAM...]</div>';
+
+        try {
+            const statsRes = await securedFetch(`${API_ENDPOINT}/admin/stats`);
+            const statsData = await statsRes.json();
+            
+            const bansRes = await securedFetch(`${API_ENDPOINT}/admin/bans`);
+            const bansData = await bansRes.json();
+
+            const logsRes = await securedFetch(`${API_ENDPOINT}/admin/audit-logs`);
+            const logsData = await logsRes.json();
+            
+            if (statsData.error) throw new Error(statsData.error);
+
+            const getLogColor = (type) => {
+                switch(type) {
+                    case 'EDIT': return 'var(--accent-orange)';
+                    case 'BAN': return 'var(--hazard-red)';
+                    case 'SEC': return '#888';
+                    default: return '#fff';
+                }
+            };
+
+            articleBody.innerHTML = `
+                <div class="admin-dashboard" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-top:30px;">
+                    <div class="stat-card" style="background:#111; border:1px solid var(--accent-orange); padding:25px; text-align:center;">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_ARTICLES</div>
+                        <div style="font-size:2rem; color:var(--accent-orange); font-family:var(--font-mono); font-weight:900;">${statsData.stats.articleCount}</div>
+                    </div>
+                    <div class="stat-card" style="background:#111; border:1px solid var(--accent-cyan); padding:25px; text-align:center;">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">VERIFIED_AGENTS</div>
+                        <div style="font-size:2rem; color:var(--accent-cyan); font-family:var(--font-mono); font-weight:900;">${statsData.stats.userCount}</div>
+                    </div>
+                    <div class="stat-card" style="background:#111; border:1px solid var(--hazard-red); padding:25px; text-align:center;">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">BANNED_SIGNALS</div>
+                        <div style="font-size:2rem; color:var(--hazard-red); font-family:var(--font-mono); font-weight:900;">${statsData.stats.banCount}</div>
+                    </div>
+                    <div class="stat-card" style="background:#111; border:1px solid #444; padding:25px; text-align:center;">
+                        <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_REVISIONS</div>
+                        <div style="font-size:2rem; color:#fff; font-family:var(--font-mono); font-weight:900;">${statsData.stats.revCount}</div>
+                    </div>
+                </div>
+
+                <div id="audit-logs" style="margin-top:50px; border:1px solid #333; background:#0a0a0a; padding:30px;">
+                    <h3 style="color:#eee; font-family:var(--font-mono); margin-top:0;">[SYSTEM_AUDIT_LOG]</h3>
+                    <div class="log-timeline" style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                        ${logsData.map(log => `
+                            <div class="log-entry" style="font-family:var(--font-mono); font-size:0.75rem; display:flex; gap:15px; padding:8px; border-bottom:1px solid #111;">
+                                <span style="color:var(--text-dim); width:140px; flex-shrink:0;">[${log.timestamp}]</span>
+                                <span style="color:${getLogColor(log.type)}; font-weight:bold; width:50px; flex-shrink:0;">${log.type}</span>
+                                <span style="color:var(--text-main); flex:1;">
+                                    <strong>${escapeHTML(log.actor)}</strong> ➔ ${escapeHTML(log.target)} 
+                                    <span style="color:var(--text-dim); font-style:italic;">(${escapeHTML(log.detail?.substring(0, 50))}${log.detail?.length > 50 ? '...' : ''})</span>
+                                </span>
+                            </div>
+                        `).join('') || '<div style="opacity:0.3; padding:20px;">NO_LOGS_AVAILABLE</div>'}
+                    </div>
+                </div>
+                
+                <div id="blacklist-management" style="margin-top:50px; border:1px solid var(--hazard-red); background:#050000; padding:30px;">
+                    <h3 style="color:var(--hazard-red); font-family:var(--font-mono); margin-top:0;">[ACTIVE_BLACKLIST_PROTOCOLS]</h3>
+                    <div class="ban-list" style="margin-top:20px; overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; font-size:0.8rem; font-family:var(--font-mono);">
+                            <thead>
+                                <tr style="border-bottom:1px solid #333; text-align:left; color:var(--text-dim);">
+                                    <th style="padding:10px;">TYPE</th>
+                                    <th style="padding:10px;">TARGET_VALUE</th>
+                                    <th style="padding:10px;">REASON</th>
+                                    <th style="padding:10px;">TIMESTAMP</th>
+                                    <th style="padding:10px;">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${bansData.map(b => `
+                                    <tr style="border-bottom:1px solid #151515;">
+                                        <td style="padding:10px; color:${b.target_type === 'ip' ? 'var(--accent-cyan)' : 'var(--accent-orange)'};">[${b.target_type.toUpperCase()}]</td>
+                                        <td style="padding:10px;">${escapeHTML(b.target_value)}</td>
+                                        <td style="padding:10px; color:var(--text-muted); font-style:italic;">${escapeHTML(b.reason)}</td>
+                                        <td style="padding:10px; font-size:0.7rem;">${b.timestamp}</td>
+                                        <td style="padding:10px;">
+                                            <button onclick="window.revokeBan(${b.id})" class="btn-clinical-toggle" style="font-size:0.6rem; padding:4px 8px; border-color:var(--accent-cyan); color:var(--accent-cyan);">[REVOKE_SIGNAL]</button>
+                                        </td>
+                                    </tr>
+                                `).join('') || '<tr><td colspan="5" style="padding:20px; text-align:center; opacity:0.3;">NO_ACTIVE_RESTRICTIONS_DETECTED</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div id="node-management" style="margin-top:50px; border:1px solid var(--accent-cyan); background:#000505; padding:30px;">
+                    <h3 style="color:var(--accent-cyan); font-family:var(--font-mono); margin-top:0;">[NODE_ADMIN_OVERRIDE]</h3>
+                    <div style="margin-top:20px; display:flex; gap:10px;">
+                        <input type="text" id="admin-node-title" placeholder="ENTER_TARGET_NODE_TITLE..." style="flex:1; background:#000; border:1px solid #333; color:#0f0; padding:10px; font-family:var(--font-mono);">
+                        <button onclick="window.adminLockNode()" class="btn-clinical-toggle" style="border-color:var(--accent-orange); color:var(--accent-orange);">[TOGGLE_LOCK]</button>
+                        <button onclick="window.adminPurgeNode()" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red);">[PURGE_NODE]</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:50px; border:1px solid #222; background:#050505; padding:30px;">
+                    <h3 style="color:var(--accent-orange); font-family:var(--font-mono); margin-top:0;">[SYSTEM_CONTROL_PANEL]</h3>
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
+                        <button onclick="document.getElementById('audit-logs').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[ACCESS_LOGS]</button>
+                        <button onclick="document.getElementById('blacklist-management').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[MANAGE_BLACKLIST]</button>
+                        <button onclick="document.getElementById('node-management').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[NODE_OVERRIDE]</button>
+                    </div>
+                </div>
+                
+                <div style="margin-top:30px; font-family:var(--font-mono); font-size:0.65rem; color:#333; text-align:right;">
+                    AUTH_SESSION: ${Math.random().toString(36).substring(2, 15).toUpperCase()} | GRID_STATUS: ${statsData.system_status}
+                </div>
+            `;
+        } catch (e) {
+            articleBody.innerHTML = `<div style="color:var(--hazard-red); border:1px solid var(--hazard-red); padding:30px;">[CRITICAL_AUTH_ERROR]: Handshake failed. Signal origin unverified.</div>`;
+        }
+    }
+
+    window.revokeBan = async (banId) => {
+        if (!confirm("[SYSTEM_CONFIRMATION]: Restore access for this signal?")) return;
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/ban/${banId}`, { method: 'DELETE' });
+            if (res.ok) { loadAdminDashboard(); }
+        } catch (e) { alert("[ERROR]: Connection failure."); }
+    };
+
+    window.adminLockNode = async () => {
+        const title = document.getElementById('admin-node-title').value.trim();
+        if (!title) return;
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/article/lock`, {
+                method: 'POST', body: JSON.stringify({ title })
+            });
+            if (res.ok) alert(`[SYSTEM]: Lock status toggled for node "${title}".`);
+        } catch (e) { alert("[CRITICAL]: Admin signal failure."); }
+    };
+
+    window.adminPurgeNode = async () => {
+        const title = document.getElementById('admin-node-title').value.trim();
+        if (!title) return;
+        if (!confirm(`[ULTIMATE_WARNING]: PURGE node "${title}"?`)) return;
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/article/purge`, {
+                method: 'DELETE', body: JSON.stringify({ title })
+            });
+            if (res.ok) { alert(`[SYSTEM]: Node "${title}" purged.`); loadAdminDashboard(); }
+        } catch (e) { alert("[CRITICAL]: Purge sequence aborted."); }
+    };
+
     async function init() {
         const path = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
+
+        if (path === '/admin') {
+            await loadAdminDashboard();
+            updateAuthUI();
+            updateSidebarActivity();
+            return;
+        }
 
         let titleOrId = "Main_Page";
         if (path.startsWith('/w/')) titleOrId = window.slugToTitle(path.substring(3));

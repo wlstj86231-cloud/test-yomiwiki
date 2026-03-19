@@ -202,6 +202,77 @@ export async function onRequest(context) {
             }
         }
 
+        // 8. ADMIN: STATS
+        else if (path === '/admin/stats' && method === "GET") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const { count: articleCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM articles WHERE is_deleted = 0").first();
+            const { count: userCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM users").first();
+            const { count: banCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM bans").first();
+            const { count: revCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM revisions").first();
+            resData = { stats: { articleCount, userCount, banCount, revCount }, system_status: "OPTIMAL" };
+        }
+
+        // 9. ADMIN: AUDIT LOGS
+        else if (path === '/admin/audit-logs' && method === "GET") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const { results } = await env.DB.prepare(`
+                SELECT 'EDIT' as type, editor_info as actor, a.title as target, edit_summary as detail, r.timestamp FROM revisions r JOIN articles a ON r.article_id = a.id
+                UNION ALL
+                SELECT 'BAN' as type, banned_by as actor, target_value as target, reason as detail, timestamp FROM bans
+                UNION ALL
+                SELECT 'SEC' as type, ip_address as actor, action as target, 'System security check' as detail, timestamp FROM ip_logs
+                ORDER BY timestamp DESC LIMIT 50
+            `).all();
+            resData = results;
+        }
+
+        // 10. ADMIN: BANS
+        else if (path === '/admin/bans' && method === "GET") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const { results } = await env.DB.prepare("SELECT * FROM bans ORDER BY timestamp DESC").all();
+            resData = results;
+        }
+
+        else if (path === '/admin/ban' && method === "POST") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const { target_user, target_ip, reason } = await request.json();
+            const batch = [];
+            if (target_user) batch.push(env.DB.prepare("INSERT OR REPLACE INTO bans (target_type, target_value, reason, banned_by) VALUES ('user', ?, ?, ?)").bind(target_user, reason || "Protocol Violation", user.username));
+            if (target_ip) batch.push(env.DB.prepare("INSERT OR REPLACE INTO bans (target_type, target_value, reason, banned_by) VALUES ('ip', ?, ?, ?)").bind(target_ip, reason || "Protocol Violation", user.username));
+            if (batch.length > 0) await env.DB.batch(batch);
+            resData = { success: true };
+        }
+
+        else if (path.startsWith('/admin/ban/') && method === "DELETE") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const banId = path.split('/')[3];
+            await env.DB.prepare("DELETE FROM bans WHERE id = ?").bind(banId).run();
+            resData = { success: true };
+        }
+
+        // 11. ADMIN: ARTICLE CONTROL
+        else if (path === '/admin/article/lock' && method === "POST") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const { title } = await request.json();
+            await env.DB.prepare("UPDATE articles SET is_locked = 1 - is_locked WHERE title = ?").bind(normalizeTitle(title)).run();
+            resData = { success: true };
+        }
+
+        else if (path === '/admin/article/purge' && method === "DELETE") {
+            if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            const { title } = await request.json();
+            const normalized = normalizeTitle(title);
+            const article = await env.DB.prepare("SELECT id FROM articles WHERE title = ?").bind(normalized).first();
+            if (article) {
+                await env.DB.batch([
+                    env.DB.prepare("DELETE FROM revisions WHERE article_id = ?").bind(article.id),
+                    env.DB.prepare("DELETE FROM article_chunks WHERE article_id = ?").bind(article.id),
+                    env.DB.prepare("DELETE FROM articles WHERE id = ?").bind(article.id)
+                ]);
+                resData = { success: true };
+            } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
+        }
+
         else { status = 404; resData = { error: "PATH_NOT_FOUND" }; }
 
         return new Response(JSON.stringify(resData), { status, headers: securityHeaders });
