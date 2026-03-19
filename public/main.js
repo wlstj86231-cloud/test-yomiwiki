@@ -373,13 +373,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const revId = urlParams.get('rev');
 
+        // --- [EDGE HYDRATION: Phase 5-4 FIX] ---
+        let data = null;
+        const ssrDataEl = document.getElementById('ssr-data');
+        if (ssrDataEl && !revId) {
+            try {
+                const ssrData = JSON.parse(ssrDataEl.textContent);
+                const normalizedRequested = title.replace(/[_\s]+/g, '_').toLowerCase();
+                const normalizedSSR = ssrData.title.replace(/[_\s]+/g, '_').toLowerCase();
+                
+                if (normalizedRequested === normalizedSSR) {
+                    data = ssrData;
+                    ssrDataEl.remove(); // Use once and discard
+                }
+            } catch (e) { console.error("HYDRATION_FAILED", e); }
+        }
+
         try {
-            const url = revId 
-                ? `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}?rev=${revId}`
-                : `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`;
-            
-            const res = await securedFetch(url);
-            const data = await res.json();
+            if (!data) {
+                const url = revId 
+                    ? `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}?rev=${revId}`
+                    : `${API_ENDPOINT}/article/${encodeURIComponent(title.replace(/[_\s]+/g, '_'))}`;
+                
+                const res = await securedFetch(url);
+                data = await res.json();
+            }
             
             if (data.error === "RECORD_NOT_FOUND") {
                 mainTitle.textContent = title;

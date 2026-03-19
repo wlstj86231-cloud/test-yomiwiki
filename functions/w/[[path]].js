@@ -39,7 +39,8 @@ export async function onRequest(context) {
         let html = await templateResponse.text();
 
         // 5. Injection (Match exactly with index.html tags)
-        const description = article.current_content.substring(0, 160).replace(/[\[\]{}|*]/g, '').trim() + "...";
+        const plainContent = article.current_content.replace(/[\[\]{}|*]/g, '').substring(0, 160).trim();
+        const description = `${plainContent}... [AUTHORIZED_CLEARANCE_REQUIRED]`;
         const ogTags = `
             <meta name="description" content="${description}">
             <meta property="og:title" content="${article.title} | YomiWiki Archival Node">
@@ -51,20 +52,25 @@ export async function onRequest(context) {
         `;
 
         // Replace Title & Meta
-        html = html.replace('<title>YomiWiki | Archival Gateway [SECURE]</title>', `<title>${article.title} | YomiWiki Archival Node</title>${ogTags}`);
+        html = html.replace('<title>YomiWiki | Archival Gateway [SECURE]</title>', `<title>${article.title} | YomiWiki</title>${ogTags}`);
         
-        // Replace H1 Title (Note the id in index.html)
+        // Replace H1 Title
         html = html.replace('<h1 class="article-title" id="article-title">DECRYPTING...</h1>', `<h1 class="article-title" id="article-title">${article.title}</h1>`);
         
         // Replace Meta Text
-        html = html.replace('<div class="article-meta">REVISION: STABLE | AUTH: Admin</div>', `<div class="article-meta">REV: ${article.updated_at} | AUTH: ${article.author} [SSR_UPLINK]</div>`);
+        html = html.replace('<div class="article-meta">REVISION: STABLE | AUTH: Admin</div>', `<div class="article-meta">REV: ${article.updated_at} | AUTH: ${article.author} [EDGE_HYDRATED]</div>`);
         
-        // Replace Body Content (Match the exact structure in index.html)
-        const placeholder = '<p class="loading-text">Archival records are loading. Please maintain clinical detachment.</p>';
-        html = html.replace(placeholder, contentHtml);
+        // Replace Body Content (Match the exact placeholder in index.html)
+        const placeholder = '<p class="loading-text">Archival records are loading...</p>';
+        html = html.replace(placeholder, `<div id="ssr-content-target">${contentHtml}</div>`);
         
-        // 6. Hydration Hint for main.js
-        html = html.replace('</body>', `<script>window.isSSR = true; window.ssrTitle = "${article.title.replace(/"/g, '\\"')}";</script></body>`);
+        // 6. Hydration Data Injection
+        // Inject the full article object so main.js doesn't have to fetch it again
+        const ssrData = {
+            ...article,
+            current_content: contentHtml // Note: already potentially chunk-joined
+        };
+        html = html.replace('</body>', `<script id="ssr-data" type="application/json">${JSON.stringify(ssrData).replace(/</g, '\\u003c')}</script></body>`);
 
         return new Response(html, {
             headers: { "Content-Type": "text/html;charset=UTF-8" }
