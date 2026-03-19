@@ -51,21 +51,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
-    // --- [Unified Comment Rendering] ---
+    // --- [Unified Comment Rendering: Phase 3-2 Advanced] ---
     function renderCommentsHTML(title, comments) {
-        let html = `<div id="integrated-discussion" class="integrated-discussion">
-            <div class="discussion-header">[ARTICLE_DISCUSSION]</div>
-            <div class="comment-list">
-                ${comments.map(c => `
-                    <div class="comment-item">
-                        <div class="comment-meta">AGENT: ${escapeHTML(c.author)} | ${c.timestamp}</div>
-                        <div class="comment-body">${escapeHTML(c.content)}</div>
-                    </div>
-                `).join('') || '<div style="opacity:0.3; font-style:italic; padding:20px;">No active transmissions.</div>'}
+        const commentCount = comments.length;
+        let html = `
+        <div id="integrated-discussion" class="integrated-discussion" style="margin-top:80px; border-top:1px solid #333; padding-top:40px;">
+            <div class="discussion-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <span style="font-family:var(--font-mono); color:var(--accent-orange); font-weight:bold; letter-spacing:1px;">
+                    [NODE_DISC_CHANNEL: ${escapeHTML(title)}]
+                </span>
+                <span style="font-family:var(--font-mono); font-size:0.7rem; color:var(--text-dim);">
+                    ACTIVE_TRANSMISSIONS: ${commentCount}
+                </span>
             </div>
-            <div class="comment-form">
-                <textarea id="new-comment-content" placeholder="Enter transmission..."></textarea>
-                <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle">[TRANSMIT]</button>
+            <div class="comment-list" style="display:flex; flex-direction:column; gap:20px;">
+                ${comments.map(c => `
+                    <div class="comment-item" style="background:rgba(255,255,255,0.01); border-left:2px solid var(--accent-orange); padding:15px 20px; position:relative;">
+                        <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; display:flex; justify-content:space-between;">
+                            <span>AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span></span>
+                            <span>[${c.timestamp}]</span>
+                        </div>
+                        <div class="comment-body" style="font-size:0.9rem; line-height:1.6; color:var(--text-main);">
+                            ${escapeHTML(c.content).replace(/\n/g, '<br>')}
+                        </div>
+                        <div style="position:absolute; bottom:5px; right:10px; font-size:0.6rem; color:#222; font-family:var(--font-mono); pointer-events:none;">SECURE_TRANS_ID: ${Math.random().toString(16).substring(2, 8).toUpperCase()}</div>
+                    </div>
+                `).join('') || `
+                    <div style="text-align:center; padding:40px; border:1px dashed #222; color:var(--text-dim); font-family:var(--font-mono); font-size:0.85rem;">
+                        [SIGNAL_QUIET]: No archival discussions found for this coordinate.
+                    </div>
+                `}
+            </div>
+            <div class="comment-form" style="margin-top:40px; background:#050505; border:1px solid #222; padding:20px;">
+                <div style="font-family:var(--font-mono); font-size:0.7rem; color:var(--accent-orange); margin-bottom:10px;">[INITIATE_NEW_TRANSMISSION]</div>
+                <textarea id="new-comment-content" placeholder="Enter archival entry or inquiry..." style="width:100%; height:80px; background:#000; border:1px solid #333; color:#0f0; padding:15px; font-family:var(--font-mono); font-size:0.85rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#333'"></textarea>
+                <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+                    <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" style="padding:10px 20px;">[TRANSMIT_DATA]</button>
+                </div>
             </div>
         </div>`;
         return html;
