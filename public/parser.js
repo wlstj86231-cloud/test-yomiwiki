@@ -88,18 +88,19 @@ function wikiParse(content) {
     // --- Debug Stats ---
     console.log(`[PARSER_STATS]: Headers=${headers.length}, Footnotes=${footnotes.length}`);
 
-    // --- 5. Links & Images ---
+    // --- 5. Links & Images (V4.1 Advanced) ---
+    // Wiki Links (Data-Title for routing)
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const cleanTitle = title.trim();
         if (cleanTitle.toLowerCase().startsWith('category:')) return "";
         if (cleanTitle.startsWith('File:')) return match; 
-        const slug = cleanTitle.replace(/[_\s]+/g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${cleanTitle}">${cleanTitle}</a>`;
+        const slug = cleanTitle.replace(/ /g, '_'); // Consistent space-to-underscore
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
     });
     html = html.replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, (match, title, alias) => {
         const cleanTitle = title.trim();
-        const slug = cleanTitle.replace(/[_\s]+/g, '_');
-        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${cleanTitle}">${alias.trim()}</a>`;
+        const slug = cleanTitle.replace(/ /g, '_');
+        return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(alias.trim())}</a>`;
     });
 
     html = html.replace(/\[\[File:([^|\]]+)(?:\|([^\]]+))?\]\]/g, (match, url, options) => {

@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const link = e.target.closest('a');
             if (link && link.href && link.href.startsWith(window.location.origin) && !link.target && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
                 const hrefAttr = link.getAttribute('href');
+                
+                // 1. Handle Hash Links (Smooth Scroll)
                 if (hrefAttr?.startsWith('#')) {
                     e.preventDefault();
                     const targetId = hrefAttr.substring(1).toLowerCase();
@@ -40,9 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     return;
                 }
+
+                // 2. Handle SPA Routing for Internal Wiki Links
                 const url = new URL(link.href);
                 if (!url.pathname.startsWith('/api') && !url.pathname.includes('.')) {
                     e.preventDefault();
+                    // Prevent redundant navigation to current path
+                    if (window.location.pathname === url.pathname && window.location.search === url.search) return;
                     window.navigateTo(link.href);
                 }
             }
