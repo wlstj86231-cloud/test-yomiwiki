@@ -527,7 +527,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td style="padding:10px 15px;">
                                             <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}" style="font-weight:bold; color:var(--accent-cyan); text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
                                         </td>
-                                        <td style="padding:10px 15px; text-align:center;">[ACTION]</td>
+                                        <!-- Item 10: History Button -->
+                                        <td style="padding:10px 15px; text-align:center;">
+                                            <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.70rem; padding:2px 6px; text-decoration:none;">역사</a>
+                                        </td>
                                         <td style="padding:10px 15px;">[AGENT]</td>
                                         <td style="padding:10px 15px; text-align:right;">[TIMESTAMP]</td>
                                     </tr>
