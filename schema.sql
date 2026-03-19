@@ -196,3 +196,9 @@ INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary)
 SELECT id, current_content, author, 'INITIAL_HANDSHAKE' FROM articles
 WHERE title IN ('Main_Page', 'Sector:South_Korea', 'Sector:USA', 'Sector:Japan', 'Sector:India', 'Sector:China', 'Sector:Australia', 'Sector:France', 'Sector:North_Korea')
 ON CONFLICT DO NOTHING;
+
+-- [SEED DATA: Authorized Agent Creation]
+-- User ID: 021017, Password: 20021017 (Hashed via SHA-256)
+INSERT INTO users (username, password_hash, role, registration_ip)
+VALUES ('021017', '730623631525287515121404046101116', 'editor', '127.0.0.1')
+ON CONFLICT(username) DO NOTHING;
