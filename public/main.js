@@ -533,8 +533,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const bansRes = await securedFetch(`${API_ENDPOINT}/admin/bans`);
             const bansData = await bansRes.json();
+
+            const logsRes = await securedFetch(`${API_ENDPOINT}/admin/audit-logs`);
+            const logsData = await logsRes.json();
             
             if (statsData.error) throw new Error(statsData.error);
+
+            const getLogColor = (type) => {
+                switch(type) {
+                    case 'EDIT': return 'var(--accent-orange)';
+                    case 'COMM': return 'var(--accent-cyan)';
+                    case 'BAN': return 'var(--hazard-red)';
+                    case 'SEC': return '#888';
+                    default: return '#fff';
+                }
+            };
 
             articleBody.innerHTML = `
                 <div class="admin-dashboard" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px; margin-top:30px;">
@@ -553,6 +566,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="stat-card" style="background:#111; border:1px solid #444; padding:25px; text-align:center;">
                         <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:10px;">TOTAL_REVISIONS</div>
                         <div style="font-size:2rem; color:#fff; font-family:var(--font-mono); font-weight:900;">${statsData.stats.revCount}</div>
+                    </div>
+                </div>
+
+                <div id="audit-logs" style="margin-top:50px; border:1px solid #333; background:#0a0a0a; padding:30px;">
+                    <h3 style="color:#eee; font-family:var(--font-mono); margin-top:0;">[SYSTEM_AUDIT_LOG]</h3>
+                    <div class="log-timeline" style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+                        ${logsData.map(log => `
+                            <div class="log-entry" style="font-family:var(--font-mono); font-size:0.75rem; display:flex; gap:15px; padding:8px; border-bottom:1px solid #111;">
+                                <span style="color:var(--text-dim); width:140px; flex-shrink:0;">[${log.timestamp}]</span>
+                                <span style="color:${getLogColor(log.type)}; font-weight:bold; width:50px; flex-shrink:0;">${log.type}</span>
+                                <span style="color:var(--text-main); flex:1;">
+                                    <strong>${escapeHTML(log.actor)}</strong> ➔ ${escapeHTML(log.target)} 
+                                    <span style="color:var(--text-dim); font-style:italic;">(${escapeHTML(log.detail.substring(0, 50))}${log.detail.length > 50 ? '...' : ''})</span>
+                                </span>
+                            </div>
+                        `).join('') || '<div style="opacity:0.3; padding:20px;">NO_LOGS_AVAILABLE</div>'}
                     </div>
                 </div>
                 
@@ -601,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="margin-top:50px; border:1px solid #222; background:#050505; padding:30px;">
                     <h3 style="color:var(--accent-orange); font-family:var(--font-mono); margin-top:0;">[SYSTEM_CONTROL_PANEL]</h3>
                     <div style="display:flex; gap:15px; flex-wrap:wrap; margin-top:20px;">
-                        <button onclick="alert('Audit logs pending...')" class="btn-clinical-toggle">[ACCESS_LOGS]</button>
+                        <button onclick="document.getElementById('audit-logs').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[ACCESS_LOGS]</button>
                         <button onclick="document.getElementById('blacklist-management').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[MANAGE_BLACKLIST]</button>
                         <button onclick="document.getElementById('node-management').scrollIntoView({behavior:'smooth'})" class="btn-clinical-toggle">[NODE_OVERRIDE]</button>
                     </div>

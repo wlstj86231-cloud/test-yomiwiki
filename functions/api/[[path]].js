@@ -287,6 +287,23 @@ export async function onRequest(context) {
             };
         }
 
+        else if (path === '/admin/audit-logs' && method === "GET") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
+            
+            const { results } = await env.DB.prepare(`
+                SELECT 'EDIT' as type, editor_info as actor, article_id as target, edit_summary as detail, timestamp FROM revisions
+                UNION ALL
+                SELECT 'COMM' as type, author as actor, article_title as target, content as detail, timestamp FROM comments
+                UNION ALL
+                SELECT 'BAN' as type, banned_by as actor, target_value as target, reason as detail, timestamp FROM bans
+                UNION ALL
+                SELECT 'SEC' as type, ip_address as actor, action as target, 'System security check' as detail, timestamp FROM ip_logs
+                ORDER BY timestamp DESC LIMIT 50
+            `).all();
+            resData = results;
+        }
+
         else if (path === '/admin/bans' && method === "GET") {
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
             if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
