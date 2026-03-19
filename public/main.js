@@ -201,6 +201,41 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- [EDITOR HELPERS] ---
+    window.uploadEditorImage = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const statusEl = document.getElementById('upload-status');
+        const textarea = document.getElementById('editor-textarea');
+        
+        statusEl.textContent = "[UPLOADING_SIGNAL...]";
+        
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/assets/upload`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Yomi-Request': 'true' } // Note: securedFetch handles other headers
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                statusEl.textContent = "[SIGNAL_CAPTURED]";
+                const tag = `[[File:${data.url}|caption=${data.name}]]`;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                textarea.value = textarea.value.substring(0, start) + tag + textarea.value.substring(end);
+                setTimeout(() => { statusEl.textContent = ""; }, 3000);
+            } else {
+                statusEl.textContent = "[UPLOAD_FAILED]";
+            }
+        } catch (err) {
+            statusEl.textContent = "[CONNECTION_LOST]";
+        }
+    };
+
     window.insertEditorTag = (tagType) => {
         const textarea = document.getElementById('editor-textarea');
         if (!textarea) return;
@@ -209,12 +244,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = textarea.value;
         let insertion = "";
         
-        if (tagType === 'image') insertion = "[[File:URL_HERE|caption=Description]]";
-        else if (tagType === 'footnote') insertion = "[* Footnote_Text_Here]";
+        if (tagType === 'image') insertion = "[[File:URL_HERE|caption=ARCHIVAL_IMAGE_DESCRIPTION]]";
+        else if (tagType === 'footnote') insertion = "[* ARCHIVAL_FOOTNOTE_DATA]";
         
         textarea.value = text.substring(0, start) + insertion + text.substring(end);
         textarea.focus();
-        textarea.setSelectionRange(start + 7, start + 15); // Highlight URL_HERE or Footnote_Text
+        textarea.setSelectionRange(start + 7, start + 15); 
     };
 
     async function loadEditor(title) {
@@ -239,9 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             articleBody.innerHTML = `
-                <div class="editor-toolbar" style="margin-bottom:10px; display:flex; gap:5px;">
-                    <button onclick="window.insertEditorTag('image')" class="btn-clinical-toggle" style="font-size:0.6rem;">[+IMAGE]</button>
+                <div class="editor-toolbar" style="margin-bottom:10px; display:flex; gap:5px; align-items:center;">
+                    <button onclick="window.insertEditorTag('image')" class="btn-clinical-toggle" style="font-size:0.6rem;">[+IMG_TAG]</button>
+                    <button onclick="document.getElementById('image-upload-input').click()" class="btn-clinical-toggle" style="font-size:0.6rem; color:var(--accent-cyan); border-color:var(--accent-cyan);">[+UPLOAD_IMG]</button>
                     <button onclick="window.insertEditorTag('footnote')" class="btn-clinical-toggle" style="font-size:0.6rem;">[+FOOTNOTE]</button>
+                    <input type="file" id="image-upload-input" style="display:none" accept="image/*" onchange="window.uploadEditorImage(event)">
+                    <span id="upload-status" style="font-family:var(--font-mono); font-size:0.6rem; color:var(--accent-orange); margin-left:10px;"></span>
                 </div>
                 <textarea id="editor-textarea" style="width:100%; height:500px; background:#000; color:#0f0; font-family:var(--font-mono); padding:15px; border:1px solid #333;">${escapeHTML(content)}</textarea>
                 <div style="margin-top:10px; display:flex; gap:10px;">

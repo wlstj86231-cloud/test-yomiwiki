@@ -277,6 +277,44 @@ export async function onRequest(context) {
             resData = { success: true, message: "ACCESS_TERMINATED" };
         }
 
+        else if (path === '/assets/upload' && method === "POST") {
+            const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
+            if (!session) return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 401, headers: securityHeaders });
+
+            const formData = await request.formData();
+            const file = formData.get('file');
+            if (!file || !(file instanceof File)) return new Response(JSON.stringify({ error: "INVALID_FILE" }), { status: 400, headers: securityHeaders });
+
+            const fileName = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            const uploadKey = `archives/images/${fileName}`;
+            
+            // Upload to R2
+            await env.ASSETS_BUCKET.put(uploadKey, file.stream(), {
+                httpMetadata: { contentType: file.type }
+            });
+
+            const publicUrl = `/api/assets/${fileName}`; // Serving via Worker
+            
+            // Record in DB
+            await env.DB.prepare("INSERT INTO assets (filename, url, uploader) VALUES (?, ?, ?)").bind(fileName, publicUrl, session.sub).run();
+            
+            resData = { success: true, url: publicUrl, name: file.name };
+        }
+
+        else if (path.startsWith('/assets/') && method === "GET") {
+            const fileName = path.split('/')[2];
+            const object = await env.ASSETS_BUCKET.get(`archives/images/${fileName}`);
+            
+            if (!object) return new Response("SIGNAL_NOT_FOUND", { status: 404 });
+            
+            const headers = new Headers();
+            object.writeHttpMetadata(headers);
+            headers.set("etag", object.httpEtag);
+            headers.set("Cache-Control", "public, max-age=31536000");
+            
+            return new Response(object.body, { headers });
+        }
+
         else { status = 404; resData = { error: "NOT_FOUND" }; }
 
         return new Response(JSON.stringify(resData), { status, headers: securityHeaders });
