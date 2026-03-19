@@ -1,12 +1,9 @@
 /**
- * ArticleView Component (Item 19)
- * This component handles the extraction of article IDs, fetching data, and rendering title/content.
+ * ArticleView Component (Item 37)
+ * This component handles extraction, fetching, and rendering of article content and TOC.
  */
 
 window.ArticleView = {
-    /**
-     * Extracts the numeric article ID from the current URL path (/w/ID).
-     */
     getArticleIdFromUrl: function() {
         const path = window.location.pathname;
         if (path.startsWith('/w/')) {
@@ -17,9 +14,6 @@ window.ArticleView = {
         return null;
     },
 
-    /**
-     * Fetches a single article's data from the API using its ID.
-     */
     fetchArticleById: async function(id) {
         try {
             const res = await fetch(`/api/article/${id}`, {
@@ -34,18 +28,11 @@ window.ArticleView = {
         }
     },
 
-    /**
-     * Renders the article title to the DOM and ensures the ad placeholder is present.
-     */
     renderTitle: function(title) {
-        // Item 33: Update the <title> tag for SEO and user experience
         document.title = `${title} | YomiWiki Archival Node`;
-
         const titleEl = document.getElementById('article-title');
         if (titleEl) {
             titleEl.textContent = title;
-            
-            // Item 31: Add ad placeholder after the title if it doesn't exist
             let adBox = document.getElementById('ad-top-placeholder');
             if (!adBox) {
                 adBox = document.createElement('div');
@@ -54,30 +41,22 @@ window.ArticleView = {
                 adBox.style.margin = '20px 0';
                 adBox.style.minHeight = '100px';
                 adBox.style.textAlign = 'center';
-                // adBox.innerHTML = '<!-- ADSENSE_CODE_TOP -->';
                 titleEl.parentNode.insertBefore(adBox, titleEl.nextSibling);
             }
         }
     },
-/**
- * Renders the article body content to the DOM and adds TOC/ad placeholders.
- */
-renderContent: function(content) {
-    const bodyEl = document.querySelector('.article-body');
-    if (bodyEl) {
-        bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
 
-        // Item 36: Add TOC placeholder at the very top of the body
-        let tocBox = document.getElementById('wiki-toc-placeholder');
-        if (!tocBox) {
-            tocBox = document.createElement('div');
-            tocBox.id = 'wiki-toc-placeholder';
-            tocBox.className = 'wiki-toc'; // Styles already in style.css
-            bodyEl.insertBefore(tocBox, bodyEl.firstChild);
-        }
-
-        // Item 32: Add ad placeholder at the end of the body
-...
+    renderContent: function(content) {
+        const bodyEl = document.querySelector('.article-body');
+        if (bodyEl) {
+            bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
+            let tocBox = document.getElementById('wiki-toc-placeholder');
+            if (!tocBox) {
+                tocBox = document.createElement('div');
+                tocBox.id = 'wiki-toc-placeholder';
+                tocBox.className = 'wiki-toc';
+                bodyEl.insertBefore(tocBox, bodyEl.firstChild);
+            }
             let adBox = document.getElementById('ad-bottom-placeholder');
             if (!adBox) {
                 adBox = document.createElement('div');
@@ -86,38 +65,49 @@ renderContent: function(content) {
                 adBox.style.margin = '40px 0 20px 0';
                 adBox.style.minHeight = '100px';
                 adBox.style.textAlign = 'center';
-                // adBox.innerHTML = '<!-- ADSENSE_CODE_BOTTOM -->';
                 bodyEl.appendChild(adBox);
             }
         }
     },
 
-    /**
-     * Extracts all header elements (h2, h3) from the article body.
-     * @returns {NodeList} List of heading elements.
-     */
     getHeadings: function() {
         const bodyEl = document.querySelector('.article-body');
         if (!bodyEl) return [];
         return bodyEl.querySelectorAll('h2, h3');
     },
 
-    /**
-     * Extracts text and level data from heading elements.
-     * @returns {Array} List of structured heading objects.
-     */
     generateTocData: function() {
         const headings = this.getHeadings();
-        const tocData = Array.from(headings).map((el, index) => {
-            // Assign an ID to the heading if it doesn't have one for scroll anchoring
+        return Array.from(headings).map((el, index) => {
             if (!el.id) el.id = `section-${index + 1}`;
-            
             return {
                 text: el.innerText.trim(),
                 level: el.tagName.toLowerCase() === 'h2' ? 1 : 2,
                 id: el.id
             };
         });
-        return tocData;
+    },
+
+    renderToc: function(tocData) {
+        const tocBox = document.getElementById('wiki-toc-placeholder');
+        if (!tocBox || tocData.length === 0) {
+            if (tocBox) tocBox.style.display = 'none';
+            return;
+        }
+        tocBox.style.display = 'block';
+        tocBox.innerHTML = `
+            <div class="toc-title" style="font-family:var(--font-mono); font-weight:bold; color:var(--accent-orange); border-bottom:1px solid #222; padding-bottom:5px; margin-bottom:10px;">
+                [ARCHIVAL_STRUCTURE_MAP]
+            </div>
+            <ul class="toc-list" style="list-style:none; padding:0; margin:0;">
+                ${tocData.map(item => `
+                    <li class="toc-item level-${item.level}" style="margin-bottom:5px; padding-left:${(item.level - 1) * 15}px;">
+                        <span style="color:var(--accent-cyan); font-family:var(--font-mono); cursor:pointer;">
+                            ${escapeHTML(item.text)}
+                        </span>
+                    </li>
+                `).join('')}
+            </ul>
+        `;
     }
 };
