@@ -295,8 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const logs = await res.json();
             logEl.innerHTML = logs.map(l => {
                 const time = l.timestamp?.split(' ')[1]?.substring(0, 5) || "";
+                const typeTag = l.type === 'comment' ? '<span style="color:var(--accent-orange); font-weight:bold; margin-right:5px;">[COMM]</span>' : '<span style="color:var(--accent-cyan); font-weight:bold; margin-right:5px;">[EDIT]</span>';
                 return `<div style="margin-bottom:8px; border-bottom:1px solid #111; padding-bottom:4px; font-size:0.7rem;">
                     <span style="color:#444;">${time}</span> 
+                    ${typeTag}
                     <a href="/w/${encodeURIComponent(window.titleToSlug(l.title))}" style="color:#aaa; text-decoration:none;">${escapeHTML(l.title)}</a>
                 </div>`;
             }).join('') || '<div style="opacity:0.3;">[OFFLINE]</div>';

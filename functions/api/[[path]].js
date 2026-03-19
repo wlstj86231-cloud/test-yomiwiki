@@ -108,9 +108,18 @@ export async function onRequest(context) {
             resData = results.map(r => r.title);
         }
 
-        // 3. GLOBAL HISTORY
+        // 3. GLOBAL HISTORY (Combined Edit & Comment Feed)
         else if (path === '/history' && method === "GET") {
-            const { results } = await env.DB.prepare("SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author FROM revisions r JOIN articles a ON r.article_id = a.id ORDER BY r.timestamp DESC LIMIT 20").all();
+            const { results } = await env.DB.prepare(`
+                SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author 
+                FROM revisions r 
+                JOIN articles a ON r.article_id = a.id
+                UNION ALL
+                SELECT 'comment' as type, title, last_comment_at as timestamp, 'User' as author
+                FROM articles
+                WHERE last_comment_at IS NOT NULL
+                ORDER BY timestamp DESC LIMIT 20
+            `).all();
             resData = results;
         }
 
@@ -142,7 +151,7 @@ export async function onRequest(context) {
                 };
                 comments.push(newComment);
 
-                await env.DB.prepare("UPDATE articles SET comments_data = ? WHERE id = ?").bind(JSON.stringify(comments), article.id).run();
+                await env.DB.prepare("UPDATE articles SET comments_data = ?, last_comment_at = CURRENT_TIMESTAMP WHERE id = ?").bind(JSON.stringify(comments), article.id).run();
                 resData = { success: true };
             } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
         }

@@ -14,10 +14,12 @@ CREATE TABLE IF NOT EXISTS articles (
     is_locked INTEGER DEFAULT 0,
     is_chunked INTEGER DEFAULT 0,
     is_deleted INTEGER DEFAULT 0,
-    comments_data TEXT DEFAULT '[]' -- Added for integrated comments (v3.0)
+    comments_data TEXT DEFAULT '[]', -- Added for integrated comments (v3.0)
+    last_comment_at DATETIME -- Added to track recent discussion activity
 );
 -- 35. 분류 기반 조회 성능 향상을 위한 인덱스 (Item 60)
 CREATE INDEX IF NOT EXISTS idx_articles_classification ON articles(classification);
+CREATE INDEX IF NOT EXISTS idx_articles_last_comment ON articles(last_comment_at DESC);
 
 -- article_chunks: 대용량 문서 본문 분할 저장용 (Step 39)
 CREATE TABLE IF NOT EXISTS article_chunks (
