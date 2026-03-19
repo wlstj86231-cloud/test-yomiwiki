@@ -510,9 +510,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="node-list" style="display:flex; flex-direction:column; gap:10px;">
                         ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
-                            <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:10px 15px; display:flex; justify-content:space-between; align-items:center;">
+                            <div class="node-item" style="background:rgba(255,255,255,0.02); border:1px solid var(--border-color); padding:10px 15px; display:flex; align-items:center;">
                                 <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}" style="font-weight:bold; color:var(--accent-cyan); font-family:var(--font-mono); text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a>
-                                <div style="font-size:0.85rem; color:var(--text-dim); font-family:var(--font-mono);">AGENT: ${sub.author} | ${sub.updated_at}</div>
                             </div>
                         `).join('') : '<div style="opacity:0.3; font-style:italic; padding:20px;">No transmissions detected. [AWAITING_DATA]</div>'}
                     </div>
