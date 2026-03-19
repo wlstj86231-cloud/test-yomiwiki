@@ -94,16 +94,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.postComment = async (title) => {
-        const content = document.getElementById('new-comment-content').value;
+        const contentEl = document.getElementById('new-comment-content');
+        const btn = event.target;
+        const content = contentEl.value;
         if (!content) return;
+
+        const originalBtnText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "[TRANSMITTING...]";
+
         const normalizedTitle = title.replace(/[_\s]+/g, '_');
-        const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}/comments`, {
-            method: 'POST', body: JSON.stringify({ content })
-        });
-        if (res.ok) { 
-            document.getElementById('new-comment-content').value = '';
-            init(); 
-            updateSidebarActivity(); 
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}/comments`, {
+                method: 'POST', body: JSON.stringify({ content })
+            });
+            
+            if (res.ok) { 
+                contentEl.value = '';
+                // Partial Update: Only fetch and re-render comments
+                const articleRes = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}`);
+                const articleData = await articleRes.json();
+                
+                const discussionEl = document.getElementById('integrated-discussion');
+                if (discussionEl && articleData.comments) {
+                    discussionEl.outerHTML = renderCommentsHTML(articleData.title, articleData.comments);
+                }
+                updateSidebarActivity(); 
+            }
+        } catch (e) {
+            console.error("TRANSMISSION_FAILED", e);
+            alert("[CRITICAL_ERROR]: Transmission failed. Signal lost.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalBtnText;
         }
     };
 
