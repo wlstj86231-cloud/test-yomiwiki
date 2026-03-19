@@ -96,31 +96,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- [MOBILE DYNAMIC HEADER] ---
     const headerEl = document.querySelector('.header');
-    let lastScrollY = window.scrollY;
 
     window.addEventListener('scroll', () => {
         if (window.innerWidth <= 768 && headerEl) {
             // Prevent header from hiding during pinch-zoom
             if (window.visualViewport && window.visualViewport.scale > 1.0) {
                 headerEl.classList.remove('header-hidden');
-                lastScrollY = window.scrollY;
                 return;
             }
 
             const currentScrollY = window.scrollY;
             
-            // Allow bouncing at the top without hiding
-            if (currentScrollY <= 0) {
+            // Show only at the absolute top, otherwise hide
+            if (currentScrollY <= 10) {
                 headerEl.classList.remove('header-hidden');
-            } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-                // Scroll Down -> Hide
+            } else {
                 headerEl.classList.add('header-hidden');
-            } else if (currentScrollY < lastScrollY) {
-                // Scroll Up -> Show
-                headerEl.classList.remove('header-hidden');
             }
-            
-            lastScrollY = currentScrollY;
         }
     });
 
