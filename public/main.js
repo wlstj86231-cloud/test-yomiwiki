@@ -466,8 +466,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { console.error("HYDRATION_FAILED", e); }
         }
 
-        // 2. Try Memory Cache
-        if (!data && !revId && articleCache.has(normalizedTitle.toLowerCase())) {
+        // 2. Try Memory Cache (Bypass for boards to ensure fresh lists)
+        if (!data && !revId && !normalizedTitle.startsWith('Sector:') && articleCache.has(normalizedTitle.toLowerCase())) {
             data = articleCache.get(normalizedTitle.toLowerCase());
         }
 

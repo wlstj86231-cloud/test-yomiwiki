@@ -189,12 +189,22 @@ export async function onRequest(context) {
                         author_tier: await getAgentTier(c.author)
                     })));
 
-                    // BOARD LOGIC: Refined category matching (Item 3 Fix)
+                    // BOARD LOGIC: Refined category matching (Item 3 Fix 2)
                     let subArticles = [];
                     if (identifier.startsWith('Sector:')) {
-                        // Use a slightly more flexible matching to ensure nodes aren't lost due to underscore/space variations
-                        const searchPattern = `${identifier}/%`;
-                        const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE (title LIKE ? OR title LIKE ?) AND title != ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(searchPattern, searchPattern.replace(/_/g, ' '), identifier).all();
+                        const baseTitle = normalizeTitle(identifier);
+                        // Search articles starting with the sector title plus a slash
+                        const pattern1 = `${baseTitle}/%`;
+                        const pattern2 = `${baseTitle.replace(/_/g, ' ')}/%`;
+                        
+                        const { results } = await env.DB.prepare(`
+                            SELECT id, title, author, updated_at 
+                            FROM articles 
+                            WHERE (title LIKE ? OR title LIKE ?) 
+                            AND title != ? 
+                            AND is_deleted = 0 
+                            ORDER BY updated_at DESC LIMIT 100
+                        `).bind(pattern1, pattern2, baseTitle).all();
                         subArticles = results;
                     }
 
