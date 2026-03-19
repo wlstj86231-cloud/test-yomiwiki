@@ -191,8 +191,9 @@ export async function onRequest(context) {
 
                     // BOARD LOGIC
                     let subArticles = [];
-                    if (title.startsWith('Sector:')) {
-                        const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(`${title}/%`).all();
+                    if (identifier.startsWith('Sector:')) {
+                        // Optimization: Fetch only ID and Title for the list, excluding heavy content
+                        const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(`${identifier}/%`).all();
                         subArticles = results;
                     }
 
