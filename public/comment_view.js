@@ -8,14 +8,62 @@ window.CommentView = {
 
     /**
      * Initializes the comment view for a specific article.
-     * @param {number} articleId - The numeric ID of the current article.
      */
     init: async function(articleId) {
         this.currentArticleId = articleId;
-        console.log(`[SYSTEM]: Comment interface linked to archival node ID: ${this.currentArticleId}`);
-        
         const comments = await this.fetchComments(this.currentArticleId);
-        // Display logic will follow in subsequent steps.
+        this.renderComments(comments);
+    },
+
+    /**
+     * Renders the comments to the DOM.
+     * @param {Array} comments - List of comments to display.
+     */
+    renderComments: function(comments) {
+        const articleBody = document.querySelector('.article-body');
+        if (!articleBody) return;
+
+        // Remove existing discussion if any to avoid duplicates on re-render
+        const existing = document.getElementById('integrated-discussion');
+        if (existing) existing.remove();
+
+        const discussionArea = document.createElement('div');
+        discussionArea.id = 'integrated-discussion';
+        discussionArea.className = 'integrated-discussion';
+        discussionArea.style.marginTop = '20px';
+
+        discussionArea.innerHTML = `
+            <div class="discussion-header" style="background:#151515; padding:8px 15px; border:1px solid #222; border-left:4px solid var(--accent-orange); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-family:var(--font-mono); color:var(--accent-orange); font-weight:bold; font-size:0.90rem; letter-spacing:1px;">
+                    [NODE_DISCUSSION_STREAM]
+                </span>
+                <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim);">
+                    LOGGED_ENTRIES: ${comments.length}
+                </span>
+            </div>
+            <div class="comment-list" style="display:flex; flex-direction:column; gap:2px;">
+                ${comments.map((c, i) => `
+                    <div class="comment-item" style="background:rgba(255,255,255,0.005); border-left:2px solid var(--accent-orange); padding:12px 18px; margin-bottom:2px; border-bottom:1px solid rgba(255,255,255,0.02);">
+                        <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.80rem; color:var(--text-dim); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                            <span>
+                                <span style="color:var(--accent-orange); font-weight:bold; margin-right:10px;">#${i + 1}</span>
+                                AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span>
+                            </span>
+                            <span style="opacity:0.6;">[${c.timestamp}]</span>
+                        </div>
+                        <div class="comment-body" style="font-size:0.92rem; line-height:1.5; color:var(--text-main);">
+                            ${escapeHTML(c.content).replace(/\n/g, '<br>')}
+                        </div>
+                    </div>
+                `).join('') || `
+                    <div style="text-align:center; padding:40px; border:1px dashed #151515; color:var(--text-dim); font-family:var(--font-mono); font-size:0.90rem;">
+                        [SIGNAL_QUIET]: No archival discussions detected.
+                    </div>
+                `}
+            </div>
+        `;
+
+        articleBody.appendChild(discussionArea);
     },
 
     /**
