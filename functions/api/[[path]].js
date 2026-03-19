@@ -219,10 +219,10 @@ export async function onRequest(context) {
         else if (path.startsWith('/article/') && path.endsWith('/comments') && method === "POST") {
             const title = normalizeTitle(path.split('/')[2]);
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
-            const { content } = await request.json();
+            const { content, parent_id } = await request.json();
             if (!content) return new Response(JSON.stringify({ error: "EMPTY" }), { status: 400, headers: securityHeaders });
             const author = session ? session.sub : 'Anonymous_Agent';
-            await env.DB.prepare("INSERT INTO comments (article_title, author, content) VALUES (?, ?, ?)").bind(title, author, content).run();
+            await env.DB.prepare("INSERT INTO comments (article_title, author, content, parent_id) VALUES (?, ?, ?, ?)").bind(title, author, content, parent_id || null).run();
             resData = { success: true };
         }
 

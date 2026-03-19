@@ -51,9 +51,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function escapeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
 
-    // --- [Unified Comment Rendering: Phase 3-2 Advanced] ---
+    // --- [Unified Comment Rendering: Phase 3-4 Threaded] ---
     function renderCommentsHTML(title, comments) {
         const commentCount = comments.length;
+        
+        // Group comments by parent_id
+        const rootComments = comments.filter(c => !c.parent_id);
+        const children = comments.filter(c => c.parent_id);
+
+        function buildCommentItem(c, depth = 0) {
+            const isReply = depth > 0;
+            const subComments = children.filter(child => child.parent_id === c.id);
+            
+            return `
+                <div class="comment-item" style="margin-left:${depth * 30}px; background:rgba(255,255,255,${isReply ? '0.005' : '0.01'}); border-left:2px solid ${isReply ? 'var(--text-dim)' : 'var(--accent-orange)'}; padding:15px 20px; position:relative; margin-bottom:10px;">
+                    ${isReply ? '<div style="position:absolute; left:-20px; top:15px; color:var(--text-dim); font-size:0.8rem;">└</div>' : ''}
+                    <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; display:flex; justify-content:space-between;">
+                        <span>AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span></span>
+                        <span>[${c.timestamp}]</span>
+                    </div>
+                    <div class="comment-body" style="font-size:0.9rem; line-height:1.6; color:var(--text-main);">
+                        ${escapeHTML(c.content).replace(/\n/g, '<br>')}
+                    </div>
+                    <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:flex-end;">
+                        <button onclick="window.prepareReply(${c.id}, '${escapeHTML(c.author)}')" class="btn-clinical-toggle" style="font-size:0.6rem; padding:4px 8px;">[REPLY]</button>
+                        <div style="font-size:0.55rem; color:#222; font-family:var(--font-mono);">TRANS_ID: ${c.id.toString(16).toUpperCase()}</div>
+                    </div>
+                </div>
+                ${subComments.map(sub => buildCommentItem(sub, depth + 1)).join('')}
+            `;
+        }
+
         let html = `
         <div id="integrated-discussion" class="integrated-discussion" style="margin-top:80px; border-top:1px solid #333; padding-top:40px;">
             <div class="discussion-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
@@ -64,39 +92,53 @@ document.addEventListener('DOMContentLoaded', () => {
                     ACTIVE_TRANSMISSIONS: ${commentCount}
                 </span>
             </div>
-            <div class="comment-list" style="display:flex; flex-direction:column; gap:20px;">
-                ${comments.map(c => `
-                    <div class="comment-item" style="background:rgba(255,255,255,0.01); border-left:2px solid var(--accent-orange); padding:15px 20px; position:relative;">
-                        <div class="comment-meta" style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; display:flex; justify-content:space-between;">
-                            <span>AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span></span>
-                            <span>[${c.timestamp}]</span>
-                        </div>
-                        <div class="comment-body" style="font-size:0.9rem; line-height:1.6; color:var(--text-main);">
-                            ${escapeHTML(c.content).replace(/\n/g, '<br>')}
-                        </div>
-                        <div style="position:absolute; bottom:5px; right:10px; font-size:0.6rem; color:#222; font-family:var(--font-mono); pointer-events:none;">SECURE_TRANS_ID: ${Math.random().toString(16).substring(2, 8).toUpperCase()}</div>
-                    </div>
-                `).join('') || `
+            <div class="comment-list" style="display:flex; flex-direction:column;">
+                ${rootComments.map(c => buildCommentItem(c)).join('') || `
                     <div style="text-align:center; padding:40px; border:1px dashed #222; color:var(--text-dim); font-family:var(--font-mono); font-size:0.85rem;">
                         [SIGNAL_QUIET]: No archival discussions found for this coordinate.
                     </div>
                 `}
             </div>
-            <div class="comment-form" style="margin-top:40px; background:#050505; border:1px solid #222; padding:20px;">
+            <div id="comment-form-container" class="comment-form" style="margin-top:40px; background:#050505; border:1px solid #222; padding:20px;">
+                <div id="reply-indicator" style="display:none; font-family:var(--font-mono); font-size:0.7rem; color:var(--accent-cyan); margin-bottom:10px; background:rgba(91,192,222,0.1); padding:8px; border:1px solid var(--accent-cyan);">
+                    REPLYING_TO: <span id="reply-target-agent"></span> 
+                    <span onclick="window.cancelReply()" style="float:right; cursor:pointer; color:var(--hazard-red);">[CANCEL]</span>
+                </div>
                 <div style="font-family:var(--font-mono); font-size:0.7rem; color:var(--accent-orange); margin-bottom:10px;">[INITIATE_NEW_TRANSMISSION]</div>
-                <textarea id="new-comment-content" placeholder="Enter archival entry or inquiry..." style="width:100%; height:80px; background:#000; border:1px solid #333; color:#0f0; padding:15px; font-family:var(--font-mono); font-size:0.85rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#333'"></textarea>
+                <textarea id="new-comment-content" data-parent-id="" placeholder="Enter archival entry or inquiry..." style="width:100%; height:80px; background:#000; border:1px solid #333; color:#0f0; padding:15px; font-family:var(--font-mono); font-size:0.85rem; outline:none; transition:border-color 0.3s;" onfocus="this.style.borderColor='var(--accent-orange)'" onblur="this.style.borderColor='#333'"></textarea>
                 <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                    <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" style="padding:10px 20px;">[TRANSMIT_DATA]</button>
+                    <button id="transmit-btn" onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" style="padding:10px 20px;">[TRANSMIT_DATA]</button>
                 </div>
             </div>
         </div>`;
         return html;
     }
 
+    window.prepareReply = (parentId, author) => {
+        const textarea = document.getElementById('new-comment-content');
+        const indicator = document.getElementById('reply-indicator');
+        const targetText = document.getElementById('reply-target-agent');
+        
+        textarea.dataset.parentId = parentId;
+        targetText.textContent = `AGENT_${author}`;
+        indicator.style.display = 'block';
+        
+        document.getElementById('comment-form-container').scrollIntoView({ behavior: 'smooth' });
+        textarea.focus();
+    };
+
+    window.cancelReply = () => {
+        const textarea = document.getElementById('new-comment-content');
+        const indicator = document.getElementById('reply-indicator');
+        textarea.dataset.parentId = "";
+        indicator.style.display = 'none';
+    };
+
     window.postComment = async (title) => {
         const contentEl = document.getElementById('new-comment-content');
-        const btn = event.target;
+        const btn = document.getElementById('transmit-btn');
         const content = contentEl.value;
+        const parentId = contentEl.dataset.parentId;
         if (!content) return;
 
         const originalBtnText = btn.textContent;
@@ -106,11 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const normalizedTitle = title.replace(/[_\s]+/g, '_');
         try {
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}/comments`, {
-                method: 'POST', body: JSON.stringify({ content })
+                method: 'POST', body: JSON.stringify({ content, parent_id: parentId ? parseInt(parentId) : null })
             });
             
             if (res.ok) { 
                 contentEl.value = '';
+                window.cancelReply();
                 // Partial Update: Only fetch and re-render comments
                 const articleRes = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(normalizedTitle)}`);
                 const articleData = await articleRes.json();
