@@ -214,6 +214,13 @@ export async function onRequest(context) {
                     return new Response(JSON.stringify({ error: "NODE_LOCKED", msg: "This archival node is under administrative lockdown." }), { status: 403, headers: securityHeaders });
                 }
 
+                // 1. Fetch current article to check for changes
+                const currentArticle = await env.DB.prepare("SELECT id, current_content FROM articles WHERE title = ?").bind(title).first();
+                
+                if (currentArticle && currentArticle.current_content === content) {
+                    return new Response(JSON.stringify({ success: true, msg: "NO_CHANGES_DETECTED" }), { status: 200, headers: securityHeaders });
+                }
+
                 const linkRegex = /\[\[(.*?)\]\]/g;
                 let match;
                 const foundLinks = new Set();
@@ -226,14 +233,20 @@ export async function onRequest(context) {
                         foundLinks.add(normalizeTitle(inner));
                     }
                 }
+
+                const editSummary = summary || "ARCHIVAL_LOG_UPDATE";
                 const batch = [
-                    env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, Array.from(foundCategories).join(','), content, session.sub, summary || "", title),
-                    env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, session.sub, summary || "", title),
+                    env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, Array.from(foundCategories).join(',')),
+                    env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, session.sub, editSummary, title),
                     env.DB.prepare("DELETE FROM links WHERE from_title = ?").bind(title)
                 ];
-                for (const target of foundLinks) batch.push(env.DB.prepare("INSERT OR IGNORE INTO links (from_title, to_title) VALUES (?, ?)").bind(title, target));
+                
+                for (const target of foundLinks) {
+                    batch.push(env.DB.prepare("INSERT OR IGNORE INTO links (from_title, to_title) VALUES (?, ?)").bind(title, target));
+                }
+                
                 await env.DB.batch(batch);
-                resData = { success: true };
+                resData = { success: true, version_uplink: "COMPLETE" };
             }
         }
 
