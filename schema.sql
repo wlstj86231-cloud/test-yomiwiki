@@ -200,5 +200,5 @@ ON CONFLICT DO NOTHING;
 -- [SEED DATA: Authorized Agent Creation]
 -- User ID: 021017, Password: 20021017 (Hashed via SHA-256)
 INSERT INTO users (username, password_hash, role, registration_ip)
-VALUES ('021017', '730623631525287515121404046101116', 'editor', '127.0.0.1')
+VALUES ('021017', '730623631525287515121404046101116', 'admin', '127.0.0.1')
 ON CONFLICT(username) DO NOTHING;
