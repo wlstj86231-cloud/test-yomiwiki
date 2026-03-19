@@ -369,7 +369,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.establishNewNode = (sectorTitle) => {
         const postName = prompt("Enter the name of the new archival transmission:");
         if (!postName) return;
-        const fullTitle = `${sectorTitle}/${postName.replace(/[_\s]+/g, '_')}`;
+        // Ensure clean formatting: replace spaces with underscores and prevent accidental prefix duplication
+        const cleanPostName = postName.trim().replace(/[_\s]+/g, '_');
+        const fullTitle = `${sectorTitle}/${cleanPostName}`;
         window.navigateTo(`/w/${encodeURIComponent(fullTitle)}?mode=edit`);
     };
 
