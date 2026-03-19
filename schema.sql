@@ -200,5 +200,10 @@ ON CONFLICT DO NOTHING;
 -- [SEED DATA: Authorized Agent Creation]
 -- User ID: 021017, Password: 20021017 (Hashed via SHA-256)
 INSERT INTO users (username, password_hash, role, registration_ip)
-VALUES ('021017', '730623631525287515121404046101116', 'admin', '127.0.0.1')
-ON CONFLICT(username) DO NOTHING;
+VALUES ('021017', 'e75da086743c25092c9ed9b23cc79bedeee3f72360bad564214bf911b9eac8b1', 'viewer', '127.0.0.1')
+ON CONFLICT(username) DO UPDATE SET password_hash=excluded.password_hash, role=excluded.role;
+
+-- User ID: YOMIWIKI, Password: yomiwikiadmin (Hashed via SHA-256)
+INSERT INTO users (username, password_hash, role, registration_ip)
+VALUES ('YOMIWIKI', 'a1d28f6b8c0d640884a127a2b981135478e87e0ccee54a1531a627aa1adfe11c', 'admin', '127.0.0.1')
+ON CONFLICT(username) DO UPDATE SET password_hash=excluded.password_hash, role=excluded.role;
