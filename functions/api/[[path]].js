@@ -153,18 +153,23 @@ export async function onRequest(context) {
 
         if (path.startsWith('/article/') && method === "GET") {
             try {
-                // Improved title extraction: handle sub-paths correctly
-                const rawTitle = path.replace('/article/', '');
-                const title = normalizeTitle(rawTitle);
+                const identifier = path.replace('/article/', '');
                 const revId = url.searchParams.get('rev');
                 
                 let article;
+                const isNumericId = /^\d+$/.test(identifier);
+
                 if (revId) {
-                    // Fetch specific revision
-                    article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, r.edit_summary FROM revisions r JOIN articles a ON r.article_id = a.id WHERE a.title = ? AND r.id = ?").bind(title, revId).first();
+                    // Fetch specific revision (by title for now as per legacy, or could be enhanced)
+                    const title = normalizeTitle(identifier);
+                    article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, r.edit_summary FROM revisions r JOIN articles a ON r.article_id = a.id WHERE (a.title = ? OR a.id = ?) AND r.id = ?").bind(title, isNumericId ? parseInt(identifier) : -1, revId).first();
                     if (article) article.is_revision = true;
                 } else {
-                    article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(title).first();
+                    if (isNumericId) {
+                        article = await env.DB.prepare("SELECT * FROM articles WHERE id = ?").bind(parseInt(identifier)).first();
+                    } else {
+                        article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(normalizeTitle(identifier)).first();
+                    }
                 }
                 
                 if (!article) { status = 404; resData = { error: "RECORD_NOT_FOUND" }; }

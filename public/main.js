@@ -851,23 +851,23 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let title = 'Main_Page';
+        let titleOrId = 'Main_Page';
         if (path.startsWith('/w/')) {
-            // Correctly handle slashes by taking everything after /w/
+            // Correctly handle slashes and numeric IDs
             const slug = path.substring(3);
-            title = window.slugToTitle(slug);
+            titleOrId = window.slugToTitle(slug);
         }
         
         const mode = urlParams.get('mode');
         
-        if (title.startsWith('Category:')) {
-            await renderCategoryPage(title.substring(9));
+        if (typeof titleOrId === 'string' && titleOrId.startsWith('Category:')) {
+            await renderCategoryPage(titleOrId.substring(9));
             return;
         }
 
-        if (mode === 'edit') await loadEditor(title);
-        else if (mode === 'history') await loadHistory(title);
-        else await renderArticle(title);
+        if (mode === 'edit') await loadEditor(titleOrId);
+        else if (mode === 'history') await loadHistory(titleOrId);
+        else await renderArticle(titleOrId);
         updateSidebarActivity();
     }
 
