@@ -141,8 +141,27 @@ function wikiParse(content) {
         } else if (inTable) {
             if (trimmed.startsWith('|+')) tableHtml += `<caption>${trimmed.substring(2).trim()}</caption>`;
             else if (trimmed.startsWith('|-')) tableHtml += '<tr>';
-            else if (trimmed.startsWith('!')) trimmed.substring(1).split('!!').forEach(c => tableHtml += `<th>${wikiParse(c.trim())}</th>`);
-            else if (trimmed.startsWith('|')) trimmed.substring(1).split('||').forEach(c => tableHtml += `<td>${wikiParse(c.trim())}</td>`);
+            else if (trimmed.startsWith('!')) {
+                trimmed.substring(1).split('!!').forEach(c => {
+                    const parts = c.split('|');
+                    if (parts.length > 1 && parts[0].includes('=')) {
+                        tableHtml += `<th ${parts[0].trim()}>${wikiParse(parts.slice(1).join('|').trim())}</th>`;
+                    } else {
+                        tableHtml += `<th>${wikiParse(c.trim())}</th>`;
+                    }
+                });
+            }
+            else if (trimmed.startsWith('|')) {
+                trimmed.substring(1).split('||').forEach(c => {
+                    const parts = c.split('|');
+                    // Check if the first part is an attribute (contains =)
+                    if (parts.length > 1 && parts[0].includes('=')) {
+                        tableHtml += `<td ${parts[0].trim()}>${wikiParse(parts.slice(1).join('|').trim())}</td>`;
+                    } else {
+                        tableHtml += `<td>${wikiParse(c.trim())}</td>`;
+                    }
+                });
+            }
         } else {
             const listMatch = line.match(/^([\*\#]+)\s*(.*)$/);
             if (listMatch) {
