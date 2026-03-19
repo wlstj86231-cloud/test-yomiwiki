@@ -89,7 +89,8 @@ function wikiParse(content) {
     // Wiki Links (Data-Title for routing)
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const cleanTitle = title.trim();
-        if (cleanTitle.startsWith('File:')) return match; // Skip images for now
+        if (cleanTitle.toLowerCase().startsWith('category:')) return ""; // Metadata removed from body
+        if (cleanTitle.startsWith('File:')) return match; 
         const slug = cleanTitle.replace(/[_\s]+/g, '_');
         return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
     });

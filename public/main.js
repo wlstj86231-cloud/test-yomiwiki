@@ -638,6 +638,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    async function renderCategoryPage(categoryName) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        mainTitle.textContent = `CATEGORY: ${categoryName}`;
+        
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/category/${encodeURIComponent(categoryName)}`);
+            const data = await res.json();
+            
+            articleBody.innerHTML = `
+                <div class="category-info" style="background:rgba(255,153,0,0.02); border:1px solid #222; padding:20px; margin-bottom:30px; font-size:0.9rem; color:var(--text-dim);">
+                    [SYSTEM_NOTICE]: Displaying all archival nodes classified under <strong>"${escapeHTML(categoryName)}"</strong>.
+                </div>
+                <div class="node-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:15px;">
+                    ${data.members.map(member => `
+                        <div class="node-item" style="background:#111; border:1px solid var(--border-color); padding:15px; border-left:3px solid var(--accent-cyan);">
+                            <a href="/w/${encodeURIComponent(member.title.replace(/ /g, '_'))}" style="font-family:var(--font-mono); color:var(--accent-cyan); font-weight:bold; text-decoration:none; display:block; margin-bottom:5px;">▶ ${escapeHTML(member.title)}</a>
+                            <div style="font-size:0.65rem; color:var(--text-muted); font-family:var(--font-mono);">
+                                LAST_REVISION: ${member.updated_at} | AUTH: ${member.author}
+                            </div>
+                        </div>
+                    `).join('') || '<div style="opacity:0.3; font-style:italic; padding:20px;">No members detected in this classification.</div>'}
+                </div>
+            `;
+        } catch (e) {
+            articleBody.innerHTML = "CRITICAL_SIGNAL_ERROR: Failed to load category index.";
+        }
+    }
+
     async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         const path = window.location.pathname;
@@ -652,6 +681,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let title = path.startsWith('/w/') ? decodeURIComponent(path.substring(3)).replace(/[_\s]+/g, ' ').trim() : 'Main_Page';
         const mode = urlParams.get('mode');
         
+        if (title.startsWith('Category:')) {
+            await renderCategoryPage(title.substring(9));
+            return;
+        }
+
         if (mode === 'edit') await loadEditor(title);
         else if (mode === 'history') await loadHistory(title);
         else await renderArticle(title);

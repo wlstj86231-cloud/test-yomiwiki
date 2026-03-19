@@ -204,11 +204,14 @@ export async function onRequest(context) {
                 const foundCategories = new Set();
                 while ((match = linkRegex.exec(content)) !== null) {
                     const inner = match[1].split('|')[0].trim();
-                    if (inner.toLowerCase().startsWith('category:')) foundCategories.add(inner.substring(9).trim());
-                    else if (inner) foundLinks.add(normalizeTitle(inner));
+                    if (inner.toLowerCase().startsWith('category:')) {
+                        foundCategories.add(inner.substring(9).trim());
+                    } else if (inner) {
+                        foundLinks.add(normalizeTitle(inner));
+                    }
                 }
                 const batch = [
-                    env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, Array.from(foundCategories).join(',')),
+                    env.DB.prepare("INSERT INTO articles (title, current_content, author, classification, categories, version) VALUES (?, ?, ?, ?, ?, 1) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, author=excluded.author, categories=excluded.categories, version=articles.version+1, updated_at=CURRENT_TIMESTAMP").bind(title, content, session.sub, classification || null, Array.from(foundCategories).join(','), content, session.sub, summary || "", title),
                     env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, session.sub, summary || "", title),
                     env.DB.prepare("DELETE FROM links WHERE from_title = ?").bind(title)
                 ];
@@ -216,6 +219,12 @@ export async function onRequest(context) {
                 await env.DB.batch(batch);
                 resData = { success: true };
             }
+        }
+
+        else if (path.startsWith('/category/') && method === "GET") {
+            const categoryName = decodeURIComponent(path.substring(10));
+            const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE categories LIKE ? AND is_deleted = 0 ORDER BY title ASC").bind(`%${categoryName}%`).all();
+            resData = { category: categoryName, members: results };
         }
 
         else if (path === '/history' && method === "GET") {
