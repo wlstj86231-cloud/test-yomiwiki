@@ -212,17 +212,23 @@ html, body {
     height: auto;
     border: 1px solid var(--border-color);
     display: block;
+    transition: all 0.3s ease;
+}
+.wiki-image:hover {
+    border-color: var(--accent-orange);
+    box-shadow: var(--shadow-glow);
 }
 
 .media-caption {
-    font-size: 0.90rem;
-    color: var(--text-muted);
+    font-size: 0.80rem;
+    color: var(--text-dim);
     font-family: var(--font-mono);
-    margin-top: 8px;
-    padding: 5px 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border-left: 2px solid var(--accent-orange);
-    font-style: italic;
+    margin-top: 5px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border-left: 3px solid var(--accent-orange);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Mobile Responsiveness for Media */
