@@ -447,18 +447,22 @@ html, body {
 /* 2. Tablets (768px ~ 1024px) */
 @media (max-width: 1024px) {
     .container {
+        display: flex;
         flex-direction: column;
         padding: 1.5rem;
         gap: 2rem;
     }
     .sidebar {
-        width: 100%;
-        order: 2;
+        display: contents; /* Allows ordering of sidebar children individually */
     }
     .main-content {
-        order: 1;
+        order: 2;
         width: 100%;
     }
+    .sidebar-box:nth-child(1) { order: 1; margin-bottom: 0; } /* Sectors go top */
+    .sidebar-box:nth-child(2) { order: 3; } /* Ad goes bottom */
+    .sidebar-box:nth-child(3) { order: 4; } /* Live Activity goes bottom */
+
     .header {
         grid-template-columns: 1fr auto;
         height: auto;
@@ -471,7 +475,7 @@ html, body {
 
 /* 3. Mobile Phones (Up to 768px) */
 @media (max-width: 768px) {
-    .container { padding: 1rem; }
+    .container { padding: 1rem; gap: 1rem; }
     .article-title { font-size: 1.6rem; }
     .logo { font-size: 1.4rem; }
     .search-input { font-size: 0.9rem; padding: 8px 15px; }
@@ -494,6 +498,20 @@ html, body {
         width: 100%;
         float: none;
         margin: 0 0 2rem 0;
+    }
+    .clinical-table {
+        display: block !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap !important;
+        font-size: 0.65rem !important; /* Smaller font for iPhone mini */
+        width: 100% !important;
+    }
+    .clinical-table th, .clinical-table td {
+        padding: 6px 8px !important;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .wikitable {
         display: block;
