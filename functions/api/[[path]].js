@@ -332,6 +332,18 @@ export async function onRequest(context) {
             resData = results;
         }
 
+        else if (path === '/api/comments' && method === "GET") {
+            const articleId = url.searchParams.get('article_id');
+            const { results } = await env.DB.prepare("SELECT * FROM comments WHERE article_id = ? ORDER BY timestamp ASC").bind(articleId).all();
+            
+            const enriched = await Promise.all(results.map(async c => ({
+                ...c,
+                author_tier: await getAgentTier(c.author)
+            })));
+            
+            resData = { comments: enriched };
+        }
+
         else if (path === '/admin/bans' && method === "GET") {
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
             if (session?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
