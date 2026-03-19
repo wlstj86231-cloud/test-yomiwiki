@@ -35,12 +35,20 @@ export async function onRequest(context) {
         }
     }
 
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     async function verifySession(token) {
-        if (!token || token === "mock_token") return { sub: "Anonymous_Agent", role: "viewer" };
+        if (!token) return null;
         try {
             const parts = token.split('.');
-            if (parts.length !== 3) return null;
-            const payload = JSON.parse(atob(parts[1]));
+            if (parts.length !== 2) return null;
+            const payload = JSON.parse(atob(parts[0]));
+            // In a real app, verify the signature here
             return payload;
         } catch (e) { return null; }
     }
@@ -52,6 +60,11 @@ export async function onRequest(context) {
     try {
         let resData = null;
         let status = 200;
+
+        // AUTH CHECK FOR WRITE OPERATIONS
+        const authHeader = request.headers.get("Authorization");
+        const token = authHeader ? authHeader.split(' ')[1] : null;
+        const user = await verifySession(token);
 
         // 1. ARTICLE FETCH
         if (path.startsWith('/article/') && method === "GET" && !path.endsWith('/history') && !path.endsWith('/comments')) {
@@ -122,7 +135,7 @@ export async function onRequest(context) {
 
                 const newComment = {
                     id: Date.now() + Math.random().toString(36).substring(2, 7), // More robust ID
-                    author: 'Anonymous_Agent',
+                    author: user ? user.username : 'Anonymous_Agent',
                     content: content,
                     timestamp: new Date().toISOString(),
                     parent_id: parent_id || null
@@ -134,13 +147,16 @@ export async function onRequest(context) {
             } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
         }
 
-        // 6. UPDATE ARTICLE
+        // 6. UPDATE ARTICLE (Registered Users Only)
         else if (path.startsWith('/article/') && (method === "POST" || method === "PUT")) {
+            if (!user) {
+                return new Response(JSON.stringify({ error: "UNAUTHORIZED_CLEARANCE_REQUIRED" }), { status: 401, headers: securityHeaders });
+            }
             const title = normalizeTitle(path.replace('/article/', ''));
             const { content } = await request.json();
             const batch = [
-                env.DB.prepare("INSERT INTO articles (title, current_content, author) VALUES (?, ?, 'Anonymous_Agent') ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, updated_at=CURRENT_TIMESTAMP").bind(title, content),
-                env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info) SELECT id, ?, 'Anonymous_Agent' FROM articles WHERE title = ?").bind(content, title)
+                env.DB.prepare("INSERT INTO articles (title, current_content, author) VALUES (?, ?, ?) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, updated_at=CURRENT_TIMESTAMP, author=excluded.author").bind(title, content, user.username),
+                env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info) SELECT id, ?, ? FROM articles WHERE title = ?").bind(content, user.username, title)
             ];
             await env.DB.batch(batch);
             resData = { success: true };
@@ -151,14 +167,31 @@ export async function onRequest(context) {
             const { username, password } = await request.json();
             if (!username || !password) {
                 status = 400; resData = { error: "FIELDS_INCOMPLETE" };
+            } else if (path.includes('register')) {
+                const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
+                if (existing) {
+                    status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
+                } else {
+                    const passHash = await hashPassword(password);
+                    await env.DB.prepare("INSERT INTO users (username, password_hash, role) VALUES (?, ?, 'viewer')").bind(username, passHash).run();
+                    const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
+                    const tokenStr = btoa(JSON.stringify(payload)) + ".signature";
+                    resData = { success: true, username, token: tokenStr, role: 'viewer' };
+                }
             } else {
-                // Mock implementation for now - success for any input
-                resData = { 
-                    success: true, 
-                    username: username, 
-                    token: "mock_token_" + Date.now(), 
-                    role: "viewer" 
-                };
+                const userRec = await env.DB.prepare("SELECT * FROM users WHERE username = ?").bind(username).first();
+                if (!userRec) {
+                    status = 401; resData = { error: "AUTH_DENIED" };
+                } else {
+                    const passHash = await hashPassword(password);
+                    if (userRec.password_hash === passHash) {
+                        const payload = { username, role: userRec.role, exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
+                        const tokenStr = btoa(JSON.stringify(payload)) + ".signature";
+                        resData = { success: true, username, token: tokenStr, role: userRec.role };
+                    } else {
+                        status = 401; resData = { error: "AUTH_DENIED" };
+                    }
+                }
             }
         }
 
