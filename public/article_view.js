@@ -1,6 +1,6 @@
 /**
- * ArticleView Component (Item 18)
- * This component handles the extraction of article IDs, fetching data, and rendering.
+ * ArticleView Component (Item 19)
+ * This component handles the extraction of article IDs, fetching data, and rendering title/content.
  */
 
 window.ArticleView = {
@@ -41,6 +41,17 @@ window.ArticleView = {
         const titleEl = document.getElementById('article-title');
         if (titleEl) {
             titleEl.textContent = title;
+        }
+    },
+
+    /**
+     * Renders the article body content to the DOM.
+     */
+    renderContent: function(content) {
+        const bodyEl = document.querySelector('.article-body');
+        if (bodyEl) {
+            // Assume wikiParse is globally available from parser.js
+            bodyEl.innerHTML = typeof wikiParse === 'function' ? wikiParse(content) : content;
         }
     }
 };
