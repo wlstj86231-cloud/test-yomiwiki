@@ -1,5 +1,5 @@
 /**
- * YomiWiki Core Parser (V4 Advanced)
+ * YomiWiki Core Parser (V4.1 Advanced)
  * Decodes wiki markup into HTML with high precision.
  */
 
@@ -21,7 +21,7 @@ function wikiParse(content) {
     const clinicalBlocks = [];
     const codeBlocks = [];
 
-    // Infobox (V2 Enhanced with Image support)
+    // Infobox
     content = content.replace(/\{\{infobox([\s\S]*?)\}\}/g, (match, body) => {
         const num = infoboxes.length;
         const rows = body.split('|').map(r => r.trim()).filter(r => r);
@@ -66,25 +66,17 @@ function wikiParse(content) {
 
     const headers = [];
     
-    // Markdown Headers
-    html = html.replace(/^(#{1,6})\s+(.*?)$/gm, (match, hashes, title) => {
-        const level = hashes.length;
-        const cleanTitle = title.trim();
-        const id = "section-" + cleanTitle.replace(/[_\s]+/g, '-').toLowerCase();
-        headers.push({ level, title: cleanTitle, id });
-        return `<h${level} id="${id}">${cleanTitle}</h${level}>`;
-    });
-
-    // Wiki Headers
-    html = html.replace(/^(={2,})\s*(.*?)\s*\1$/gm, (match, p1, p2) => {
-        const level = p1.length;
-        const title = p2.trim();
+    // Headers (Markdown & Wiki)
+    const headerRegex = /^(#{1,6})\s+(.*?)$|^(={2,})\s*(.*?)\s*\3$/gm;
+    html = html.replace(headerRegex, (match, hashes, mTitle, wikiHashes, wTitle) => {
+        const level = hashes ? hashes.length : wikiHashes.length;
+        const title = (mTitle || wTitle).trim();
         const id = "section-" + title.replace(/[_\s]+/g, '-').toLowerCase();
         headers.push({ level, title, id });
         return `<h${level} id="${id}">${title}</h${level}>`;
     });
 
-    // --- 3. Footnotes (High Precision / Non-Greedy) ---
+    // --- 3. Footnotes ---
     const footnotes = [];
     html = html.replace(/\[\* (.*?)\]/g, (match, fnContent) => {
         const num = footnotes.length + 1;
@@ -93,10 +85,11 @@ function wikiParse(content) {
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${escapeHTML(cleanContent)}">[${num}]</a></sup>`;
     });
 
-    // --- 4. Links & Lists & Tables ---
-    // Wiki Links (V4 Enhanced with Data-Title)
+    // --- 4. Links & Images (V4.1 Advanced) ---
+    // Wiki Links (Data-Title for routing)
     html = html.replace(/\[\[([^|\]]+)\]\]/g, (match, title) => {
         const cleanTitle = title.trim();
+        if (cleanTitle.startsWith('File:')) return match; // Skip images for now
         const slug = cleanTitle.replace(/[_\s]+/g, '_');
         return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(cleanTitle)}</a>`;
     });
@@ -106,10 +99,35 @@ function wikiParse(content) {
         return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(alias)}</a>`;
     });
 
+    // Images [[File:URL|options]]
+    html = html.replace(/\[\[File:([^|\]]+)(?:\|([^\]]+))?\]\]/g, (match, url, options) => {
+        const params = {};
+        if (options) {
+            options.split('|').forEach(opt => {
+                if (opt.includes('=')) {
+                    const [key, val] = opt.split('=');
+                    params[key.trim().toLowerCase()] = val.trim();
+                } else {
+                    params[opt.trim().toLowerCase()] = true;
+                }
+            });
+        }
+
+        let alignClass = "";
+        if (params.left) alignClass = "align-left";
+        else if (params.right) alignClass = "align-right";
+        else if (params.center) alignClass = "align-center";
+
+        const widthStyle = params.width ? `width:${params.width};` : "";
+        const caption = params.caption || "";
+        
+        return `<div class="media-container ${alignClass}" style="${widthStyle}"><img src="${encodeURI(url.trim())}" class="wiki-image" alt="${escapeHTML(caption)}">${caption ? `<div class="media-caption">${escapeHTML(caption)}</div>` : ''}</div>`;
+    });
+
     // External Links
     html = html.replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, '<a href="$1" class="external-link" target="_blank" rel="noopener noreferrer">$2</a>');
     
-    // Process lines for Lists, Tables, and Blockquotes
+    // --- 5. Tables and Lists ---
     const lines = html.split('\n');
     let finalHtml = [];
     let listStack = [];
@@ -119,7 +137,7 @@ function wikiParse(content) {
     lines.forEach(line => {
         const trimmed = line.trim();
         
-        // --- Table Logic (Standard Wiki Syntax) ---
+        // Table Logic
         if (trimmed.startsWith('{|')) {
             inTable = true;
             tableHtml = '<table class="wikitable clinical-table">';
@@ -131,28 +149,20 @@ function wikiParse(content) {
             tableHtml = "";
             return;
         } else if (inTable) {
-            if (trimmed.startsWith('|+')) {
-                tableHtml += `<caption>${trimmed.substring(2).trim()}</caption>`;
-            } else if (trimmed.startsWith('|-')) {
-                tableHtml += '<tr>';
-            } else if (trimmed.startsWith('!')) {
-                const cells = trimmed.substring(1).split('!!');
-                cells.forEach(c => tableHtml += `<th>${wikiParse(c.trim())}</th>`);
-            } else if (trimmed.startsWith('|')) {
-                const cells = trimmed.substring(1).split('||');
-                cells.forEach(c => tableHtml += `<td>${wikiParse(c.trim())}</td>`);
-            }
+            if (trimmed.startsWith('|+')) tableHtml += `<caption>${trimmed.substring(2).trim()}</caption>`;
+            else if (trimmed.startsWith('|-')) tableHtml += '<tr>';
+            else if (trimmed.startsWith('!')) trimmed.substring(1).split('!!').forEach(c => tableHtml += `<th>${wikiParse(c.trim())}</th>`);
+            else if (trimmed.startsWith('|')) trimmed.substring(1).split('||').forEach(c => tableHtml += `<td>${wikiParse(c.trim())}</td>`);
             return;
         }
 
-        // --- List Logic ---
+        // List Logic
         const listMatch = line.match(/^([\*\#]+)\s*(.*)$/);
         if (listMatch) {
             const prefix = listMatch[1];
             const itemContent = listMatch[2];
             const depth = prefix.length;
             const type = prefix[depth-1] === '*' ? 'ul' : 'ol';
-            
             while (listStack.length > depth) finalHtml.push(`</${listStack.pop()}>`);
             while (listStack.length < depth) {
                 listStack.push(type);
@@ -167,80 +177,53 @@ function wikiParse(content) {
     });
     let parsedContent = finalHtml.join('');
 
-    // --- 5. TOC Generation (Logical Hierarchical Numbering) ---
+    // --- 6. TOC Generation ---
     if (headers.length >= 3) {
         const counts = [0, 0, 0, 0, 0, 0, 0];
         let lastLevel = 0;
-        
-        let tocHtml = `
-            <div class="wiki-toc">
-                <div class="toc-title">CONTENTS <span class="toc-toggle" onclick="window.toggleTOC()">[hide]</span></div>
-                <ul id="toc-list">
-                    ${headers.map(h => {
-                        const level = h.level;
-                        if (level > lastLevel) {
-                            // Going deeper: don't reset current level yet, it will be incremented
-                        } else if (level < lastLevel) {
-                            // Going shallower: reset all levels deeper than current
-                            for (let i = level + 1; i < counts.length; i++) counts[i] = 0;
-                        }
-                        counts[level]++;
-                        lastLevel = level;
-                        
-                        // Generate number string (e.g., 1.2.1)
-                        const numberStr = counts.slice(1, level + 1).filter(n => n > 0).join('.') + '.';
-                        return `<li class="toc-level-${level}"><a href="#${h.id}"><span class="toc-number">${numberStr}</span> ${escapeHTML(h.title)}</a></li>`;
-                    }).join('')}
-                </ul>
-            </div>
-        `;
+        let tocHtml = `<div class="wiki-toc"><div class="toc-title">CONTENTS <span class="toc-toggle" onclick="window.toggleTOC()">[hide]</span></div><ul id="toc-list">`;
+        headers.forEach(h => {
+            if (h.level < lastLevel) for (let i = h.level + 1; i < counts.length; i++) counts[i] = 0;
+            counts[h.level]++;
+            lastLevel = h.level;
+            const numberStr = counts.slice(1, h.level + 1).filter(n => n > 0).join('.') + '.';
+            tocHtml += `<li class="toc-level-${h.level}"><a href="#${h.id}"><span class="toc-number">${numberStr}</span> ${escapeHTML(h.title)}</a></li>`;
+        });
+        tocHtml += `</ul></div>`;
         parsedContent = tocHtml + parsedContent;
     }
 
-    // --- 6. Footnote List Injection ---
+    // --- 7. Injection Phase ---
+    // Footnotes
     if (footnotes.length > 0) {
-        let fnHtml = `
-            <div class="wiki-footnotes">
-                <div class="footnotes-title">[ARCHIVAL_FOOTNOTES]</div>
-                <ol>
-                    ${footnotes.map((content, i) => {
-                        const num = i + 1;
-                        return `<li id="fn-${num}">${content} <a href="#fn-ref-${num}" class="footnote-backlink">↩</a></li>`;
-                    }).join('')}
-                </ol>
-            </div>
-        `;
+        let fnHtml = `<div class="wiki-footnotes"><div class="footnotes-title">[ARCHIVAL_FOOTNOTES]</div><ol>`;
+        footnotes.forEach((content, i) => {
+            const num = i + 1;
+            fnHtml += `<li id="fn-${num}">${wikiParse(content)} <a href="#fn-ref-${num}" class="footnote-backlink">↩</a></li>`;
+        });
+        fnHtml += `</ol></div>`;
         parsedContent += fnHtml;
     }
 
-    // --- 7. Injection Phase (Restore special blocks) ---
-    parsedContent = parsedContent.replace(/%%%CLINICAL_(\d+)%%%/g, (match, num) => {
-        return `<div class="clinical-report-block">
-            <div class="clinical-report-header">[OFFICIAL_CLINICAL_RECORD]</div>
-            <div class="clinical-report-content">${wikiParse(clinicalBlocks[num])}</div>
-            <div class="clinical-report-footer">VALIDATED_BY_ARCHIVE_SYSTEM</div>
-        </div>`;
-    });
-
+    // Special Blocks
     parsedContent = parsedContent.replace(/%%%INFOBOX_(\d+)%%%/g, (match, num) => {
         const info = infoboxes[num];
         let bodyHtml = "";
         info.data.forEach(item => {
             const key = item.key.toLowerCase();
-            if (key === 'image') {
-                bodyHtml += `<tr><td colspan="2" class="infobox-image-cell"><img src="${encodeURI(item.val)}" class="wiki-image"></td></tr>`;
-            } else if (key === 'caption') {
-                bodyHtml += `<tr><td colspan="2" class="infobox-caption-cell">${escapeHTML(item.val)}</td></tr>`;
-            } else {
-                bodyHtml += `<tr><th>${escapeHTML(item.key)}</th><td>${wikiParse(item.val)}</td></tr>`;
-            }
+            if (key === 'image') bodyHtml += `<tr><td colspan="2" class="infobox-image-cell"><img src="${encodeURI(item.val)}" class="wiki-image"></td></tr>`;
+            else if (key === 'caption') bodyHtml += `<tr><td colspan="2" class="infobox-caption-cell">${escapeHTML(item.val)}</td></tr>`;
+            else bodyHtml += `<tr><th>${escapeHTML(item.key)}</th><td>${wikiParse(item.val)}</td></tr>`;
         });
         return `<aside class="infobox"><div class="infobox-title">${escapeHTML(info.title)}</div><table>${bodyHtml}</table></aside>`;
     });
 
+    parsedContent = parsedContent.replace(/%%%CLINICAL_(\d+)%%%/g, (match, num) => {
+        return `<div class="clinical-report-block"><div class="clinical-report-header">[OFFICIAL_CLINICAL_RECORD]</div><div class="clinical-report-content">${wikiParse(clinicalBlocks[num])}</div><div class="clinical-report-footer">VALIDATED_BY_ARCHIVE_SYSTEM</div></div>`;
+    });
+
     parsedContent = parsedContent.replace(/%%%CODE_(\d+)%%%/g, (match, num) => {
-        const block = codeBlocks[num];
-        return `<pre class="wiki-code"><code>${escapeHTML(block.code)}</code></pre>`;
+        return `<pre class="wiki-code"><code>${escapeHTML(codeBlocks[num].code)}</code></pre>`;
     });
 
     return parsedContent;
