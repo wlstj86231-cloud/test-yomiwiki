@@ -10,6 +10,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const API_ENDPOINT = '/api';
 
+    // --- [SEARCH FUNCTIONALITY] ---
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const searchDropdown = document.getElementById('search-dropdown');
+    let searchTimeout;
+
+    const performSearch = async (query) => {
+        if (!query) {
+            searchDropdown.classList.remove('active');
+            return;
+        }
+        try {
+            const res = await fetch(`${API_ENDPOINT}/search/suggest?q=${encodeURIComponent(query)}`);
+            const results = await res.json();
+            
+            searchDropdown.innerHTML = '';
+            if (results.length > 0) {
+                results.forEach(title => {
+                    const div = document.createElement('div');
+                    div.className = 'search-item';
+                    div.textContent = title;
+                    div.onclick = () => {
+                        window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(title))}`);
+                        searchDropdown.classList.remove('active');
+                        searchInput.value = '';
+                    };
+                    searchDropdown.appendChild(div);
+                });
+                searchDropdown.classList.add('active');
+            } else {
+                searchDropdown.innerHTML = '<div class="search-item" style="color:var(--hazard-red); opacity:0.7;">[NO_SIGNAL_FOUND]</div>';
+                searchDropdown.classList.add('active');
+            }
+        } catch (e) {
+            console.error("Search failed", e);
+        }
+    };
+
+    if (searchInput && searchBtn) {
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            searchTimeout = setTimeout(() => performSearch(query), 300); // 300ms debounce
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchInput.value.trim();
+                if (query) {
+                    // Try to go to exact match if exists, otherwise first suggestion
+                    const firstItem = searchDropdown.querySelector('.search-item');
+                    if (firstItem && firstItem.textContent !== '[NO_SIGNAL_FOUND]') {
+                        firstItem.click();
+                    } else {
+                        window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(query))}`);
+                        searchDropdown.classList.remove('active');
+                        searchInput.value = '';
+                    }
+                }
+            }
+        });
+
+        searchBtn.addEventListener('click', () => {
+            const query = searchInput.value.trim();
+            if (query) {
+                const firstItem = searchDropdown.querySelector('.search-item');
+                if (firstItem && firstItem.textContent !== '[NO_SIGNAL_FOUND]') {
+                    firstItem.click();
+                } else {
+                    window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(query))}`);
+                    searchDropdown.classList.remove('active');
+                    searchInput.value = '';
+                }
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.classList.remove('active');
+            }
+        });
+    }
+
     // --- [MOBILE DYNAMIC HEADER] ---
     let lastScrollY = window.scrollY;
     let lastTapTime = 0;
