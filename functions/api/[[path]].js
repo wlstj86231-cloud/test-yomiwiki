@@ -189,22 +189,21 @@ export async function onRequest(context) {
                         author_tier: await getAgentTier(c.author)
                     })));
 
-                    // BOARD LOGIC: Refined category matching (Item 3 Fix 2)
+                    // BOARD LOGIC: Robust matching (Item 3 Fix 3)
                     let subArticles = [];
                     if (identifier.startsWith('Sector:')) {
                         const baseTitle = normalizeTitle(identifier);
-                        // Search articles starting with the sector title plus a slash
-                        const pattern1 = `${baseTitle}/%`;
-                        const pattern2 = `${baseTitle.replace(/_/g, ' ')}/%`;
+                        const prefixWithSlash = baseTitle + '/';
                         
+                        // Use instr for prefix checking to be more reliable in some SQLite environments
                         const { results } = await env.DB.prepare(`
                             SELECT id, title, author, updated_at 
                             FROM articles 
-                            WHERE (title LIKE ? OR title LIKE ?) 
-                            AND title != ? 
+                            WHERE (instr(title, ?) = 1 OR instr(title, ?) = 1)
+                            AND title != ?
                             AND is_deleted = 0 
                             ORDER BY updated_at DESC LIMIT 100
-                        `).bind(pattern1, pattern2, baseTitle).all();
+                        `).bind(prefixWithSlash, prefixWithSlash.replace(/_/g, ' '), baseTitle).all();
                         subArticles = results;
                     }
 
@@ -285,11 +284,17 @@ export async function onRequest(context) {
         }
 
         else if (path === '/history' && method === "GET") {
-            const { results } = await env.DB.prepare("SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author, r.edit_summary as summary FROM revisions r JOIN articles a ON r.article_id = a.id UNION ALL SELECT 'comment' as type, article_title as title, timestamp, author, 'NEW_COMM_TRANSMISSION' as summary FROM comments ORDER BY timestamp DESC LIMIT 40").all();
+            // Optimized query for live activity log
+            const { results } = await env.DB.prepare(`
+                SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author, r.edit_summary as summary 
+                FROM revisions r 
+                JOIN articles a ON r.article_id = a.id 
+                ORDER BY r.timestamp DESC LIMIT 20
+            `).all();
             resData = results;
         }
 
-        else if (path === '/api/search/full' && method === "GET") {
+        else if (path === '/api/articles/recent' && method === "GET") {
             if (!(await logAndCheckRateLimit(clientIP, "SEARCH_ACTION", SECURITY_CONFIG.MAX_SEARCH_PER_MIN))) {
                 return new Response(JSON.stringify({ error: "SEARCH_THROTTLED" }), { status: 429, headers: securityHeaders });
             }
