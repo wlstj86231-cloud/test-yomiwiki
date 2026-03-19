@@ -95,35 +95,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- [MOBILE DYNAMIC HEADER] ---
-    let lastScrollY = window.scrollY;
-    let lastTapTime = 0;
     const headerEl = document.querySelector('.header');
 
     window.addEventListener('scroll', () => {
         if (window.innerWidth <= 768 && headerEl) {
             const currentScrollY = window.scrollY;
-            // Prevent iOS rubber-band scroll issues
-            if (currentScrollY <= 0) {
+            // Show only at the absolute top, otherwise hide
+            if (currentScrollY <= 10) {
                 headerEl.classList.remove('header-hidden');
-            } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-                headerEl.classList.add('header-hidden'); // Scroll down: Hide
-            } else if (currentScrollY < lastScrollY) {
-                headerEl.classList.remove('header-hidden'); // Scroll up: Show
+            } else {
+                headerEl.classList.add('header-hidden');
             }
-            lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
-        }
-    });
-
-    document.addEventListener('touchend', (e) => {
-        if (window.innerWidth <= 768 && headerEl) {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTapTime;
-            if (tapLength < 300 && tapLength > 0) {
-                // Double tap detected
-                headerEl.classList.remove('header-hidden');
-                e.preventDefault(); // Prevent double-tap to zoom fallback
-            }
-            lastTapTime = currentTime;
         }
     });
 

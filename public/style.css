@@ -49,7 +49,6 @@ html, body {
     letter-spacing: -0.02em; 
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
-    touch-action: manipulation; /* Prevents double-tap to zoom conflict */
 }
 
 /* --- [Scanlines Overlay] --- */
