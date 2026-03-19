@@ -521,7 +521,21 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </tr>
                             </thead>
                             <tbody id="board-table-body">
-                                <!-- Rows will be added in Item 7 -->
+                                ${data.sub_articles && data.sub_articles.length > 0 ? data.sub_articles.map(sub => `
+                                    <tr style="border-bottom:1px solid #222;">
+                                        <!-- Columns 8-12 will be implemented in subsequent steps -->
+                                        <td style="padding:10px 15px;">[PENDING_TITLE]</td>
+                                        <td style="padding:10px 15px; text-align:center;">[ACTION]</td>
+                                        <td style="padding:10px 15px;">[AGENT]</td>
+                                        <td style="padding:10px 15px; text-align:right;">[TIMESTAMP]</td>
+                                    </tr>
+                                `).join('') : `
+                                    <tr>
+                                        <td colspan="4" style="text-align:center; padding:40px; opacity:0.3; font-style:italic;">
+                                            [NULL_DATA_STREAM]: No archival nodes detected in this sector.
+                                        </td>
+                                    </tr>
+                                `}
                             </tbody>
                         </table>
                     </div>
