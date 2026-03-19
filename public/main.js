@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>
                             <span style="color:var(--accent-orange); font-weight:bold; margin-right:10px;">${indexStr}</span>
                             AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span>
+                            ${c.author_tier ? `<span style="margin-left:8px; padding:1px 4px; background:rgba(255,153,0,0.1); border:1px solid rgba(255,153,0,0.3); color:var(--accent-orange); font-size:0.6rem; border-radius:2px;">LV.${c.author_tier.level} ${c.author_tier.title}</span>` : ''}
                         </span>
                         <span>[${c.timestamp}]</span>
                     </div>
@@ -375,7 +376,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. FOOTER (Metadata, Categories, Backlinks)
             let footer = `<div class="article-footer" style="margin-top:60px; border-top:1px solid var(--border-color); padding-top:20px; font-size:0.85rem;">
                 <div style="color:var(--text-dim); margin-bottom:15px; font-family:var(--font-mono);">
-                    REV: ${data.updated_at} | AUTH: ${data.author} [SECURE_NODE] | <a href="?mode=edit" style="color:var(--accent-orange);">[EDIT]</a> | <a href="?mode=history" style="color:var(--accent-orange);">[HISTORY]</a>
+                    REV: ${data.updated_at} | AUTH: ${data.author} 
+                    ${data.author_tier ? `<span style="color:var(--accent-orange); margin-left:5px;">[LV.${data.author_tier.level} ${data.author_tier.title}]</span>` : ''} 
+                    [SECURE_NODE] | <a href="?mode=edit" style="color:var(--accent-orange);">[EDIT]</a> | <a href="?mode=history" style="color:var(--accent-orange);">[HISTORY]</a>
                 </div>`;
             if (data.categories) footer += `<div style="margin-bottom:10px;"><strong>[CATEGORIES]:</strong> ${data.categories.split(',').map(c => `<a href="/w/Category:${encodeURIComponent(c.trim())}" style="color:var(--accent-orange); margin-right:8px;">[${escapeHTML(c.trim())}]</a>`).join(' ')}</div>`;
             if (data.backlinks?.length > 0) footer += `<div><strong>[LINKED_NODES]:</strong> ${data.backlinks.map(b => `<a href="/w/${encodeURIComponent(b)}" style="color:var(--accent-cyan); margin-right:8px;">[[${escapeHTML(b)}]]</a>`).join(' ')}</div>`;

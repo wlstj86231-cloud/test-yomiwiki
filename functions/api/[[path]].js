@@ -83,12 +83,15 @@ export async function onRequest(context) {
     }
 
     async function getAgentTier(username) {
-        if (!username) return { level: "I", title: "GUEST", count: 0 };
-        const { count } = await env.DB.prepare("SELECT COUNT(*) as count FROM revisions WHERE editor_info = ?").bind(username).first();
-        if (count >= 100) return { level: "IV", title: "OVERSEER", count, numeric: 4 };
-        if (count >= 50) return { level: "III", title: "FIELD LEAD", count, numeric: 3 };
-        if (count >= 10) return { level: "II", title: "SENIOR AGENT", count, numeric: 2 };
-        return { level: "I", title: "JUNIOR AGENT", count, numeric: 1 };
+        if (!username || username === 'Anonymous_Agent') return { level: "0", title: "UNVERIFIED", count: 0 };
+        const { count: revCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM revisions WHERE editor_info = ?").bind(username).first();
+        const { count: commCount } = await env.DB.prepare("SELECT COUNT(*) as count FROM comments WHERE author = ?").bind(username).first();
+        const total = revCount + commCount;
+        
+        if (total >= 100) return { level: "IV", title: "OVERSEER", count: total };
+        if (total >= 50) return { level: "III", title: "FIELD LEAD", count: total };
+        if (total >= 10) return { level: "II", title: "SENIOR AGENT", count: total };
+        return { level: "I", title: "JUNIOR AGENT", count: total };
     }
 
     function getClassificationLevel(classification) {
@@ -155,25 +158,29 @@ export async function onRequest(context) {
                         fullContent = results.map(r => r.content).join('');
                     }
                     
-                    // UNIFY DATA with underscore title
                     const { results: backlinks } = await env.DB.prepare("SELECT from_title FROM links WHERE to_title = ? LIMIT 50").bind(article.title).all();
-                    const { results: comments } = await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(article.title).all();
+                    const { results: rawComments } = await env.DB.prepare("SELECT * FROM comments WHERE article_title = ? ORDER BY timestamp DESC").bind(article.title).all();
 
-                    // BOARD LOGIC: Get sub-articles starting with this title/
+                    // Enrich comments with author tiers
+                    const enrichedComments = await Promise.all(rawComments.map(async c => ({
+                        ...c,
+                        author_tier: await getAgentTier(c.author)
+                    })));
+
+                    // BOARD LOGIC
                     let subArticles = [];
                     if (title.startsWith('Sector:')) {
                         const { results } = await env.DB.prepare("SELECT title, author, updated_at FROM articles WHERE title LIKE ? AND is_deleted = 0 ORDER BY updated_at DESC LIMIT 100").bind(`${title}/%`).all();
                         subArticles = results;
                     }
 
-                    const count = (await env.DB.prepare("SELECT COUNT(*) as count FROM revisions WHERE editor_info = ?").bind(article.author).first()).count;
                     resData = { 
                         ...article, 
                         current_content: fullContent, 
                         backlinks: backlinks.map(b => b.from_title),
-                        comments: comments,
+                        comments: enrichedComments,
                         sub_articles: subArticles,
-                        author_tier: { count, level: count >= 100 ? "IV" : count >= 50 ? "III" : count >= 10 ? "II" : "I" }
+                        author_tier: await getAgentTier(article.author)
                     };
                 }
             } catch (dbErr) { status = 500; resData = { error: "DB_ERR", msg: dbErr.message }; }
