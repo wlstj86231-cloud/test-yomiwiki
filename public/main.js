@@ -513,7 +513,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="wiki-table-container" style="overflow-x:auto;">
                         <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.85rem;">
                             <thead id="board-table-head">
-                                <!-- Headers will be added in Item 6 -->
+                                <tr style="background:#111; border-bottom:2px solid var(--border-color);">
+                                    <th style="padding:12px 15px; text-align:left; color:var(--accent-orange);">문서</th>
+                                    <th style="padding:12px 15px; text-align:center; color:var(--accent-orange); width:100px;">기능</th>
+                                    <th style="padding:12px 15px; text-align:left; color:var(--accent-orange); width:150px;">수정자</th>
+                                    <th style="padding:12px 15px; text-align:right; color:var(--accent-orange); width:180px;">수정 시간</th>
+                                </tr>
                             </thead>
                             <tbody id="board-table-body">
                                 <!-- Rows will be added in Item 7 -->
