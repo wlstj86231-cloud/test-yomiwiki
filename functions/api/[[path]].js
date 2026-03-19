@@ -6,8 +6,10 @@ const SECURITY_CONFIG = {
     MAX_TITLE_LENGTH: 255,
     MAX_CONTENT_LENGTH: 500000,
     RATE_LIMIT_WINDOW: 60, // seconds
-    MAX_REQUESTS_PER_WINDOW: 30,
-    MAX_SEARCH_PER_WINDOW: 10,
+    MAX_LOGIN_ATTEMPTS: 5,
+    MAX_REGISTER_ATTEMPTS: 3,
+    MAX_COMMENT_PER_MIN: 5,
+    MAX_SEARCH_PER_MIN: 30,
     MIN_USERNAME_LENGTH: 3,
     MAX_USERNAME_LENGTH: 20,
     MIN_PASSWORD_LENGTH: 8
@@ -116,6 +118,9 @@ export async function onRequest(context) {
         let resData, status = 200;
 
         if (path === '/auth/register' && method === "POST") {
+            if (!(await logAndCheckRateLimit(clientIP, "REGISTER_ATTEMPT", SECURITY_CONFIG.MAX_REGISTER_ATTEMPTS))) {
+                return new Response(JSON.stringify({ error: "TOO_MANY_REGISTRATIONS" }), { status: 429, headers: securityHeaders });
+            }
             const { username, password, email } = await request.json();
             if (!username || username.length < 3 || username.length > 20) return new Response(JSON.stringify({ error: "INVALID_USERNAME" }), { status: 400, headers: securityHeaders });
             const salt = crypto.randomUUID();
@@ -127,6 +132,9 @@ export async function onRequest(context) {
         }
 
         else if (path === '/auth/login' && method === "POST") {
+            if (!(await logAndCheckRateLimit(clientIP, "LOGIN_ATTEMPT", SECURITY_CONFIG.MAX_LOGIN_ATTEMPTS))) {
+                return new Response(JSON.stringify({ error: "TOO_MANY_LOGIN_ATTEMPTS" }), { status: 429, headers: securityHeaders });
+            }
             const { username, password } = await request.json();
             const user = await env.DB.prepare("SELECT * FROM users WHERE username = ?").bind(username).first();
             if (!user || (await hashPassword(password, user.password_hash.split(':')[0])) !== user.password_hash.split(':')[1]) {
@@ -233,6 +241,9 @@ export async function onRequest(context) {
         }
 
         else if (path === '/search/suggest' && method === "GET") {
+            if (!(await logAndCheckRateLimit(clientIP, "SEARCH_ACTION", SECURITY_CONFIG.MAX_SEARCH_PER_MIN))) {
+                return new Response(JSON.stringify({ error: "SEARCH_THROTTLED" }), { status: 429, headers: securityHeaders });
+            }
             const query = url.searchParams.get('q');
             if (!query || query.length < 2) return new Response(JSON.stringify([]), { headers: securityHeaders });
             
@@ -241,6 +252,9 @@ export async function onRequest(context) {
         }
 
         else if (path.startsWith('/article/') && path.endsWith('/comments') && method === "POST") {
+            if (!(await logAndCheckRateLimit(clientIP, "COMMENT_ACTION", SECURITY_CONFIG.MAX_COMMENT_PER_MIN))) {
+                return new Response(JSON.stringify({ error: "COMMENT_SPAM_DETECTED" }), { status: 429, headers: securityHeaders });
+            }
             const title = normalizeTitle(path.split('/')[2]);
             const session = await verifySession(request.headers.get("Authorization")?.split(' ')[1]);
             const { content, parent_id } = await request.json();
