@@ -48,6 +48,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- [STATE & AUTH] ---
     let currentUser = JSON.parse(localStorage.getItem('yomi_user')) || null;
 
+    const updateAuthUI = () => {
+        const authContainer = document.getElementById('auth-controls');
+        if (!authContainer) return;
+
+        if (currentUser) {
+            authContainer.innerHTML = `
+                <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-right:10px;">[AGENT: ${escapeHTML(currentUser.username)}]</span>
+                <button onclick="window.logout()" class="auth-btn logout">[LOGOUT]</button>
+            `;
+        } else {
+            authContainer.innerHTML = `
+                <button onclick="window.navigateTo('/?mode=login')" class="auth-btn">[LOGIN]</button>
+                <button onclick="window.navigateTo('/?mode=register')" class="auth-btn">[REGISTER]</button>
+            `;
+        }
+    };
+
+    window.logout = () => {
+        localStorage.removeItem('yomi_user');
+        currentUser = null;
+        window.navigateTo('/w/Main_Page');
+    };
+
     const securedFetch = async (url, options = {}) => {
         const headers = { 'X-Yomi-Request': 'true', 'Content-Type': 'application/json', ...options.headers };
         if (currentUser?.token) headers['Authorization'] = `Bearer ${currentUser.token}`;
@@ -234,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             await renderArticle(titleOrId);
         }
+        updateAuthUI();
         updateSidebarActivity();
     }
 

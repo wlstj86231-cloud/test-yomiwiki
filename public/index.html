@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YomiWiki | Archival Gateway [SECURE]</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <!-- EDITOR HELPERS & COMMENT FIX v1.0.14 -->
-    <link rel="stylesheet" href="/style.css?v=1.0.14">
+    <!-- UI OPTIMIZATION v2.4.9 -->
+    <link rel="stylesheet" href="/style.css?v=2.4.9">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -32,17 +32,21 @@
             <div class="logo">YomiWiki</div>
             <div class="status-indicator"><span class="blink">●</span> SECURE_UPLINK</div>
         </div>
-        <div class="search-bar">
-            <input type="text" placeholder="Query database..." class="search-input" id="search-input">
-            <button class="search-btn" id="search-btn">🔍</button>
-            <div id="search-dropdown" class="search-dropdown"></div>
-        </div>
+        
         <nav class="nav">
             <ul class="nav-list">
                 <li><a href="/w/Main_Page">Archive</a></li>
                 <li><a href="/?mode=help">Protocols</a></li>
             </ul>
         </nav>
+
+        <div class="search-bar">
+            <input type="text" placeholder="Query database..." class="search-input" id="search-input">
+            <button class="search-btn" id="search-btn">🔍</button>
+            <div id="search-dropdown" class="search-dropdown"></div>
+        </div>
+
+        <div id="auth-controls" class="auth-controls"></div>
     </header>
     <div class="container">
         <aside class="sidebar">
@@ -61,17 +65,19 @@
                     </ul>
                 </nav>
             </section>
-            <section class="sidebar-box">
-                <h3 class="sidebar-title">[LIVE_ACTIVITY_LOG]</h3>
-                <div id="sidebar-live-activity" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); max-height:400px; overflow-y:auto;">Establishing link...</div>
-            </section>
-            <div id="sidebar-ad-container" class="sidebar-box" style="margin-top:auto; padding-top:20px; border-top:1px dashed #222; text-align:center;">
+
+            <div id="sidebar-ad-container" class="sidebar-box" style="padding-top:10px; text-align:center;">
                 <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:10px; opacity:0.5;">[ARCHIVAL_SPONSOR_SIGNAL]</div>
                 <div class="ad-placeholder" style="min-height:250px; background:rgba(255,255,255,0.01); border:1px solid #111; display:flex; align-items:center; justify-content:center; color:#222; font-family:var(--font-mono); font-size:0.8rem;">
                     <!-- ADSENSE_DISPLAY_AD_CODE -->
                     [AD_SIGNAL_PENDING]
                 </div>
             </div>
+
+            <section class="sidebar-box" style="margin-top:20px;">
+                <h3 class="sidebar-title">[LIVE_ACTIVITY_LOG]</h3>
+                <div id="sidebar-live-activity" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); max-height:400px; overflow-y:auto;">Establishing link...</div>
+            </section>
         </aside>
         <main class="main-content">
             <div class="interface-controls"><button class="btn-clinical-toggle" id="btn-clinical" onclick="window.toggleClinicalMode()">[ENTER_CLINICAL_MODE]</button></div>
@@ -83,7 +89,7 @@
         </main>
     </div>
     <button id="btn-top" class="btn-floating" style="display:none;" onclick="window.scrollToTop()">[TOP_OF_NODE]</button>
-    <script src="/parser.js?v=1.0.12"></script>
-    <script src="/main.js?v=1.0.12"></script>
+    <script src="/parser.js?v=2.4.9"></script>
+    <script src="/main.js?v=2.4.9"></script>
 </body>
 </html>
