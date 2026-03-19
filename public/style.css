@@ -142,12 +142,12 @@ html, body {
 .search-input {
     width: 100%;
     max-width: 600px;
-    background: var(--bg-input);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
+    background: #ffffff; /* White background as requested */
+    border: 1px solid #cccccc;
+    color: #000000; /* Dark text for contrast */
     padding: 10px 20px;
     font-family: var(--font-mono);
-    font-size: 1rem; /* Increased */
+    font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
