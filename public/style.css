@@ -556,16 +556,9 @@ html, body {
         display: flex;
         flex-direction: column;
         align-items: center;
-        position: sticky;
-        top: 0; /* Sticky to top on mobile */
+        position: static; /* Let it scroll naturally with the document */
+        width: 100%;
         padding: 0.5rem 1rem;
-        transition: top 0.3s ease-in-out, opacity 0.3s ease; /* Use 'top' instead of transform for iOS Safari compatibility */
-        z-index: 1000;
-    }
-    .header.header-hidden {
-        top: -200px; /* Physically move it out of viewport instead of transform */
-        opacity: 0;
-        pointer-events: none;
     }
     .logo-group { margin-bottom: 5px; width: 100%; justify-content: center; }
     .search-bar { width: 100%; margin-bottom: 5px; }

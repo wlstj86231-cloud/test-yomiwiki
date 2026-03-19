@@ -94,36 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- [MOBILE DYNAMIC HEADER] ---
-    const headerEl = document.querySelector('.header');
-    let lastScrollY = window.scrollY;
-
-    window.addEventListener('scroll', () => {
-        if (window.innerWidth <= 768 && headerEl) {
-            // Prevent header from hiding during pinch-zoom (Added 1.05 tolerance for iOS micro-variations)
-            if (window.visualViewport && window.visualViewport.scale > 1.05) {
-                headerEl.classList.remove('header-hidden');
-                lastScrollY = window.scrollY;
-                return;
-            }
-
-            const currentScrollY = window.scrollY;
-            
-            // Allow bouncing at the top without hiding
-            if (currentScrollY <= 0) {
-                headerEl.classList.remove('header-hidden');
-            } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-                // Scroll Down -> Hide
-                headerEl.classList.add('header-hidden');
-            } else if (currentScrollY < lastScrollY) {
-                // Scroll Up -> Show
-                headerEl.classList.remove('header-hidden');
-            }
-            
-            lastScrollY = currentScrollY;
-        }
-    });
-
     // --- [HELPERS] ---
     window.titleToSlug = (title) => {
         if (!title) return "";
