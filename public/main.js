@@ -430,6 +430,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- [Cache System: Item 24] ---
     const articleCache = new Map();
 
+    // --- [Time Helpers: Item 12] ---
+    window.timeAgo = (dateStr) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000);
+        if (diff < 60) return '방금 전';
+        if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+        return `${Math.floor(diff / 86400)}일 전`;
+    };
+
     async function renderArticle(title) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
@@ -533,9 +544,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                         </td>
                                         <!-- Item 11: Display Last Editor -->
                                         <td style="padding:10px 15px; color:var(--text-dim); font-size:0.80rem;">
-                                            ${escapeHTML(sub.author || "Unknown_Agent")}
+                                            ${escapeHTML(sub.author || "Anonymous_Agent")}
                                         </td>
-                                        <td style="padding:10px 15px; text-align:right;">[TIMESTAMP]</td>
+                                        <!-- Item 12: Display Relative Timestamp -->
+                                        <td style="padding:10px 15px; text-align:right; color:var(--text-dim); font-size:0.80rem;">
+                                            ${window.timeAgo(sub.updated_at)}
+                                        </td>
                                     </tr>
                                 `).join('') : `
                                     <tr>
