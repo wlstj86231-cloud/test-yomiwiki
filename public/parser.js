@@ -119,15 +119,6 @@ function wikiParse(content) {
         return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
     });
 
-    // --- 5. Footnotes ---
-    const footnotes = [];
-    html = html.replace(/\[\* +(.+?)\]/g, (match, fnContent) => {
-        const num = footnotes.length + 1;
-        const cleanContent = fnContent.trim();
-        footnotes.push(cleanContent);
-        return `<sup><a id="fn-ref-${num}" href="#fn-${num}" class="footnote-link" data-tooltip="FOOTNOTE: ${cleanContent}">[${num}]</a></sup>`;
-    });
-
     html = html.replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, '<a href="$1" class="external-link" target="_blank" rel="noopener noreferrer">$2</a>');
     
     // --- 6. Tables and Lists ---
