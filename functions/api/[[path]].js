@@ -129,7 +129,7 @@ export async function onRequest(context) {
                 
                 let subArticles = [];
                 if (article.title.startsWith('Sector:') && !article.title.substring(7).includes('/')) {
-                    const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE ? AND title != ? AND is_deleted = 0 ORDER BY updated_at DESC").bind(`${article.title}/%`, article.title).all();
+                    const { results } = await env.DB.prepare("SELECT id, title, author, updated_at, classification FROM articles WHERE title LIKE ? AND title != ? AND is_deleted = 0 ORDER BY CASE WHEN classification = 'NOTICE' THEN 0 ELSE 1 END, updated_at DESC").bind(`${article.title}/%`, article.title).all();
                     subArticles = results;
                 }
                 resData = { ...article, comments, sub_articles: subArticles };
@@ -201,10 +201,14 @@ export async function onRequest(context) {
                 return new Response(JSON.stringify({ error: "UNAUTHORIZED_CLEARANCE_REQUIRED" }), { status: 401, headers: securityHeaders });
             }
             const title = normalizeTitle(path.replace(/^\/article\//, ''));
-            const { content } = await request.json();
+            const { content, classification } = await request.json();
+            
+            // Only admins can set NOTICE classification
+            const finalClassification = (classification === 'NOTICE' && user.role !== 'admin') ? 'GENERAL' : (classification || 'GENERAL');
+
             const batch = [
-                env.DB.prepare("INSERT INTO articles (title, current_content, author) VALUES (?, ?, ?) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, updated_at=CURRENT_TIMESTAMP, author=excluded.author").bind(title, content, user.username),
-                env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info) SELECT id, ?, ? FROM articles WHERE title = ?").bind(content, user.username, title)
+                env.DB.prepare("INSERT INTO articles (title, current_content, author, classification) VALUES (?, ?, ?, ?) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, updated_at=CURRENT_TIMESTAMP, author=excluded.author, classification=COALESCE(excluded.classification, articles.classification)").bind(title, content, user.username, finalClassification),
+                env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) SELECT id, ?, ?, ? FROM articles WHERE title = ?").bind(content, user.username, finalClassification === 'NOTICE' ? '[OFFICIAL_NOTICE]' : '', title)
             ];
             await env.DB.batch(batch);
             resData = { success: true };

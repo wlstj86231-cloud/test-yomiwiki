@@ -289,10 +289,18 @@ document.addEventListener('DOMContentLoaded', () => {
             let boardHtml = "";
             if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
+                const sectorName = data.title.split(':').pop();
+                
+                // Admin-only notice creation button
+                const adminNoticeBtn = currentUser?.role === 'admin' ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
+                
                 boardHtml = `
                     <div style="margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES]</h3>
-                        <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
+                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES: ${escapeHTML(sectorName)}]</h3>
+                        <div>
+                            <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
+                            ${adminNoticeBtn}
+                        </div>
                     </div>
                     <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
                         <thead>
@@ -305,10 +313,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         </thead>
                         <tbody>
                             ${subNodes.map(sub => {
+                                const isNotice = sub.classification === 'NOTICE';
+                                const noticeTag = isNotice ? `<span style="background:var(--hazard-red); color:#000; padding:1px 4px; font-size:0.6rem; margin-right:5px; font-weight:bold;">[NOTICE]</span>` : "";
+                                const rowBg = isNotice ? "rgba(255, 60, 60, 0.05)" : "transparent";
                                 const adminActions = currentUser?.role === 'admin' ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(sub.title)}', true)" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.6rem; margin-left:5px;">[PURGE]</button>` : "";
+                                
                                 return `
-                                <tr style="border-bottom:1px solid #111;">
-                                    <td style="padding:10px;"><a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
+                                <tr style="border-bottom:1px solid #111; background:${rowBg};">
+                                    <td style="padding:10px;">${noticeTag}<a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:${isNotice ? 'var(--hazard-red)' : 'var(--accent-cyan)'}; font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
                                     <td style="padding:10px; text-align:center;">
                                         <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a>
                                         ${adminActions}
@@ -400,9 +412,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.establishNewNode = (sector) => {
-        const name = prompt("Enter new node designation:");
-        if (name) window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(sector + "/" + name))}?mode=edit`);
+    window.establishNewNode = (sector, isNotice = false) => {
+        const name = prompt(isNotice ? "Enter NOTICE designation (Title):" : "Enter new node designation:");
+        if (name) {
+            const mode = isNotice ? "edit&type=notice" : "edit";
+            window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(sector + "/" + name))}?mode=${mode}`);
+        }
+    };
+
+    window.establishNewSector = () => {
+        const name = prompt("Enter new SECTOR designation (e.g. Paranormal_Activity):");
+        if (name) window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug("Sector:" + name))}`);
     };
 
     window.toggleClinicalMode = () => {
@@ -807,6 +827,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const ibCaption = document.getElementById('ib-caption').value.trim();
         const ibType = document.getElementById('ib-type').value.trim();
         
+        const urlParams = new URLSearchParams(window.location.search);
+        const classification = urlParams.get('type') === 'notice' ? 'NOTICE' : 'GENERAL';
+
         let infoboxMarkup = "";
         if (ibTitle || ibImage) {
             infoboxMarkup = `{{infobox\n| title = ${ibTitle}\n| image = ${ibImage}\n| caption = ${ibCaption}\n| type = ${ibType}\n`;
@@ -822,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}`, {
-                method: 'POST', body: JSON.stringify({ content: finalContent })
+                method: 'POST', body: JSON.stringify({ content: finalContent, classification })
             });
             window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(title))}`);
         } catch (e) { alert("FAILED"); }
