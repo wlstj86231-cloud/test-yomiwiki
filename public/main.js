@@ -324,12 +324,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const themeColor = isSubSector ? 'var(--accent-cyan)' : 'var(--accent-orange)';
                 const adminNoticeBtn = (currentUser?.role === 'admin') ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
-                const tableTitle = `[SUB_ARCHIVE_NODES: ${escapeHTML(sectorName)}]`;
                 const createBtn = `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">${isSubSector ? '[+ NEW_POST]' : '[NEW_NODE]'}</button>`;
 
                 boardHtml = `
-                    <div style="margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:${themeColor}; margin:0;">${tableTitle}</h3>
+                    <div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end; align-items:center;">
                         <div>
                             ${createBtn}
                             ${adminNoticeBtn}
