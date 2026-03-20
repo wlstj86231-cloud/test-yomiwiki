@@ -164,9 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             const editBtn = (isOfficial && !isBoard && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:10px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
+            const discussBtn = (!isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=comments" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[DISCUSSION]</a>` : "";
 
             if (isBoard || isHub) metaText.innerHTML = "";
-            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${historyBtn} ${purgeBtn}`;
+            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${discussBtn} ${historyBtn} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
@@ -244,6 +245,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const antiFlicker = document.getElementById('anti-flicker');
             if (antiFlicker) antiFlicker.remove();
         }
+    }
+
+    async function loadCommentsPage(title) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        const metaText = document.querySelector('.article-meta');
+        mainTitle.textContent = `DISCUSSION: ${title}`;
+        metaText.textContent = "COMM_STREAM_OPEN";
+        articleBody.innerHTML = '<div class="loading">[CONNECTING_TO_COMMS...]</div>';
+        try {
+            const res = await fetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}`);
+            const data = await res.json();
+            articleBody.innerHTML = `
+                <div style="margin-bottom:20px;"><button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(title))}')" class="btn-clinical-toggle">[BACK_TO_NODE_CONTENT]</button></div>
+                ${renderCommentsHTML(title, data.comments || [])}
+            `;
+        } catch (e) { articleBody.innerHTML = "FAILED_TO_LOAD_DISCUSSION"; }
     }
 
     async function loadRevisionHistory(title) {
@@ -480,6 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mode === 'login' || mode === 'register') await renderAuthForm(mode);
         else if (mode === 'edit') await loadEditor(titleOrId);
         else if (mode === 'history') await loadRevisionHistory(titleOrId);
+        else if (mode === 'comments') await loadCommentsPage(titleOrId);
         else await renderArticle(titleOrId);
         updateAuthUI(); updateSidebarActivity();
     }
