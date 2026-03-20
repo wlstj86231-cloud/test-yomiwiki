@@ -404,6 +404,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             articleBody.innerHTML = `<div style="color:var(--hazard-red);">[CRITICAL_SYSTEM_ERROR]: Handshake failed.</div>`;
             console.error(e);
+        } finally {
+            // Ensure content is visible even on error
+            document.documentElement.classList.remove('is-board-loading');
         }
     }
 

@@ -15,8 +15,8 @@
 <body class="clinical-dark">
     <script>
         // Prevent boot terminal and board content flicker on refresh
-        const path = window.location.pathname;
-        const isBoardUrl = path.includes('/Sector:') || path.includes('/SubSector:') || path.includes('/SubSector_Archive');
+        const path = window.location.pathname.toLowerCase();
+        const isBoardUrl = path.includes('/sector:') || path.includes('/subsector:') || path.includes('/subsector_archive');
         
         if (sessionStorage.getItem('yomi_booted')) {
             document.body.classList.add('already-booted');
