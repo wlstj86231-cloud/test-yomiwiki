@@ -7,10 +7,7 @@
     "db:setup": "wrangler d1 execute yomi-db --remote --file=./schema.sql",
     "backup": "bash tools/backup_database.sh"
   },
-  "dependencies": {},
   "devDependencies": {
-    "wrangler": "latest"
+    "wrangler": "^4.76.0"
   }
 }
-
-

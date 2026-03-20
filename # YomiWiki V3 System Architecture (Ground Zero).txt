@@ -1,0 +1,43 @@
+# YomiWiki V3 Unified Architecture
+
+**타깃:** 미국 오컬트 매니아 (영문판)
+**목표:** 나무위키 아키텍처 기반 + 기밀문서 보관소(Clinical Mode) 다크 테마 위키 커뮤니티
+
+## 1. 프로젝트 청사진 (Project Blueprint)
+인프라 구축과 라우팅 안정화는 완료되었다. 이제부터는 나무위키 수준의 '정보 밀도'와 '커뮤니티 상호작용'을 구현하는 데 집중한다.
+* **Phase 1 (완료):** CF Pages 배포, D1 DB 연동, SPA 라우팅 및 다크 테마 UI 기초 공사.
+* **Phase 2 (위키 엔진 고도화 - 현재 단계):** 자체 위키 파서(문단, 목차, 각주) 및 문서 리비전 시스템 구축.
+* **Phase 3 (커뮤니티 통합):** 단일 문서 하단 댓글 연동, 유저 기여도 및 등급 시스템.
+* **Phase 4 (완료):** 오컬트 특화 인포박스(정보상자), 미디어(이미지) 업로드  및 카테고리 분류.
+
+
+## 2. 맥락노트 (Contextual Notes)
+* **[2026-03-19] 파서 고도화 및 자동화 프로세스 구축:** Parser V2(TOC/스크롤 앵커링) 및 V3(각주) 정밀 재구현 중. 작업 완료 후 깃 자동 푸시 및 실시간 사이트(yomiwiki.com) 반영 확인 프로세스 수립.
+* **디자인 원칙 (Design Preservation Mandate):** 
+    * **[최우선 사항]** 현재의 검은색/주황색 기반 '기밀문서(Clinical Mode)' 디자인 톤앤매너를 절대적으로 유지한다. 
+    * 사용자가 현재 디자인에 매우 만족하고 있으므로, 어떠한 기능 추가나 수정 시에도 레이아웃, 색상, 폰트, interactive feedback 등의 시각적 요소는 현재의 상태를 보존해야 한다. 
+    * 디자인 변경이 필요한 경우 반드시 사용자의 명시적 허가를 받아야 한다.
+
+## 3. 핵심 작업 체크리스트 (Action Items)
+
+1v. 한국, 미국 등 모든 카테고리(Sector) 게시판 화면을 공통으로 그려주는 템플릿(동적 라우터나 컴포넌트) 코드를 열어줘.
+2v. 이 공통 템플릿 코드 안에서, 접속하자마자 문서의 '본문(Protocol)' 내용이 자동으로 화면에 펼쳐지는 코드를 찾아서 완전히 삭제해줘.
+3v. 데이터베이스에서 문서를 불러오는 코드를 찾아서, 사용자가 현재 누른 '해당 카테고리 이름'과 일치하는 문서들만 골라서 가져오도록 조건을 걸어줘.
+4v. 이때 서버 비용을 아끼기 위해 문서의 '본문' 데이터는 절대 가져오지 말고, '제목, 수정자, 수정 시간'만 가볍게 가져오도록 코드를 수정해줘.
+5v. 본문을 지운 빈 공간에 모든 카테고리 게시판에서 공통으로 쓰일 가로로 넓은 표(Table) 틀을 만들어줘.
+6v. 표의 맨 위쪽(제목 줄)을 4칸으로 나누고 각각 '문서', '기능', '수정자', '수정 시간'이라고 적어줘.
+7v. 아까 3번에서 불러온 문서 데이터의 개수만큼 표의 아래쪽에 줄(행)이 자동으로 추가되게 반복문 코드를 짜줘.
+8v. 추가된 줄의 첫 번째 칸에 문서의 '제목'을 띄워줘.
+9v. 그 '제목'을 마우스로 누를 수 있는 링크로 만들고, 누르면 `yomiwiki.com/w/문서제목` 이라는 새로운 주소로 완전히 페이지가 넘어가게 연결해줘. (이동해야만 본문 열람 가능)
+10v. 두 번째 칸에는 '역사'라는 글씨가 적힌 작은 네모 버튼을 만들어줘.
+11v. 세 번째 칸에는 그 문서를 마지막으로 고친 '수정자 이름'이나 'IP 주소'를 띄워줘.
+12v. 네 번째 칸에는 문서가 고쳐진 '시간(예: 방금 전, 10분 전)'을 띄워줘.
+13v. 이 표의 디자인을 요미위키의 주황/검정 해커 터미널 테마에 맞게 CSS로 꾸며서, 모든 국가의 게시판에 똑같은 디자인이 적용되게 해줘.
+
+* RE-VERIFICATION: Fixed global API crashes and unified UI to English for stability. (v2.4.4)
+* ERROR_REPORT: Resolved board list and comment invisibility caused by over-simplification of SQL logic and data mapping. (v2.4.5)
+* ERROR_REPORT: Fixed Handshake failed error by adding comprehensive error handling in frontend and restoring missing backend helper functions. (v2.4.6)
+* ERROR_REPORT: Resolved CRITICAL_SYSTEM_ERROR caused by D1 schema mismatch (missing article_id) by implementing a hybrid fallback query system. (v2.4.7)
+* ERROR_REPORT: Fixed comment posting failure on sub-paths (slashes) by correcting API title extraction logic and preventing 'undefined' metadata display. (v2.4.8)
+* UI_OPTIMIZATION: Restructured header for better navigation flow, optimized search bar aesthetics, reordered sidebar components, and implemented a visible authentication interface. (v2.4.9)
+* ERROR_REPORT: Fixed non-functional login/logout buttons by implementing missing auth forms and updating the SPA router logic to handle auth modes correctly. (v2.5.0)
