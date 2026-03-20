@@ -28,10 +28,16 @@ export async function onRequest(context) {
 
     function normalizeTitle(rawTitle) {
         try {
-            const decoded = decodeURIComponent(rawTitle || "");
+            let decoded = decodeURIComponent(rawTitle || "");
+            // Strip trailing /comments if present in title lookup
+            if (decoded.toLowerCase().endsWith('/comments')) {
+                decoded = decoded.substring(0, decoded.length - 9);
+            }
             return decoded.trim().replace(/\s+/g, '_');
         } catch (e) {
-            return (rawTitle || "").trim().replace(/\s+/g, '_');
+            let res = (rawTitle || "").trim().replace(/\s+/g, '_');
+            if (res.toLowerCase().endsWith('/comments')) res = res.substring(0, res.length - 9);
+            return res;
         }
     }
 

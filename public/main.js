@@ -487,12 +487,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let isCommentsMode = false;
 
         if (path.startsWith('/w/')) {
-            let rawSlug = path.substring(3);
-            if (rawSlug.endsWith('/comments')) {
+            const rawPath = path.substring(3);
+            // Robust detection of /comments at the end, handling potential slashes and encoding
+            if (rawPath.match(/\/comments$/i)) {
                 isCommentsMode = true;
-                rawSlug = rawSlug.substring(0, rawSlug.length - 9);
+                titleOrId = window.slugToTitle(rawPath.replace(/\/comments$/i, ''));
+            } else {
+                titleOrId = window.slugToTitle(rawPath);
             }
-            titleOrId = window.slugToTitle(rawSlug);
         }
 
         if (titleOrId === currentRenderedTitle && !mode && !isCommentsMode) {
