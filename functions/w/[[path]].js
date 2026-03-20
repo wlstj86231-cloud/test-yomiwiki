@@ -33,13 +33,20 @@ export async function onRequest(context) {
             rawContent = results.map(r => r.content).join('');
         }
 
-        // SSR Render: Use very basic replacement for speed, but avoid pre-escaping tags
-        // which will be handled by client-side parser during hydration.
-        let contentHtml = rawContent;
-        // Basic Markdown-ish formatting for initial display (Optional, can just keep raw)
-        contentHtml = contentHtml.replace(/'''(.*?)'''/g, '<b>$1</b>')
-                               .replace(/''(.*?)''/g, '<i>$1</i>')
-                               .replace(/\n/g, '<br>');
+        // SSR Render: Advanced basic parsing
+        let contentHtml = rawContent
+            .replace(/={2,}\s*(.*?)\s*={2,}/g, '<h2 style="color:#ff9900; border-bottom:1px solid #222; padding-bottom:5px;">$1</h2>')
+            .replace(/\[{2}(?:[^|\]]*\|)?([^\]]+)\]{2}/g, '<span style="color:#5bc0de;">$1</span>')
+            .replace(/'''(.*?)'''/g, '<b>$1</b>')
+            .replace(/''(.*?)''/g, '<i>$1</i>')
+            .replace(/\[CLINICAL\]|\[\/CLINICAL\]/gi, '')
+            .replace(/\{\{infobox[\s\S]*?\}\}/gi, '<div style="border:1px solid #444; padding:10px; margin-bottom:10px; font-size:0.8rem; color:#888;">[ARCHIVAL_INFOBOX_ENCRYPTED]</div>')
+            .replace(/\n/g, '<br>');
+
+        // Add board placeholder if it's a sector
+        if (article.title.startsWith('Sector:') || article.title.startsWith('SubSector:')) {
+            contentHtml += '<div style="margin-top:30px; border:1px dashed #333; padding:20px; text-align:center; color:#444; font-family:monospace;">[RETRIVING_SUB_NODE_INDEX...]</div>';
+        }
 
         // 4. Fetch the static index.html as a template
         const templateResponse = await env.ASSETS.fetch(new URL('/', request.url));
