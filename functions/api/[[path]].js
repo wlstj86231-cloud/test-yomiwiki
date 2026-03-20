@@ -104,35 +104,47 @@ export async function onRequest(context) {
         // 1. ARTICLE FETCH
         if (path.startsWith('/article/') && method === "GET" && !path.endsWith('/history') && !path.endsWith('/comments')) {
             const identifier = path.replace('/article/', '');
+            const title = normalizeTitle(identifier);
             const revId = url.searchParams.get('rev');
             const isNumericId = /^\d+$/.test(identifier);
             
-            let article;
-            if (revId) {
-                const title = normalizeTitle(identifier);
-                article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, a.id, a.comments_data FROM revisions r JOIN articles a ON r.article_id = a.id WHERE (a.title = ? OR a.id = ?) AND r.id = ?").bind(title, isNumericId ? parseInt(identifier) : -1, revId).first();
+            // Special Case: SubSector_Archive Hub
+            if (title === 'SubSector_Archive') {
+                const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE 'SubSector:%' AND title NOT LIKE '%/%' AND is_deleted = 0 ORDER BY updated_at DESC").all();
+                resData = {
+                    title: 'SUB-SECTOR ARCHIVE [DATABASE_UPLINK]',
+                    current_content: '== ACCESSING_ALL_USER_GENERATED_SECTORS ==\nBelow is a list of all active sub-sector archival nodes managed by agents.',
+                    author: 'Archive_System',
+                    updated_at: new Date().toISOString(),
+                    sub_articles: results,
+                    is_hub: true
+                };
             } else {
-                if (isNumericId) article = await env.DB.prepare("SELECT * FROM articles WHERE id = ?").bind(parseInt(identifier)).first();
-                else article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(normalizeTitle(identifier)).first();
-            }
+                let article;
+                if (revId) {
+                    article = await env.DB.prepare("SELECT a.title, r.content_snapshot as current_content, r.editor_info as author, r.timestamp as updated_at, a.id, a.comments_data FROM revisions r JOIN articles a ON r.article_id = a.id WHERE (a.title = ? OR a.id = ?) AND r.id = ?").bind(title, isNumericId ? parseInt(identifier) : -1, revId).first();
+                } else {
+                    if (isNumericId) article = await env.DB.prepare("SELECT * FROM articles WHERE id = ?").bind(parseInt(identifier)).first();
+                    else article = await env.DB.prepare("SELECT * FROM articles WHERE title = ?").bind(title).first();
+                }
 
-            if (!article) {
-                status = 404; resData = { error: "RECORD_NOT_FOUND", title: identifier };
-            } else {
-                let comments = [];
-                try {
-                    comments = JSON.parse(article.comments_data || '[]');
-                } catch (e) {
-                    console.error("COMMENT_PARSE_ERROR", e);
-                    comments = [];
+                if (!article) {
+                    status = 404; resData = { error: "RECORD_NOT_FOUND", title: identifier };
+                } else {
+                    let comments = [];
+                    try {
+                        comments = JSON.parse(article.comments_data || '[]');
+                    } catch (e) { comments = []; }
+                    
+                    let subArticles = [];
+                    const isBoard = (article.title.startsWith('Sector:') || article.title.startsWith('SubSector:')) && !article.title.split(':').pop().includes('/');
+                    
+                    if (isBoard) {
+                        const { results } = await env.DB.prepare("SELECT id, title, author, updated_at, classification FROM articles WHERE title LIKE ? AND title != ? AND is_deleted = 0 ORDER BY CASE WHEN classification = 'NOTICE' THEN 0 ELSE 1 END, updated_at DESC").bind(`${article.title}/%`, article.title).all();
+                        subArticles = results;
+                    }
+                    resData = { ...article, comments, sub_articles: subArticles };
                 }
-                
-                let subArticles = [];
-                if (article.title.startsWith('Sector:') && !article.title.substring(7).includes('/')) {
-                    const { results } = await env.DB.prepare("SELECT id, title, author, updated_at, classification FROM articles WHERE title LIKE ? AND title != ? AND is_deleted = 0 ORDER BY CASE WHEN classification = 'NOTICE' THEN 0 ELSE 1 END, updated_at DESC").bind(`${article.title}/%`, article.title).all();
-                    subArticles = results;
-                }
-                resData = { ...article, comments, sub_articles: subArticles };
             }
         }
 

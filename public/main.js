@@ -276,35 +276,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const isBoard = data.title && data.title.startsWith('Sector:') && !data.title.substring(7).includes('/');
+            // Board Detection Logic (Sector, SubSector, or Hub)
+            const isBoard = (data.title.startsWith('Sector:') || data.title.startsWith('SubSector:')) && !data.title.split(':').pop().includes('/');
+            const isHub = data.is_hub === true;
+            
             const displayTitle = (data.title || title).split('/').pop();
             mainTitle.textContent = displayTitle;
-            const purgeBtn = (currentUser?.role === 'admin' && !isBoard) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
+            const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
             // Assemble Output
             let boardHtml = "";
-            if (isBoard && !revId) {
+            if ((isBoard || isHub) && !revId) {
                 const subNodes = data.sub_articles || [];
                 const sectorName = data.title.split(':').pop();
                 
-                // Admin-only notice creation button
-                const adminNoticeBtn = currentUser?.role === 'admin' ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
+                // Admin-only notice creation button (Hidden on Hub)
+                const adminNoticeBtn = (currentUser?.role === 'admin' && !isHub) ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
                 
+                const tableTitle = isHub ? "[ACTIVE_SUB_SECTOR_CHANNELS]" : `[SUB_ARCHIVE_NODES: ${escapeHTML(sectorName)}]`;
+                const createBtn = isHub ? "" : `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>`;
+
                 boardHtml = `
                     <div style="margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">[SUB_ARCHIVE_NODES: ${escapeHTML(sectorName)}]</h3>
+                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">${tableTitle}</h3>
                         <div>
-                            <button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>
+                            ${createBtn}
                             ${adminNoticeBtn}
                         </div>
                     </div>
                     <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
                         <thead>
                             <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
-                                <th style="padding:10px; color:var(--accent-orange);">NODE</th>
+                                <th style="padding:10px; color:var(--accent-orange);">${isHub ? 'SECTOR_ID' : 'NODE'}</th>
                                 <th style="padding:10px; color:var(--accent-orange); text-align:center;">ACTION</th>
                                 <th style="padding:10px; color:var(--accent-orange);">AGENT</th>
                                 <th style="padding:10px; color:var(--accent-orange); text-align:right;">TIMESTAMP</th>
@@ -319,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 
                                 return `
                                 <tr style="border-bottom:1px solid #111; background:${rowBg};">
-                                    <td style="padding:10px;">${noticeTag}<a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:${isNotice ? 'var(--hazard-red)' : 'var(--accent-cyan)'}; font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
+                                    <td style="padding:10px;">${noticeTag}<a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:${isNotice ? 'var(--hazard-red)' : 'var(--accent-cyan)'}; font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split(':').pop())}</a></td>
                                     <td style="padding:10px; text-align:center;">
                                         <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a>
                                         ${adminActions}
@@ -328,11 +334,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
                                 </tr>
                                 `;
-                            }).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_SUB_NODES]</td></tr>'}
+                            }).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_ACTIVE_CHANNELS]</td></tr>'}
                         </tbody>
                     </table>
                 `;
-                contentHtml = ""; 
+                contentHtml = isHub ? contentHtml : ""; 
             }
 
             const commentsHtml = (isBoard && !revId) ? "" : renderCommentsHTML(data.title, data.comments || []);
@@ -420,8 +426,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.establishNewSector = () => {
-        const name = prompt("Enter new SECTOR designation (e.g. Paranormal_Activity):");
-        if (name) window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug("Sector:" + name))}`);
+        const name = prompt("Enter new SUB-SECTOR designation (e.g. Occult_Arts):");
+        if (name) window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug("SubSector:" + name))}`);
     };
 
     window.toggleClinicalMode = () => {
