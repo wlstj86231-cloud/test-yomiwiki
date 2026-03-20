@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    window.titleToSlug = (title) => (title || "").trim().replace(/\s+/g, '_');
-    window.slugToTitle = (slug) => (slug || "").replace(/_/g, ' ');
+    window.titleToSlug = (title) => (title || "").trim(); // Don't force underscore conversion, let URL encoding handle it
+    window.slugToTitle = (slug) => decodeURIComponent(slug || "");
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
         const date = new Date(dateStr);
@@ -466,7 +466,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const mode = urlParams.get('mode');
         if (path === '/admin') { await loadAdminDashboard(); updateAuthUI(); updateSidebarActivity(); return; }
         let titleOrId = "Main_Page";
-        if (path.startsWith('/w/')) titleOrId = window.slugToTitle(path.substring(3));
+        if (path.startsWith('/w/')) {
+            const rawSlug = path.substring(3);
+            titleOrId = window.slugToTitle(rawSlug);
+        }
         if (titleOrId === currentRenderedTitle && !mode) {
             if (window.location.hash) {
                 const el = document.getElementById(decodeURIComponent(window.location.hash.substring(1)));
