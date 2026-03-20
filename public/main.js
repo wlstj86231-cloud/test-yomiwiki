@@ -267,7 +267,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const revId = urlParams.get('rev');
         const slug = window.titleToSlug(title);
 
-        articleBody.innerHTML = '<div class="loading">[DECRYPTING...]</div>';
+        // --- [PREVENT LOADING FLICKER] ---
+        // If content already exists (from SSR) and it's the first render, don't show loading
+        const isInitialHydration = articleBody.children.length > 0 && !articleBody.querySelector('.loading-text');
+        if (!isInitialHydration) {
+            articleBody.innerHTML = '<div class="loading">[DECRYPTING...]</div>';
+        }
 
         try {
             const url = revId ? `${API_ENDPOINT}/article/${encodeURIComponent(slug)}?rev=${revId}` : `${API_ENDPOINT}/article/${encodeURIComponent(slug)}`;

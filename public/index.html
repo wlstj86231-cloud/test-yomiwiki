@@ -13,6 +13,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body class="clinical-dark">
+    <script>
+        // Prevent boot terminal flicker on refresh
+        if (sessionStorage.getItem('yomi_booted')) {
+            document.body.classList.add('already-booted');
+        }
+    </script>
     <div class="scanlines"></div>
     <div id="boot-terminal" class="boot-terminal">
         <div class="terminal-output">
