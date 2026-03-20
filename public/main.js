@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    window.titleToSlug = (title) => (title || "").trim(); // Don't force underscore conversion, let URL encoding handle it
+    window.titleToSlug = (title) => (title || "").trim();
     window.slugToTitle = (slug) => decodeURIComponent(slug || "");
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         headers['X-Yomi-Request'] = 'true';
         if (options.body instanceof FormData) {
-            // Let browser set boundary for multipart
         } else if (options.body) {
             headers['Content-Type'] = 'application/json';
         }
@@ -125,7 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
-        
         const urlParams = new URLSearchParams(window.location.search);
         const revId = urlParams.get('rev');
         const slug = window.titleToSlug(title);
@@ -164,10 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             const editBtn = (isOfficial && !isBoard && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:10px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
-            const discussBtn = (!isHub) ? `<a href="/discuss/${encodeURIComponent(window.titleToSlug(data.title))}" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[DISCUSSION]</a>` : "";
 
             if (isBoard || isHub) metaText.innerHTML = "";
-            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${discussBtn} ${historyBtn} ${purgeBtn}`;
+            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${historyBtn} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
@@ -192,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             } else if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
+                const sectorName = data.title.split(':').pop();
                 const themeColor = isSubSector ? 'var(--accent-cyan)' : 'var(--accent-orange)';
                 const adminNoticeBtn = (currentUser?.role === 'admin') ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
                 const createBtn = `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">${isSubSector ? '[+ NEW_POST]' : '[NEW_NODE]'}</button>`;
@@ -245,23 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const antiFlicker = document.getElementById('anti-flicker');
             if (antiFlicker) antiFlicker.remove();
         }
-    }
-
-    async function loadCommentsPage(title) {
-        const mainTitle = document.getElementById('article-title');
-        const articleBody = document.querySelector('.article-body');
-        const metaText = document.querySelector('.article-meta');
-        mainTitle.textContent = `DISCUSSION: ${title}`;
-        metaText.textContent = "COMM_STREAM_OPEN";
-        articleBody.innerHTML = '<div class="loading">[CONNECTING_TO_COMMS...]</div>';
-        try {
-            const res = await fetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}`);
-            const data = await res.json();
-            articleBody.innerHTML = `
-                <div style="margin-bottom:20px;"><button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(title))}')" class="btn-clinical-toggle">[BACK_TO_NODE_CONTENT]</button></div>
-                ${renderCommentsHTML(title, data.comments || [])}
-            `;
-        } catch (e) { articleBody.innerHTML = "FAILED_TO_LOAD_DISCUSSION"; }
     }
 
     async function loadRevisionHistory(title) {
@@ -352,7 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-family:var(--font-mono); font-size:0.7rem; color:#333; text-align:center;">TIP: Drag & Drop images anywhere. Use Edit Summary for history tracking.</div>
                 </div>`;
             
-            // Re-attach D&D
             const tx = document.getElementById('editor-text');
             const cnt = tx.parentElement;
             tx.parentElement.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
@@ -484,27 +464,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const mode = urlParams.get('mode');
         if (path === '/admin') { await loadAdminDashboard(); updateAuthUI(); updateSidebarActivity(); return; }
         let titleOrId = "Main_Page";
-        let isCommentsMode = false;
-
         if (path.startsWith('/w/')) {
             titleOrId = window.slugToTitle(path.substring(3));
-        } else if (path.startsWith('/discuss/')) {
-            isCommentsMode = true;
-            titleOrId = window.slugToTitle(path.substring(9));
         }
-
-        if (titleOrId === currentRenderedTitle && !mode && !isCommentsMode) {
+        if (titleOrId === currentRenderedTitle && !mode) {
             if (window.location.hash) {
                 const el = document.getElementById(decodeURIComponent(window.location.hash.substring(1)));
                 if (el) { el.scrollIntoView({ behavior: 'smooth' }); return; }
             }
         }
         currentRenderedTitle = titleOrId;
-
         if (mode === 'login' || mode === 'register') await renderAuthForm(mode);
         else if (mode === 'edit') await loadEditor(titleOrId);
         else if (mode === 'history') await loadRevisionHistory(titleOrId);
-        else if (isCommentsMode) await loadCommentsPage(titleOrId);
         else await renderArticle(titleOrId);
         updateAuthUI(); updateSidebarActivity();
     }
