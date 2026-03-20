@@ -277,8 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Board Detection Logic (Sector, SubSector, or Hub)
-            const isBoard = (data.title.startsWith('Sector:') || data.title.startsWith('SubSector:')) && !data.title.split(':').pop().includes('/');
+            const isSubSector = data.title.startsWith('SubSector:');
+            const isBoard = (data.title.startsWith('Sector:') || isSubSector) && !data.title.split(':').pop().includes('/');
             const isHub = data.is_hub === true;
+
+            // Apply Theme based on type
+            if (isSubSector || isHub) document.body.classList.add('theme-subsector');
+            else document.body.classList.remove('theme-subsector');
             
             const displayTitle = (data.title || title).split('/').pop();
             mainTitle.textContent = displayTitle;
@@ -289,19 +294,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Assemble Output
             let boardHtml = "";
-            if ((isBoard || isHub) && !revId) {
+            if (isHub && !revId) {
+                // Different UI for Hub: Cards instead of Table
+                const subNodes = data.sub_articles || [];
+                boardHtml = `
+                    <div style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+                        ${subNodes.map(sub => `
+                            <div class="channel-card">
+                                <div style="display:flex; align-items:center;">
+                                    <span class="channel-badge">CHANNEL</span>
+                                    <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:900; font-size:1.1rem; text-decoration:none;">
+                                        # ${escapeHTML(sub.title.split(':').pop())}
+                                    </a>
+                                </div>
+                                <div style="text-align:right; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-dim);">
+                                    AGENT: ${escapeHTML(sub.author)} | ${window.timeAgo(sub.updated_at)}
+                                </div>
+                            </div>
+                        `).join('') || '<div style="opacity:0.3; padding:40px; text-align:center;">[NO_ACTIVE_CHANNELS_DETECTED]</div>'}
+                    </div>
+                `;
+                contentHtml = contentHtml; // Show hub description
+            } else if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
                 const sectorName = data.title.split(':').pop();
                 
-                // Admin-only notice creation button (Hidden on Hub)
-                const adminNoticeBtn = (currentUser?.role === 'admin' && !isHub) ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
-                
-                const tableTitle = isHub ? "[ACTIVE_SUB_SECTOR_CHANNELS]" : `[SUB_ARCHIVE_NODES: ${escapeHTML(sectorName)}]`;
-                const createBtn = isHub ? "" : `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>`;
+                const themeColor = isSubSector ? 'var(--accent-cyan)' : 'var(--accent-orange)';
+                const adminNoticeBtn = (currentUser?.role === 'admin') ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
+                const tableTitle = `[SUB_ARCHIVE_NODES: ${escapeHTML(sectorName)}]`;
+                const createBtn = `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">${isSubSector ? '[+ NEW_POST]' : '[NEW_NODE]'}</button>`;
 
                 boardHtml = `
                     <div style="margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:var(--accent-orange); margin:0;">${tableTitle}</h3>
+                        <h3 class="sub-nodes-title" style="font-family:var(--font-mono); color:${themeColor}; margin:0;">${tableTitle}</h3>
                         <div>
                             ${createBtn}
                             ${adminNoticeBtn}
@@ -310,10 +335,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
                         <thead>
                             <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
-                                <th style="padding:10px; color:var(--accent-orange);">${isHub ? 'SECTOR_ID' : 'NODE'}</th>
-                                <th style="padding:10px; color:var(--accent-orange); text-align:center;">ACTION</th>
-                                <th style="padding:10px; color:var(--accent-orange);">AGENT</th>
-                                <th style="padding:10px; color:var(--accent-orange); text-align:right;">TIMESTAMP</th>
+                                <th style="padding:10px; color:${themeColor};">NODE</th>
+                                <th style="padding:10px; color:${themeColor}; text-align:center;">ACTION</th>
+                                <th style="padding:10px; color:${themeColor};">AGENT</th>
+                                <th style="padding:10px; color:${themeColor}; text-align:right;">TIMESTAMP</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -322,10 +347,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const noticeTag = isNotice ? `<span style="background:var(--hazard-red); color:#000; padding:1px 4px; font-size:0.6rem; margin-right:5px; font-weight:bold;">[NOTICE]</span>` : "";
                                 const rowBg = isNotice ? "rgba(255, 60, 60, 0.05)" : "transparent";
                                 const adminActions = currentUser?.role === 'admin' ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(sub.title)}', true)" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.6rem; margin-left:5px;">[PURGE]</button>` : "";
+                                const linkColor = isNotice ? 'var(--hazard-red)' : (isSubSector ? 'var(--accent-cyan)' : 'var(--accent-cyan)');
                                 
                                 return `
                                 <tr style="border-bottom:1px solid #111; background:${rowBg};">
-                                    <td style="padding:10px;">${noticeTag}<a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:${isNotice ? 'var(--hazard-red)' : 'var(--accent-cyan)'}; font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split(':').pop())}</a></td>
+                                    <td style="padding:10px;">${noticeTag}<a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:${linkColor}; font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
                                     <td style="padding:10px; text-align:center;">
                                         <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a>
                                         ${adminActions}
@@ -338,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </tbody>
                     </table>
                 `;
-                contentHtml = isHub ? contentHtml : ""; 
+                contentHtml = ""; 
             }
 
             const commentsHtml = (isBoard && !revId) ? "" : renderCommentsHTML(data.title, data.comments || []);
