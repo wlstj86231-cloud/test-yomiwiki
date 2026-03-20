@@ -150,10 +150,10 @@ export async function onRequest(context) {
                 FROM revisions r 
                 JOIN articles a ON r.article_id = a.id
                 UNION ALL
-                SELECT 'comment' as type, title, last_comment_at as timestamp, 'User' as author
-                FROM articles
-                WHERE last_comment_at IS NOT NULL
-                ORDER BY timestamp DESC LIMIT 20
+                SELECT 'comment' as type, article_title as title, timestamp, sender as author
+                FROM notifications
+                WHERE type = 'comment'
+                ORDER BY timestamp DESC LIMIT 30
             `).all();
             resData = results;
         }
@@ -186,7 +186,11 @@ export async function onRequest(context) {
                 };
                 comments.push(newComment);
 
-                await env.DB.prepare("UPDATE articles SET comments_data = ?, last_comment_at = CURRENT_TIMESTAMP WHERE id = ?").bind(JSON.stringify(comments), article.id).run();
+                const batch = [
+                    env.DB.prepare("UPDATE articles SET comments_data = ?, last_comment_at = CURRENT_TIMESTAMP WHERE id = ?").bind(JSON.stringify(comments), article.id),
+                    env.DB.prepare("INSERT INTO notifications (target_user, type, sender, article_title, message) VALUES (?, ?, ?, ?, ?)").bind('GLOBAL', 'comment', user ? user.username : 'Anonymous_Agent', article.title, content.substring(0, 50))
+                ];
+                await env.DB.batch(batch);
                 resData = { success: true };
             } else { status = 404; resData = { error: "NODE_NOT_FOUND" }; }
         }
