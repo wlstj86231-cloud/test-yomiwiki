@@ -15,7 +15,8 @@
 <body class="clinical-dark">
     <script>
         // Prevent boot terminal and board content flicker on refresh
-        const path = window.location.pathname.toLowerCase();
+        // Decode URL to handle encoded characters (like %3A for :)
+        const path = decodeURIComponent(window.location.pathname).toLowerCase();
         const isBoardUrl = path.includes('/sector:') || path.includes('/subsector:') || path.includes('/subsector_archive');
         
         if (sessionStorage.getItem('yomi_booted')) {
