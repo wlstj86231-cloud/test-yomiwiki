@@ -35,20 +35,55 @@ export async function onRequest(context) {
         }
     }
 
-    async function hashPassword(password) {
+    async function hashPassword(password, salt) {
         const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const saltData = encoder.encode(salt || "");
+        const passwordData = encoder.encode(password);
+        const combined = new Uint8Array(saltData.length + passwordData.length);
+        combined.set(saltData);
+        combined.set(passwordData, saltData.length);
+        
+        const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    async function verifySession(token) {
+    async function signJWT(payload, secret) {
+        const encoder = new TextEncoder();
+        const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+        const payloadStr = btoa(JSON.stringify(payload));
+        const data = encoder.encode(`${header}.${payloadStr}`);
+        
+        const key = await crypto.subtle.importKey(
+            "raw", encoder.encode(secret || "YOMI_FALLBACK_SECRET"),
+            { name: "HMAC", hash: "SHA-256" },
+            false, ["sign"]
+        );
+        const signature = await crypto.subtle.sign("HMAC", key, data);
+        const signatureStr = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/=/g, "");
+        return `${header}.${payloadStr}.${signatureStr}`;
+    }
+
+    async function verifySession(token, secret) {
         if (!token) return null;
         try {
             const parts = token.split('.');
-            if (parts.length !== 2) return null;
-            const payload = JSON.parse(atob(parts[0]));
-            // In a real app, verify the signature here
+            if (parts.length !== 3) return null;
+            
+            const encoder = new TextEncoder();
+            const data = encoder.encode(`${parts[0]}.${parts[1]}`);
+            const signature = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+            
+            const key = await crypto.subtle.importKey(
+                "raw", encoder.encode(secret || "YOMI_FALLBACK_SECRET"),
+                { name: "HMAC", hash: "SHA-256" },
+                false, ["verify"]
+            );
+            
+            const isValid = await crypto.subtle.verify("HMAC", key, signature, data);
+            if (!isValid) return null;
+
+            const payload = JSON.parse(atob(parts[1]));
+            if (payload.exp && Date.now() > payload.exp) return null;
             return payload;
         } catch (e) { return null; }
     }
@@ -64,7 +99,7 @@ export async function onRequest(context) {
         // AUTH CHECK FOR WRITE OPERATIONS
         const authHeader = request.headers.get("Authorization");
         const token = authHeader ? authHeader.split(' ')[1] : null;
-        const user = await verifySession(token);
+        const user = await verifySession(token, env.JWT_SECRET);
 
         // 1. ARTICLE FETCH
         if (path.startsWith('/article/') && method === "GET" && !path.endsWith('/history') && !path.endsWith('/comments')) {
@@ -131,7 +166,7 @@ export async function onRequest(context) {
 
         // 5. POST COMMENT (Integrated JSON Storage)
         else if (path.startsWith('/article/') && path.endsWith('/comments') && method === "POST") {
-            const titlePart = path.replace('/article/', '').replace('/comments', '');
+            const titlePart = path.replace(/^\/article\//, '').replace(/\/comments$/, '');
             const title = normalizeTitle(titlePart);
             const { content, parent_id } = await request.json();
             
@@ -161,7 +196,7 @@ export async function onRequest(context) {
             if (!user) {
                 return new Response(JSON.stringify({ error: "UNAUTHORIZED_CLEARANCE_REQUIRED" }), { status: 401, headers: securityHeaders });
             }
-            const title = normalizeTitle(path.replace('/article/', ''));
+            const title = normalizeTitle(path.replace(/^\/article\//, ''));
             const { content } = await request.json();
             const batch = [
                 env.DB.prepare("INSERT INTO articles (title, current_content, author) VALUES (?, ?, ?) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content, updated_at=CURRENT_TIMESTAMP, author=excluded.author").bind(title, content, user.username),
@@ -186,10 +221,11 @@ export async function onRequest(context) {
                     if (existing) {
                         status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
                     } else {
-                        const passHash = await hashPassword(password);
-                        await env.DB.prepare("INSERT INTO users (username, password_hash, role, registration_ip) VALUES (?, ?, 'viewer', ?)").bind(username, passHash, clientIP).run();
+                        const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+                        const passHash = await hashPassword(password, salt);
+                        await env.DB.prepare("INSERT INTO users (username, password_hash, salt, role, registration_ip) VALUES (?, ?, ?, 'viewer', ?)").bind(username, passHash, salt, clientIP).run();
                         const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
-                        const tokenStr = btoa(JSON.stringify(payload)) + ".signature";
+                        const tokenStr = await signJWT(payload, env.JWT_SECRET);
                         resData = { success: true, username, token: tokenStr, role: 'viewer' };
                     }
                 }
@@ -199,10 +235,10 @@ export async function onRequest(context) {
                 if (!userRec) {
                     status = 404; resData = { error: "IDENTIFIER_NOT_FOUND" };
                 } else {
-                    const passHash = await hashPassword(password);
+                    const passHash = await hashPassword(password, userRec.salt);
                     if (userRec.password_hash === passHash) {
                         const payload = { username: userRec.username, role: userRec.role, exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
-                        const tokenStr = btoa(JSON.stringify(payload)) + ".signature";
+                        const tokenStr = await signJWT(payload, env.JWT_SECRET);
                         resData = { success: true, username: userRec.username, token: tokenStr, role: userRec.role };
                     } else {
                         status = 401; resData = { error: "PASSWORD_MISMATCH" };
@@ -285,9 +321,11 @@ export async function onRequest(context) {
         // 11.1 ADMIN: DELETE COMMENT
         else if (path.includes('/comments/') && method === "DELETE") {
             if (user?.role !== 'admin') return new Response(JSON.stringify({ error: "UNAUTHORIZED" }), { status: 403, headers: securityHeaders });
-            const parts = path.split('/');
-            const titlePart = parts[2];
-            const commentId = parts[4];
+            const match = path.match(/^\/article\/(.+?)\/comments\/(.+)$/);
+            if (!match) return new Response(JSON.stringify({ error: "INVALID_PATH" }), { status: 400, headers: securityHeaders });
+            
+            const titlePart = match[1];
+            const commentId = match[2];
             const title = normalizeTitle(titlePart);
 
             const article = await env.DB.prepare("SELECT id, comments_data FROM articles WHERE title = ?").bind(title).first();
@@ -313,6 +351,11 @@ export async function onRequest(context) {
 
                 if (!env.ASSETS_BUCKET) {
                     return new Response(JSON.stringify({ error: "R2_BUCKET_NOT_BOUND", message: "Storage system is not configured." }), { status: 500, headers: securityHeaders });
+                }
+
+                // Security: Force Image Content-Type
+                if (!file.type.startsWith('image/')) {
+                    return new Response(JSON.stringify({ error: "UNAUTHORIZED_FILE_TYPE", message: "Only archival images are permitted." }), { status: 403, headers: securityHeaders });
                 }
 
                 const fileName = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;

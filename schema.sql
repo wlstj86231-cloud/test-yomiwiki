@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE,
     password_hash TEXT NOT NULL,
+    salt TEXT, -- Added for cryptographic salting (v3.1)
     role TEXT CHECK(role IN ('admin', 'editor', 'viewer')) DEFAULT 'viewer',
     registration_ip TEXT, -- Added to restrict one account per IP
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP

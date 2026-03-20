@@ -13,6 +13,10 @@ export async function onRequest(context) {
     const underscoreTitle = title.replace(/ /g, '_');
 
     try {
+        function escapeHTML(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
         // 2. Fetch Data from D1
         // Search both with space and underscore for compatibility
         const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ? OR title = ?").bind(title, underscoreTitle).first();
@@ -23,13 +27,16 @@ export async function onRequest(context) {
         }
 
         // 3. Simple Server-Side Parser (Basic markdown-ish to HTML)
-        let contentHtml = article.current_content;
+        let rawContent = article.current_content;
         if (article.is_chunked) {
             const { results } = await env.DB.prepare("SELECT content FROM article_chunks WHERE article_id = ? ORDER BY chunk_order ASC").bind(article.id).all();
-            contentHtml = results.map(r => r.content).join('');
+            rawContent = results.map(r => r.content).join('');
         }
 
-        // Extremely basic text formatting for SSR (CSR main.js will re-parse properly)
+        // Security: Escape all HTML first
+        let contentHtml = escapeHTML(rawContent);
+
+        // Then apply extremely basic text formatting for SSR
         contentHtml = contentHtml.replace(/'''(.*?)'''/g, '<b>$1</b>')
                                .replace(/''(.*?)''/g, '<i>$1</i>')
                                .replace(/\n/g, '<br>');
