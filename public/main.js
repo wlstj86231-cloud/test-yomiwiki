@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div id="integrated-discussion" style="margin-top:20px; border-top:1px solid #222; padding-top:20px;">
                 <div class="comment-list">${rootComments.map((c, i) => buildCommentItem(c, `#${i + 1}`)).join('') || '<div style="opacity:0.3; padding:20px; text-align:center;">[SIGNAL_QUIET]</div>'}</div>
                 <div style="margin-top:20px; background:#050505; border:1px solid #111; padding:15px;">
-                    <textarea id="new-comment-content" placeholder="Initiate transmission..." style="width:100%; height:60px; background:#000; border:1px solid #222; color:#0f0; padding:10px; font-family:var(--font-mono); outline:none;"></textarea>
+                    <textarea id="new-comment-content" placeholder="Initiate transmission..." class="comment-input"></textarea>
                     <div style="margin-top:10px; display:flex; justify-content:flex-end;">
                         <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" id="transmit-btn">[TRANSMIT]</button>
                     </div>

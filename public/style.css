@@ -910,3 +910,29 @@ html, body {
     margin: 0 2px;
 }
 .footnote-link:hover { color: var(--accent-orange); }
+
+/* --- [Comment Input Styling] --- */
+.comment-input {
+    width: 100%;
+    height: 80px;
+    background: #000;
+    border: 1px solid var(--border-color);
+    color: var(--text-main); /* 차분한 연회색 */
+    caret-color: var(--accent-orange); /* 깜빡이는 커서는 오렌지색 포인트 */
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.comment-input:focus {
+    border-color: var(--accent-orange-dim);
+    box-shadow: 0 0 10px rgba(255, 153, 0, 0.1);
+}
+
+.comment-input::placeholder {
+    color: var(--text-dim);
+    opacity: 0.5;
+}
