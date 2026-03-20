@@ -112,7 +112,7 @@ export async function onRequest(context) {
             if (title === 'SubSector_Archive') {
                 const { results } = await env.DB.prepare("SELECT id, title, author, updated_at FROM articles WHERE title LIKE 'SubSector:%' AND title NOT LIKE '%/%' AND is_deleted = 0 ORDER BY updated_at DESC").all();
                 resData = {
-                    title: 'SUB-SECTOR ARCHIVE [DATABASE_UPLINK]',
+                    title: 'SUB-SECTOR ARCHIVE',
                     current_content: '== ACCESSING_ALL_USER_GENERATED_SECTORS ==\nBelow is a list of all active sub-sector archival nodes managed by agents.',
                     author: 'Archive_System',
                     updated_at: new Date().toISOString(),

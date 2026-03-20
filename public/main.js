@@ -288,7 +288,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const displayTitle = (data.title || title).split('/').pop();
             mainTitle.textContent = displayTitle;
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
-            metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${purgeBtn}`;
+            
+            // Hide meta metadata for boards and hub
+            if (isBoard || isHub) metaText.innerHTML = "";
+            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
