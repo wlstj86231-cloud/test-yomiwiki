@@ -807,6 +807,13 @@ html, body {
 .boot-terminal.fade-out { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
 body.already-booted .boot-terminal { display: none !important; }
 
+/* Board Loading Flicker Prevention */
+html.is-board-loading .article-body,
+html.is-board-loading .article-meta {
+    visibility: hidden;
+    opacity: 0;
+}
+
 .footer { background: var(--bg-sidebar); border-top: 1px solid var(--border-color); padding: 2rem; text-align: center; font-size: 0.95rem; color: var(--text-dim); }
 .btn-floating { 
     position: fixed; 

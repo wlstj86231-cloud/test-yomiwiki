@@ -387,6 +387,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const commentsHtml = (isBoard && !revId) ? "" : renderCommentsHTML(data.title, data.comments || []);
             articleBody.innerHTML = contentHtml + boardHtml + commentsHtml;
             
+            // --- [POST-RENDER CLEANUP] ---
+            document.documentElement.classList.remove('is-board-loading');
+            
             // --- [SCROLL HANDLING] ---
             if (window.location.hash) {
                 const targetId = decodeURIComponent(window.location.hash.substring(1));
