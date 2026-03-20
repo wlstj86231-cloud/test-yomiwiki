@@ -14,17 +14,21 @@
 </head>
 <body class="clinical-dark">
     <script>
-        // Prevent boot terminal and board content flicker on refresh
-        // Decode URL to handle encoded characters (like %3A for :)
-        const path = decodeURIComponent(window.location.pathname).toLowerCase();
-        const isBoardUrl = path.includes('/sector:') || path.includes('/subsector:') || path.includes('/subsector_archive');
-        
-        if (sessionStorage.getItem('yomi_booted')) {
-            document.body.classList.add('already-booted');
-        }
-        if (isBoardUrl) {
-            document.documentElement.classList.add('is-board-loading');
-        }
+        // [ULTIMATE_FLICKER_PREVENTION]
+        // This is executed as early as possible to prevent ANY rendering of board metadata/content before JS is ready.
+        (function() {
+            const path = decodeURIComponent(window.location.pathname).toLowerCase();
+            const isBoard = path.includes('/sector:') || path.includes('/subsector:') || path.includes('/subsector_archive');
+            
+            if (sessionStorage.getItem('yomi_booted')) {
+                document.documentElement.classList.add('already-booted');
+            }
+            if (isBoard) {
+                document.documentElement.classList.add('is-board-loading');
+                // Force immediate hidden state via style injection to bypass rendering race conditions
+                document.write('<style id="anti-flicker">.article-body, .article-meta { visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }</style>');
+            }
+        })();
     </script>
     <div class="scanlines"></div>
     <div id="boot-terminal" class="boot-terminal">

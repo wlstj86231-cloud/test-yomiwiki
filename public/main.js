@@ -407,6 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             // Ensure content is visible even on error
             document.documentElement.classList.remove('is-board-loading');
+            const antiFlicker = document.getElementById('anti-flicker');
+            if (antiFlicker) antiFlicker.remove();
         }
     }
 
