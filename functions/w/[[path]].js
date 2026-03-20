@@ -33,10 +33,10 @@ export async function onRequest(context) {
             rawContent = results.map(r => r.content).join('');
         }
 
-        // Security: Escape all HTML first
-        let contentHtml = escapeHTML(rawContent);
-
-        // Then apply extremely basic text formatting for SSR
+        // SSR Render: Use very basic replacement for speed, but avoid pre-escaping tags
+        // which will be handled by client-side parser during hydration.
+        let contentHtml = rawContent;
+        // Basic Markdown-ish formatting for initial display (Optional, can just keep raw)
         contentHtml = contentHtml.replace(/'''(.*?)'''/g, '<b>$1</b>')
                                .replace(/''(.*?)''/g, '<i>$1</i>')
                                .replace(/\n/g, '<br>');
@@ -47,12 +47,12 @@ export async function onRequest(context) {
 
         // 5. Injection (Match exactly with index.html tags)
         // Strip HTML tags and wiki markup for a clean description
-        const plainContent = article.current_content
+        const plainContent = (article.current_content || "")
             .replace(/<[^>]*>/g, '') // Strip HTML tags
             .replace(/[\[\]{}|*]/g, '') // Strip wiki symbols
             .substring(0, 160)
             .trim();
-        const description = `${plainContent}... [AUTHORIZED_CLEARANCE_REQUIRED]`;
+        const description = `${escapeHTML(plainContent)}... [AUTHORIZED_CLEARANCE_REQUIRED]`;
         const ogTags = `
             <meta name="description" content="${description}">
             <meta property="og:title" content="${article.title} | YomiWiki Archival Node">

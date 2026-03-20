@@ -82,19 +82,26 @@ function wikiParse(content) {
     // --- 1.1 Safe HTML Extraction (SCP Style Support) ---
     // Extract full tags like <div ...> or </div>
     const safeTagsRegex = /<(?!\/)(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)\b([^>]*)>|<\/(div|span|ul|ol|li|b|i|strong|em|aside|table|thead|tbody|tr|th|td|hr|br|img)>/gi;
-    content = content.replace(safeTagsRegex, (match, openTag, attrs) => {
-        if (!openTag) return match; // Closing tag
+    content = content.replace(safeTagsRegex, (match, openTag, attrs, closeTag) => {
+        const tagName = openTag || closeTag;
+        if (!tagName) return match;
         
-        // Security: Filter attributes
-        let filteredAttrs = "";
-        if (attrs) {
-            // Remove on* event handlers and javascript: protocols
-            filteredAttrs = attrs.replace(/\bon\w+\s*=\s*(['"]?).*?\1/gi, '')
-                                .replace(/javascript\s*:/gi, 'forbidden:');
+        let tagHtml = "";
+        if (openTag) {
+            // Security: Filter attributes
+            let filteredAttrs = "";
+            if (attrs) {
+                // Remove on* event handlers and javascript: protocols
+                filteredAttrs = attrs.replace(/\bon\w+\s*=\s*(['"]?).*?\1/gi, '')
+                                    .replace(/javascript\s*:/gi, 'forbidden:');
+            }
+            tagHtml = `<${openTag}${filteredAttrs}>`;
+        } else {
+            tagHtml = `</${closeTag}>`;
         }
         
         const num = safeHtmlBlocks.length;
-        safeHtmlBlocks.push(`<${openTag}${filteredAttrs}>`);
+        safeHtmlBlocks.push(tagHtml);
         return `§§§SAFEHTML§${num}§${SECRET_SALT}§§§`;
     });
 
