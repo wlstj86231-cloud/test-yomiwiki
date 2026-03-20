@@ -326,7 +326,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const commentsHtml = (isBoard && !revId) ? "" : renderCommentsHTML(data.title, data.comments || []);
             articleBody.innerHTML = contentHtml + boardHtml + commentsHtml;
-            window.scrollTo(0, 0);
+            
+            // --- [SCROLL HANDLING] ---
+            if (window.location.hash) {
+                const targetId = decodeURIComponent(window.location.hash.substring(1));
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                window.scrollTo(0, 0);
+            }
 
         } catch (e) {
             articleBody.innerHTML = `<div style="color:var(--hazard-red);">[CRITICAL_SYSTEM_ERROR]: Handshake failed.</div>`;
@@ -748,6 +758,8 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(div);
     };
 
+    let currentRenderedTitle = "";
+
     async function init() {
         const path = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
@@ -762,6 +774,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let titleOrId = "Main_Page";
         if (path.startsWith('/w/')) titleOrId = window.slugToTitle(path.substring(3));
+
+        // --- [SAME_TITLE_PREVENTION] ---
+        // If it's just a hash change within the same document, don't re-render everything
+        if (titleOrId === currentRenderedTitle && !mode) {
+            if (window.location.hash) {
+                const targetId = decodeURIComponent(window.location.hash.substring(1));
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth' });
+                    return;
+                }
+            }
+        }
+        currentRenderedTitle = titleOrId;
 
         if (mode === 'login' || mode === 'register') {
             await renderAuthForm(mode);
