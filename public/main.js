@@ -177,7 +177,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- [RENDERING ENGINE] ---
     function renderCommentsHTML(title, comments) {
-        return ""; // [NODE_DISCUSSION_LOGS] section removed as per request
+        if (!comments || !Array.isArray(comments)) return "";
+        const sorted = [...comments].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const rootComments = sorted.filter(c => !c.parent_id);
+        const children = sorted.filter(c => c.parent_id);
+
+        function buildCommentItem(c, indexStr, depth = 0) {
+            const isReply = depth > 0;
+            const subComments = children.filter(child => child.parent_id === c.id);
+            const deleteBtn = currentUser?.role === 'admin' ? `<button onclick="window.adminDeleteComment('${escapeHTML(title)}', '${c.id}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem;">[PURGE]</button>` : "";
+            
+            return `
+                <div class="comment-item" style="margin-left:${depth * 20}px; border-left:2px solid ${isReply ? '#222' : 'var(--accent-orange)'}; padding:10px 15px; margin-bottom:2px; background:rgba(255,255,255,0.005);">
+                    <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-bottom:5px; display:flex; justify-content:space-between;">
+                        <span><span style="color:var(--accent-orange); font-weight:bold;">${indexStr}</span> AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(c.author)}</span></span>
+                        <span>${deleteBtn} [${c.timestamp}]</span>
+                    </div>
+                    <div style="font-size:0.9rem; color:var(--text-main); line-height:1.4;">${escapeHTML(c.content).replace(/\n/g, '<br>')}</div>
+                </div>
+                ${subComments.map((sub, i) => buildCommentItem(sub, `${indexStr}.${i + 1}`, depth + 1)).join('')}
+            `;
+        }
+
+        return `
+            <div id="integrated-discussion" style="margin-top:20px; border-top:1px solid #222; padding-top:20px;">
+                <div class="comment-list">${rootComments.map((c, i) => buildCommentItem(c, `#${i + 1}`)).join('') || '<div style="opacity:0.3; padding:20px; text-align:center;">[SIGNAL_QUIET]</div>'}</div>
+                <div style="margin-top:20px; background:#050505; border:1px solid #111; padding:15px;">
+                    <textarea id="new-comment-content" placeholder="Initiate transmission..." style="width:100%; height:60px; background:#000; border:1px solid #222; color:#0f0; padding:10px; font-family:var(--font-mono); outline:none;"></textarea>
+                    <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+                        <button onclick="window.postComment('${escapeHTML(title)}')" class="btn-clinical-toggle" id="transmit-btn">[TRANSMIT]</button>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     window.postComment = async (title) => {
