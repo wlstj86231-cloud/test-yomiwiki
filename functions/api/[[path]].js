@@ -107,6 +107,13 @@ export async function onRequest(context) {
         const token = authHeader ? authHeader.split(' ')[1] : null;
         const user = await verifySession(token, env.JWT_SECRET);
 
+        // [TEMPORARY_CLEANUP_SCRIPT]
+        if (path === '/admin/cleanup-ghosts' && method === "GET") {
+            await env.DB.prepare("DELETE FROM articles WHERE title LIKE '%/comments'").run();
+            await env.DB.prepare("DELETE FROM revisions WHERE article_id NOT IN (SELECT id FROM articles)").run();
+            return new Response(JSON.stringify({ success: true, message: "GHOSTS_PURGED" }), { headers: securityHeaders });
+        }
+
         // 1. ARTICLE FETCH
         if (path.startsWith('/article/') && method === "GET" && !path.endsWith('/history') && !path.endsWith('/comments')) {
             const identifier = path.replace('/article/', '');
