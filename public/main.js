@@ -2,10 +2,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- [BOOT SEQUENCE] ---
     const bootTerminal = document.getElementById('boot-terminal');
     if (bootTerminal) {
-        setTimeout(() => {
-            bootTerminal.classList.add('fade-out');
-            setTimeout(() => { bootTerminal.style.display = 'none'; }, 200);
-        }, 300);
+        if (sessionStorage.getItem('yomi_booted')) {
+            // Skip boot sequence if already seen in this session
+            bootTerminal.style.display = 'none';
+        } else {
+            setTimeout(() => {
+                bootTerminal.classList.add('fade-out');
+                setTimeout(() => { 
+                    bootTerminal.style.display = 'none'; 
+                    sessionStorage.setItem('yomi_booted', 'true');
+                }, 200);
+            }, 300);
+        }
     }
 
     const API_ENDPOINT = '/api';
