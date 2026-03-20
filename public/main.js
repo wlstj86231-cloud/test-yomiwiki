@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bootTerminal) {
         setTimeout(() => {
             bootTerminal.classList.add('fade-out');
-            setTimeout(() => { bootTerminal.style.display = 'none'; }, 400);
-        }, 800);
+            setTimeout(() => { bootTerminal.style.display = 'none'; }, 200);
+        }, 300);
     }
 
     const API_ENDPOINT = '/api';
