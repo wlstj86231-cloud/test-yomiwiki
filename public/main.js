@@ -301,7 +301,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Different UI for Hub: Cards instead of Table
                 const subNodes = data.sub_articles || [];
                 boardHtml = `
-                    <div style="margin-top:20px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="margin-top:20px; border-bottom:1px solid #222; padding-bottom:10px; margin-bottom:20px;">
+                        <h3 style="font-family:var(--font-mono); color:var(--accent-cyan); margin:0;">[ACTIVE_SUB_SECTOR_HUB]</h3>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
                         ${subNodes.map(sub => `
                             <div class="channel-card">
                                 <div style="display:flex; align-items:center;">
