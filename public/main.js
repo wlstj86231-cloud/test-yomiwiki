@@ -289,7 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Board Detection Logic (Sector, SubSector, or Hub)
             const isSubSector = data.title.startsWith('SubSector:');
             const isBoard = (data.title.startsWith('Sector:') || isSubSector) && !data.title.split(':').pop().includes('/');
             const isHub = data.is_hub === true;
@@ -300,18 +299,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const displayTitle = (data.title || title).split('/').pop();
             mainTitle.textContent = displayTitle;
-            const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             
-            // Hide meta metadata for boards and hub
+            // --- [BUTTON LOGIC] ---
+            const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
+            const editBtn = (!isBoard && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:10px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
+            const historyBtn = (!isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
+
+            // Hide meta metadata for boards and hub, show for articles
             if (isBoard || isHub) metaText.innerHTML = "";
-            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${purgeBtn}`;
+            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${historyBtn} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
             // Assemble Output
             let boardHtml = "";
             if (isHub && !revId) {
-                // Different UI for Hub: Cards instead of Table
                 const subNodes = data.sub_articles || [];
                 boardHtml = `
                     <div style="margin-top:20px; border-bottom:1px solid #222; padding-bottom:10px; margin-bottom:20px;">
@@ -319,12 +321,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div style="display:flex; flex-direction:column; gap:10px;">
                         ${subNodes.map(sub => `
-                            <div class="channel-card">
+                            <div class="channel-card" onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}')" style="cursor:pointer;">
                                 <div style="display:flex; align-items:center;">
                                     <span class="channel-badge">CHANNEL</span>
-                                    <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}" style="color:var(--accent-cyan); font-weight:900; font-size:1.1rem; text-decoration:none;">
+                                    <span style="color:var(--accent-cyan); font-weight:900; font-size:1.1rem;">
                                         # ${escapeHTML(sub.title.split(':').pop())}
-                                    </a>
+                                    </span>
                                 </div>
                                 <div style="text-align:right; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-dim);">
                                     AGENT: ${escapeHTML(sub.author)} | ${window.timeAgo(sub.updated_at)}
@@ -333,11 +335,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         `).join('') || '<div style="opacity:0.3; padding:40px; text-align:center;">[NO_ACTIVE_CHANNELS_DETECTED]</div>'}
                     </div>
                 `;
-                contentHtml = contentHtml; // Show hub description
             } else if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
                 const sectorName = data.title.split(':').pop();
-                
                 const themeColor = isSubSector ? 'var(--accent-cyan)' : 'var(--accent-orange)';
                 const adminNoticeBtn = (currentUser?.role === 'admin') ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
                 const createBtn = `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">${isSubSector ? '[+ NEW_POST]' : '[NEW_NODE]'}</button>`;
@@ -363,14 +363,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const isNotice = sub.classification === 'NOTICE';
                                 const noticeTag = isNotice ? `<span style="background:var(--hazard-red); color:#000; padding:1px 4px; font-size:0.6rem; margin-right:5px; font-weight:bold;">[NOTICE]</span>` : "";
                                 const rowBg = isNotice ? "rgba(255, 60, 60, 0.05)" : "transparent";
-                                const adminActions = currentUser?.role === 'admin' ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(sub.title)}', true)" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.6rem; margin-left:5px;">[PURGE]</button>` : "";
-                                const linkColor = isNotice ? 'var(--hazard-red)' : (isSubSector ? 'var(--accent-cyan)' : 'var(--accent-cyan)');
+                                const adminActions = currentUser?.role === 'admin' ? `<button onclick="event.stopPropagation(); window.adminPurgeCurrentNode('${escapeHTML(sub.title)}', true)" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.6rem; margin-left:5px;">[PURGE]</button>` : "";
+                                const linkColor = isNotice ? 'var(--hazard-red)' : 'var(--accent-cyan)';
                                 
                                 return `
-                                <tr style="border-bottom:1px solid #111; background:${rowBg};">
-                                    <td style="padding:10px;">${noticeTag}<a href="/w/${sub.id || encodeURIComponent(window.titleToSlug(sub.title))}" style="color:${linkColor}; font-weight:bold; text-decoration:none;">▶ ${escapeHTML(sub.title.split('/').pop())}</a></td>
+                                <tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}')" style="border-bottom:1px solid #111; background:${rowBg}; cursor:pointer;" class="node-row">
+                                    <td style="padding:10px;">${noticeTag}<span style="color:${linkColor}; font-weight:bold;">▶ ${escapeHTML(sub.title.split('/').pop())}</span></td>
                                     <td style="padding:10px; text-align:center;">
-                                        <a href="/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px; text-decoration:none;">[HISTORY]</a>
+                                        <button onclick="event.stopPropagation(); window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history')" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px;">[HISTORY]</button>
                                         ${adminActions}
                                     </td>
                                     <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
@@ -727,6 +727,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function loadRevisionHistory(title) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        const metaText = document.querySelector('.article-meta');
+
+        mainTitle.textContent = `REVISION_HISTORY: ${title}`;
+        metaText.textContent = "ARCHIVAL_RECORDS";
+        articleBody.innerHTML = '<div class="loading">[RECOV_HISTORY_STREAM...]</div>';
+
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}/history`);
+            const data = await res.json();
+
+            if (data.error) throw new Error(data.error);
+
+            const revisions = data.revisions || [];
+            articleBody.innerHTML = `
+                <div style="margin-bottom:20px;">
+                    <button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(title))}')" class="btn-clinical-toggle">[BACK_TO_CURRENT_NODE]</button>
+                </div>
+                <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
+                    <thead>
+                        <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
+                            <th style="padding:10px; color:var(--accent-orange);">REV_ID</th>
+                            <th style="padding:10px; color:var(--accent-orange);">AGENT</th>
+                            <th style="padding:10px; color:var(--accent-orange);">SUMMARY</th>
+                            <th style="padding:10px; color:var(--accent-orange); text-align:right;">TIMESTAMP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${revisions.map(rev => `
+                            <tr style="border-bottom:1px solid #111;">
+                                <td style="padding:10px;"><a href="/w/${encodeURIComponent(window.titleToSlug(title))}?rev=${rev.id}" style="color:var(--accent-cyan); text-decoration:none;">#${rev.id}</a></td>
+                                <td style="padding:10px; color:var(--text-main);">${escapeHTML(rev.author)}</td>
+                                <td style="padding:10px; color:var(--text-dim); font-style:italic;">${escapeHTML(rev.edit_summary || "No summary provided")}</td>
+                                <td style="padding:10px; text-align:right; color:var(--text-dim);">${rev.timestamp}</td>
+                            </tr>
+                        `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_REVISIONS_FOUND]</td></tr>'}
+                    </tbody>
+                </table>
+            `;
+        } catch (e) {
+            articleBody.innerHTML = `<div style="color:var(--hazard-red);">[CRITICAL_SYSTEM_ERROR]: History retrieval failed.</div>`;
+        }
+    }
+
     async function loadEditor(titleOrId) {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
@@ -869,6 +915,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await renderAuthForm(mode);
         } else if (mode === 'edit') {
             await loadEditor(titleOrId);
+        } else if (mode === 'history') {
+            await loadRevisionHistory(titleOrId);
         } else {
             await renderArticle(titleOrId);
         }

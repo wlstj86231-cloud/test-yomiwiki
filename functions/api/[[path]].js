@@ -148,6 +148,20 @@ export async function onRequest(context) {
             }
         }
 
+        // 1.1 ARTICLE HISTORY (Revision List)
+        else if (path.startsWith('/article/') && path.endsWith('/history') && method === "GET") {
+            const titlePart = path.replace(/^\/article\//, '').replace(/\/history$/, '');
+            const title = normalizeTitle(titlePart);
+            const article = await env.DB.prepare("SELECT id, title FROM articles WHERE title = ?").bind(title).first();
+            
+            if (!article) {
+                status = 404; resData = { error: "NODE_NOT_FOUND" };
+            } else {
+                const { results } = await env.DB.prepare("SELECT id, editor_info as author, timestamp, edit_summary FROM revisions WHERE article_id = ? ORDER BY timestamp DESC LIMIT 100").bind(article.id).all();
+                resData = { title: article.title, revisions: results };
+            }
+        }
+
         // 2. SEARCH SUGGEST
         else if (path === '/search/suggest' && method === "GET") {
             const query = url.searchParams.get('q');
