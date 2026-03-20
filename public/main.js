@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             const editBtn = (isOfficial && !isBoard && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:10px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
-            const discussBtn = (!isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=comments" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[DISCUSSION]</a>` : "";
+            const discussBtn = (!isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}/comments" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[DISCUSSION]</a>` : "";
 
             if (isBoard || isHub) metaText.innerHTML = "";
             else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${discussBtn} ${historyBtn} ${purgeBtn}`;
@@ -484,21 +484,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const mode = urlParams.get('mode');
         if (path === '/admin') { await loadAdminDashboard(); updateAuthUI(); updateSidebarActivity(); return; }
         let titleOrId = "Main_Page";
+        let isCommentsMode = false;
+
         if (path.startsWith('/w/')) {
-            const rawSlug = path.substring(3);
+            let rawSlug = path.substring(3);
+            if (rawSlug.endsWith('/comments')) {
+                isCommentsMode = true;
+                rawSlug = rawSlug.substring(0, rawSlug.length - 9);
+            }
             titleOrId = window.slugToTitle(rawSlug);
         }
-        if (titleOrId === currentRenderedTitle && !mode) {
+
+        if (titleOrId === currentRenderedTitle && !mode && !isCommentsMode) {
             if (window.location.hash) {
                 const el = document.getElementById(decodeURIComponent(window.location.hash.substring(1)));
                 if (el) { el.scrollIntoView({ behavior: 'smooth' }); return; }
             }
         }
         currentRenderedTitle = titleOrId;
+
         if (mode === 'login' || mode === 'register') await renderAuthForm(mode);
         else if (mode === 'edit') await loadEditor(titleOrId);
         else if (mode === 'history') await loadRevisionHistory(titleOrId);
-        else if (mode === 'comments') await loadCommentsPage(titleOrId);
+        else if (isCommentsMode) await loadCommentsPage(titleOrId);
         else await renderArticle(titleOrId);
         updateAuthUI(); updateSidebarActivity();
     }

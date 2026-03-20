@@ -6,8 +6,13 @@ export async function onRequest(context) {
     const path = url.pathname;
     
     // 1. Extract Title
-    const titleSlug = path.substring(3); // Remove '/w/'
+    let titleSlug = path.substring(3); // Remove '/w/'
     if (!titleSlug) return env.ASSETS.fetch(new URL('/', request.url));
+    
+    // Handle Namu-style /comments path
+    if (titleSlug.endsWith('/comments')) {
+        titleSlug = titleSlug.substring(0, titleSlug.length - 9);
+    }
     
     const title = decodeURIComponent(titleSlug).replace(/[_\s]+/g, ' ').trim();
     const underscoreTitle = title.replace(/ /g, '_');
