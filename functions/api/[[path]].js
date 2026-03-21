@@ -109,9 +109,11 @@ export async function onRequest(context) {
 
         // [TEMPORARY_CLEANUP_SCRIPT]
         if (path === '/admin/cleanup-ghosts' && method === "GET") {
+            // 1. Delete associated revisions first to satisfy foreign key constraints
+            await env.DB.prepare("DELETE FROM revisions WHERE article_id IN (SELECT id FROM articles WHERE title LIKE '%/comments')").run();
+            // 2. Delete the ghost articles
             await env.DB.prepare("DELETE FROM articles WHERE title LIKE '%/comments'").run();
-            await env.DB.prepare("DELETE FROM revisions WHERE article_id NOT IN (SELECT id FROM articles)").run();
-            return new Response(JSON.stringify({ success: true, message: "GHOSTS_PURGED" }), { headers: securityHeaders });
+            return new Response(JSON.stringify({ success: true, message: "GHOSTS_PURGED_WITH_REVISIONS" }), { headers: securityHeaders });
         }
 
         // 1. ARTICLE FETCH
