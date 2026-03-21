@@ -107,13 +107,17 @@ export async function onRequest(context) {
         const token = authHeader ? authHeader.split(' ')[1] : null;
         const user = await verifySession(token, env.JWT_SECRET);
 
-        // [TEMPORARY_CLEANUP_SCRIPT]
+        // [ULTIMATE_CLEANUP_SCRIPT]
         if (path === '/admin/cleanup-ghosts' && method === "GET") {
-            // 1. Delete associated revisions first to satisfy foreign key constraints
-            await env.DB.prepare("DELETE FROM revisions WHERE article_id IN (SELECT id FROM articles WHERE title LIKE '%/comments')").run();
-            // 2. Delete the ghost articles
-            await env.DB.prepare("DELETE FROM articles WHERE title LIKE '%/comments'").run();
-            return new Response(JSON.stringify({ success: true, message: "GHOSTS_PURGED_WITH_REVISIONS" }), { headers: securityHeaders });
+            // Use a batch to ensure all commands run in order
+            await env.DB.batch([
+                env.DB.prepare("PRAGMA foreign_keys = OFF"),
+                env.DB.prepare("DELETE FROM revisions WHERE article_id IN (SELECT id FROM articles WHERE title LIKE '%/comments')"),
+                env.DB.prepare("DELETE FROM article_chunks WHERE article_id IN (SELECT id FROM articles WHERE title LIKE '%/comments')"),
+                env.DB.prepare("DELETE FROM articles WHERE title LIKE '%/comments'"),
+                env.DB.prepare("PRAGMA foreign_keys = ON")
+            ]);
+            return new Response(JSON.stringify({ success: true, message: "ULTIMATE_PURGE_COMPLETE" }), { headers: securityHeaders });
         }
 
         // 1. ARTICLE FETCH
