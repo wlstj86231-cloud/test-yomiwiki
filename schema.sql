@@ -163,37 +163,34 @@ VALUES (
 </div>
 
 {{infobox
-| title = YomiWiki_Core_Node_00
+| title = YomiWiki_Node_00
 | image = https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=300
-| caption = GATEWAY_TERMINAL_PRIMARY
-| type = CORE_SYSTEM
+| type = CORE_TERMINAL
+| status = ACTIVE_UPLINK
 }}
 
 This node serves as the primary archival point for paranormal and occult data.
-* '''Browse:''' Navigate via [ARCHIVAL_SECTORS] below.
-* '''Clearance:''' Standard users can view public records. Login required for encryption/editing.
-* '''Safety:''' Report any mental degradation or signal leakage to the Overseer immediately.
+- **Browse:** Use [ARCHIVAL_SECTORS] below.
+- **Access:** Verified Agents only.
+- **Safety:** Report signal leakage immediately.
 
 == 1. [PROTOCOL : ENGLISH] ==
-Welcome to the secure repository. Maintain clinical detachment at all times.
+Secure repository. Clinical detachment mandatory.
 
 == 2. [PROTOCOL : KOREAN] ==
-보관소에 오신 것을 환영합니다. 모든 기록은 객관적이고 냉철한 어조로 작성되어야 합니다.
+보안 보관소. 모든 기록은 객관적으로 작성하십시오.
 
 == 3. [PROTOCOL : JAPANESE] ==
-アーカイブへようこそ。すべての報告書은客観的なトーンで記述してください。
+アーカイブ。客観的な記述を徹底してください。
 
 == 4. ARCHIVAL SECTORS ==
-Access regional sectors for localized anomaly monitoring:
 * [[Sector:South_Korea|Sector 1: South Korea]]
-* [[Sector:USA|Sector 2: United States]]
+* [[Sector:USA|Sector 2: USA]]
 * [[Sector:Japan|Sector 3: Japan]]
 * [[Sector:India|Sector 4: India]]
 
 == 5. SYSTEM NOTICE ==
-[CLINICAL]
-The archival grid is currently operating at 99.9% efficiency. Signal integrity is verified.
-[/CLINICAL]
+Grid integrity: 99.9%. Signal stable.
 
 [[Category:CORE_SYSTEM]]',
     'Archive_System',

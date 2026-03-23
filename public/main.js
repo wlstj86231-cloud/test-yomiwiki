@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         searchDropdown.style.display = 'none';
                     }
                 } catch (e) { console.error("SEARCH_ERROR", e); }
-            }, 300);
+            }, 1);
         });
 
         searchBtn.onclick = () => {

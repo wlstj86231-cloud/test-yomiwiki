@@ -187,7 +187,8 @@ export async function onRequest(context) {
             if (!query.trim()) {
                 resData = [];
             } else {
-                const { results } = await env.DB.prepare("SELECT title FROM articles WHERE title LIKE ? AND is_deleted = 0 LIMIT 10").bind(`%${query}%`).all();
+                const searchTerm = `%${query}%`;
+                const { results } = await env.DB.prepare("SELECT title FROM articles WHERE (title LIKE ? OR current_content LIKE ?) AND is_deleted = 0 LIMIT 10").bind(searchTerm, searchTerm).all();
                 resData = results.map(r => r.title);
             }
         }
