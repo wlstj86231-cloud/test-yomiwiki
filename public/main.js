@@ -458,6 +458,83 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("FAILED"); }
     };
 
+    async function renderAuthForm(mode) {
+        const mainTitle = document.getElementById('article-title');
+        const articleBody = document.querySelector('.article-body');
+        const metaText = document.querySelector('.article-meta');
+        
+        mainTitle.textContent = mode === 'login' ? 'AGENT_IDENTIFICATION' : 'NEW_AGENT_REGISTRATION';
+        metaText.textContent = "SECURE_TERMINAL_ACCESS";
+        
+        articleBody.innerHTML = `
+            <div style="max-width:400px; margin:40px auto; background:#0a0a0a; border:1px solid #222; padding:30px; box-shadow:0 0 20px rgba(0,0,0,0.5);">
+                <div style="margin-bottom:20px; text-align:center; font-family:var(--font-mono); color:var(--accent-orange); font-size:0.8rem;">
+                    [${mode === 'login' ? 'ESTABLISH_UPLINK' : 'INITIATE_HANDSHAKE'}]
+                </div>
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <div>
+                        <label style="display:block; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:5px;">AGENT_ID</label>
+                        <input type="text" id="auth-username" style="width:100%; background:#000; border:1px solid #333; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;" autocomplete="off">
+                    </div>
+                    <div>
+                        <label style="display:block; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:5px;">ACCESS_KEY</label>
+                        <input type="password" id="auth-password" style="width:100%; background:#000; border:1px solid #333; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;">
+                    </div>
+                    <div id="auth-error" style="color:var(--hazard-red); font-size:0.7rem; font-family:var(--font-mono); min-height:1rem;"></div>
+                    <button id="auth-submit-btn" class="btn-clinical-toggle" style="width:100%; padding:12px; font-weight:bold; margin-top:10px;">
+                        ${mode === 'login' ? '[AUTHENTICATE]' : '[REGISTER_AGENT]'}
+                    </button>
+                    <div style="text-align:center; margin-top:15px;">
+                        <a href="/?mode=${mode === 'login' ? 'register' : 'login'}" style="color:var(--text-dim); font-size:0.65rem; text-decoration:none; font-family:var(--font-mono);">
+                            [${mode === 'login' ? 'REQUEST_NEW_ID' : 'EXISTING_AGENT_LOGIN'}]
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('auth-submit-btn').onclick = async () => {
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error');
+            
+            if (!username || !password) {
+                errorEl.textContent = "[ERROR]: FIELDS_INCOMPLETE";
+                return;
+            }
+
+            const btn = document.getElementById('auth-submit-btn');
+            btn.disabled = true;
+            btn.textContent = "[PROCESSING...]";
+            errorEl.textContent = "";
+
+            try {
+                const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Yomi-Request': 'true' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.token) {
+                    localStorage.setItem('yomi_user', JSON.stringify(data));
+                    currentUser = data;
+                    window.navigateTo('/w/Main_Page');
+                } else {
+                    errorEl.textContent = `[ERROR]: ${data.error || 'ACCESS_DENIED'}`;
+                    if (data.message) errorEl.title = data.message;
+                }
+            } catch (e) {
+                errorEl.textContent = "[ERROR]: CONNECTION_TERMINATED";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = mode === 'login' ? '[AUTHENTICATE]' : '[REGISTER_AGENT]';
+            }
+        };
+    }
+
     async function init() {
         const path = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);

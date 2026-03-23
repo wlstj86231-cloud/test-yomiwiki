@@ -260,7 +260,7 @@ export async function onRequest(context) {
         }
 
         // 7. AUTHENTICATION (Login/Register)
-        else if ((path === '/auth/login' || path === 'auth/login' || path === '/auth/register' || path === 'auth/register') && method === "POST") {
+        else if ((path.endsWith('/auth/login') || path.endsWith('/auth/register')) && method === "POST") {
             const { username, password } = await request.json();
             if (!username || !password) {
                 status = 400; resData = { error: "FIELDS_INCOMPLETE" };
@@ -268,6 +268,8 @@ export async function onRequest(context) {
                 // Check if IP already has an account
                 const ipCheck = await env.DB.prepare("SELECT id FROM users WHERE registration_ip = ?").bind(clientIP).first();
                 if (ipCheck) {
+                    // Temporarily allow multiple accounts for testing if needed, or keep strict.
+                    // Given the user's report of "not working", we keep it strict but provide clear error.
                     status = 403; resData = { error: "MULTIPLE_ACCOUNTS_PROHIBITED", message: "Only one agent ID per IP uplink is permitted." };
                 } else {
                     const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
