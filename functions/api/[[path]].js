@@ -183,9 +183,13 @@ export async function onRequest(context) {
 
         // 2. SEARCH SUGGEST
         else if (path === '/search/suggest' && method === "GET") {
-            const query = url.searchParams.get('q');
-            const { results } = await env.DB.prepare("SELECT title FROM articles WHERE title LIKE ? AND is_deleted = 0 LIMIT 10").bind(`%${query}%`).all();
-            resData = results.map(r => r.title);
+            const query = url.searchParams.get('q') || "";
+            if (!query.trim()) {
+                resData = [];
+            } else {
+                const { results } = await env.DB.prepare("SELECT title FROM articles WHERE title LIKE ? AND is_deleted = 0 LIMIT 10").bind(`%${query}%`).all();
+                resData = results.map(r => r.title);
+            }
         }
 
         // 3. GLOBAL HISTORY (Combined Edit & Comment Feed)

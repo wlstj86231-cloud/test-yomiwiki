@@ -158,42 +158,41 @@ INSERT INTO articles (title, current_content, author, classification, threatLeve
 VALUES (
     'Main_Page',
     '<div class="scp-warning-block">
-    <div class="scp-warning-header">WARNING: ACCESS RESTRICTED</div>
-    THE ARCHIVAL DATABASE IS <b>CLASSIFIED</b>. UNAUTHORIZED ACCESS TO THESE FILES IS PUNISHABLE BY IMMEDIATE TERMINATION OF CURRENT IP UPLINK AND PHYSICAL RETRIEVAL BY FIELD AGENTS.
+    <div class="scp-warning-header">ACCESS_DENIED_IF_UNVERIFIED</div>
+    YOU ARE ATTEMPTING TO ACCESS THE YOMIWIKI CORE ARCHIVE. ALL TRANSMISSIONS ARE MONITORED.
 </div>
 
 {{infobox
-| title = YomiWiki Archival Gateway
+| title = YomiWiki_Core_Node_00
 | image = https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=300
-| caption = GATEWAY_TERMINAL_NODE_7
-| type = SYSTEM_CORE
+| caption = GATEWAY_TERMINAL_PRIMARY
+| type = CORE_SYSTEM
 }}
 
-== WELCOME_AGENT ==
-Welcome to the ''''''YomiWiki Archival Gateway''''''. This is a secure repository for occult, paranormal, and clinical data. All transmissions are monitored and encrypted using RSA-4096 protocols.
+This node serves as the primary archival point for paranormal and occult data.
+* '''Browse:''' Navigate via [ARCHIVAL_SECTORS] below.
+* '''Clearance:''' Standard users can view public records. Login required for encryption/editing.
+* '''Safety:''' Report any mental degradation or signal leakage to the Overseer immediately.
 
-<div class="scp-container">
-    <div class="scp-header-line">SITE_PROTOCOLS_AND_RULES</div>
-    <ul class="scp-rules-list">
-        <li><b>Clinical Detachment:</b> All reports must be written in a clinical, objective tone. Avoid emotional bias or personal conjecture unless specifically required by the containment protocol.</li>
-        <li><b>Confidentiality:</b> Information contained within this node is strictly on a need-to-know basis. Sharing classified data with unverified civilian entities is a Tier IV protocol violation.</li>
-        <li><b>Authenticity:</b> Ensure all data points are validated by at least two senior archivists. Fabricated anomalies undermine the integrity of the collective archive.</li>
-        <li><b>Formatting:</b> Utilize the visual infobox constructor for all entity reports. Standardized data visualization is mandatory for rapid response deployment.</li>
-        <li><b>Node Management:</b> Unauthorized deletion of archival nodes will result in immediate revocation of your Agent ID and permanent blacklist.</li>
-        <li><b>Interaction:</b> Use the integrated discussion logs for collaborative analysis. Cross-node referencing is encouraged.</li>
-    </ul>
-</div>
+== 1. [PROTOCOL : ENGLISH] ==
+Welcome to the secure repository. Maintain clinical detachment at all times.
 
-== ARCHIVAL_SECTORS ==
-Access individual regional sectors to monitor localized anomalies:
+== 2. [PROTOCOL : KOREAN] ==
+보관소에 오신 것을 환영합니다. 모든 기록은 객관적이고 냉철한 어조로 작성되어야 합니다.
+
+== 3. [PROTOCOL : JAPANESE] ==
+アーカイブへようこそ。すべての報告書은客観的なトーンで記述してください。
+
+== 4. ARCHIVAL SECTORS ==
+Access regional sectors for localized anomaly monitoring:
 * [[Sector:South_Korea|Sector 1: South Korea]]
 * [[Sector:USA|Sector 2: United States]]
 * [[Sector:Japan|Sector 3: Japan]]
 * [[Sector:India|Sector 4: India]]
 
-== SYSTEM_NOTICE ==
+== 5. SYSTEM NOTICE ==
 [CLINICAL]
-The archival grid is currently operating at 99.9% efficiency. If you detect any signal degradation or unauthorized parser injections, report to the Overseer immediately via the [ADMIN] terminal.
+The archival grid is currently operating at 99.9% efficiency. Signal integrity is verified.
 [/CLINICAL]
 
 [[Category:CORE_SYSTEM]]',
@@ -201,7 +200,6 @@ The archival grid is currently operating at 99.9% efficiency. If you detect any 
     'CONFIDENTIAL',
     'GREEN'
 ) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content;
-
 -- [SEED DATA: Regional Sectors (Auto-Activate Boards)]
 INSERT INTO articles (title, current_content, author, classification) VALUES 
 ('Sector:South_Korea', '== SECTOR 1: SOUTH KOREA ==\n[CLINICAL]\nMonitoring active anomalies in the Korean Peninsula.\n[/CLINICAL]', 'SYSTEM', 'RESTRICTED'),
