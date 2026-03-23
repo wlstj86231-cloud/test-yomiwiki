@@ -83,6 +83,52 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     window.onpopstate = () => init();
 
+    // --- [SEARCH ENGINE] ---
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const searchDropdown = document.getElementById('search-dropdown');
+
+    if (searchInput && searchBtn && searchDropdown) {
+        let debounceTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            const query = searchInput.value.trim();
+            if (query.length < 1) {
+                searchDropdown.style.display = 'none';
+                return;
+            }
+            debounceTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`${API_ENDPOINT}/search/suggest?q=${encodeURIComponent(query)}`);
+                    const suggestions = await res.json();
+                    if (suggestions.length > 0) {
+                        searchDropdown.innerHTML = suggestions.map(s => `
+                            <div class="dropdown-item" onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(s))}')">${escapeHTML(s)}</div>
+                        `).join('');
+                        searchDropdown.style.display = 'block';
+                    } else {
+                        searchDropdown.style.display = 'none';
+                    }
+                } catch (e) { console.error("SEARCH_ERROR", e); }
+            }, 1); // Fast response (0-1ms)
+        });
+
+        searchBtn.onclick = () => {
+            const query = searchInput.value.trim();
+            if (query) window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(query))}`);
+        };
+
+        searchInput.onkeydown = (e) => {
+            if (e.key === 'Enter') searchBtn.onclick();
+        };
+
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchDropdown.contains(e.target)) {
+                searchDropdown.style.display = 'none';
+            }
+        });
+    }
+
     // --- [RENDERING ENGINE] ---
     function renderCommentsHTML(title, comments) {
         if (!comments || !Array.isArray(comments)) return "";
@@ -163,7 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const editBtn = (isOfficial && !isBoard && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:10px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
 
-            if (isBoard || isHub) metaText.innerHTML = "";
+            // --- [FIX: HIDE META FOR MAIN_PAGE] ---
+            if (isBoard || isHub || data.title === 'Main_Page') metaText.innerHTML = "";
             else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${historyBtn} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
@@ -464,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const metaText = document.querySelector('.article-meta');
         
         mainTitle.textContent = mode === 'login' ? 'AGENT_IDENTIFICATION' : 'NEW_AGENT_REGISTRATION';
-        metaText.textContent = "SECURE_TERMINAL_ACCESS";
+        metaText.textContent = ""; // SECURE_TERMINAL_ACCESS REMOVED
         
         articleBody.innerHTML = `
             <div style="max-width:400px; margin:40px auto; background:#0a0a0a; border:1px solid #222; padding:30px; box-shadow:0 0 20px rgba(0,0,0,0.5);">
