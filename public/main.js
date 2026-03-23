@@ -206,13 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const isOfficial = !data.title.startsWith('SubSector:');
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
-            const editBtn = (isOfficial && !isBoard && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:10px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
 
             // --- [FIX: HIDE META FOR MAIN_PAGE] ---
             const isMainPage = data.title === 'Main_Page' || window.location.pathname === '/' || window.location.pathname === '/w/Main_Page';
             if (isBoard || isHub || isMainPage) metaText.innerHTML = "";
-            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${historyBtn} ${purgeBtn}`;
+            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${historyBtn} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
