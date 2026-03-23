@@ -2,42 +2,41 @@ INSERT INTO articles (title, current_content, author, classification, threatLeve
 VALUES (
     'Main_Page',
     '<div class="scp-warning-block">
-    <div class="scp-warning-header">ACCESS_DENIED_IF_UNVERIFIED</div>
-    YOU ARE ATTEMPTING TO ACCESS THE YOMIWIKI CORE ARCHIVE. ALL TRANSMISSIONS ARE MONITORED.
+    <div class="scp-warning-header">ACCESS_RESTRICTED</div>
+    UNAUTHORIZED ACCESS PROHIBITED. ALL UPLINKS MONITORED.
 </div>
 
 {{infobox
-| title = YomiWiki_Node_00
+| title = CORE_NODE_00
 | image = https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=300
-| type = CORE_TERMINAL
-| status = ACTIVE_UPLINK
+| type = GATEWAY
+| status = ONLINE
 }}
 
-This node serves as the primary archival point for paranormal and occult data.
-- **Browse:** Use [ARCHIVAL_SECTORS] below.
-- **Access:** Verified Agents only.
-- **Safety:** Report signal leakage immediately.
+- **BROWSE:** [ARCHIVAL_SECTORS]
+- **ACCESS:** AUTHORIZED_ONLY
+- **PROTOCOL:** CLINICAL_DETACHMENT
 
 == 1. [PROTOCOL : ENGLISH] ==
-Secure repository. Clinical detachment mandatory.
+Secure archive. Clinical detachment mandatory.
 
 == 2. [PROTOCOL : KOREAN] ==
-보안 보관소. 모든 기록은 객관적으로 작성하십시오.
+보안 보관소. 객관적 기록 원칙 준수.
 
 == 3. [PROTOCOL : JAPANESE] ==
-アーカイブ。客観的な記述を徹底してください。
+アーカイブ。客観的記述の徹底。
 
 == 4. ARCHIVAL SECTORS ==
-* [[Sector:South_Korea|Sector 1: South Korea]]
-* [[Sector:USA|Sector 2: USA]]
-* [[Sector:Japan|Sector 3: Japan]]
-* [[Sector:India|Sector 4: India]]
+* [[Sector:South_Korea|S1: South Korea]]
+* [[Sector:USA|S2: USA]]
+* [[Sector:Japan|S3: Japan]]
+* [[Sector:India|S4: India]]
 
 == 5. SYSTEM NOTICE ==
-Grid integrity: 99.9%. Signal stable.
+GRID_STABLE_99.9%
 
-[[Category:CORE_SYSTEM]]',
-    'Archive_System',
+[[Category:CORE]]',
+    'System',
     'CONFIDENTIAL',
     'GREEN'
 ) ON CONFLICT(title) DO UPDATE SET current_content=excluded.current_content;

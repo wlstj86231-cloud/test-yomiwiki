@@ -210,7 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
 
             // --- [FIX: HIDE META FOR MAIN_PAGE] ---
-            if (isBoard || isHub || data.title === 'Main_Page') metaText.innerHTML = "";
+            const isMainPage = data.title === 'Main_Page' || window.location.pathname === '/' || window.location.pathname === '/w/Main_Page';
+            if (isBoard || isHub || isMainPage) metaText.innerHTML = "";
             else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${editBtn} ${historyBtn} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
