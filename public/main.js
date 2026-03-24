@@ -180,9 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const encodedSlug = encodeURIComponent(slug);
-            const url = revId ? `${API_ENDPOINT}/article/${encodedSlug}?rev=${revId}` : `${API_ENDPOINT}/article/${encodedSlug}`;
-            const res = await securedFetch(url);
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(slug)}${revId ? `?rev=${revId}` : ''}`);
             const data = await res.json();
 
             if (data.error) {
@@ -206,11 +204,11 @@ document.addEventListener('DOMContentLoaded', () => {
             mainTitle.textContent = displayTitle;
             
             const isOfficial = !data.title.startsWith('SubSector:');
-            const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
+            const isAdmin = currentUser?.role === 'admin';
+            const purgeBtn = (isAdmin && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
 
             const isMainPage = data.title === 'Main_Page' || window.location.pathname === '/' || window.location.pathname === '/w/Main_Page';
-            const isAdmin = currentUser?.role === 'admin';
             const isAuthor = currentUser?.username && data.author && (currentUser.username === data.author);
             const canEdit = isMainPage ? isAdmin : (isAdmin || isAuthor);
             const editBtn = canEdit ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
@@ -238,40 +236,40 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div style="text-align:right; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-dim);">AGENT: ${escapeHTML(sub.author)} | ${window.timeAgo(sub.updated_at)}</div>
                             </div>
                         `).join('') || '<div style="opacity:0.3; padding:40px; text-align:center;">[NO_ACTIVE_CHANNELS_DETECTED]</div>'}
-                    </div>
-                `;
+                    </div>`;
             } else if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
+                const sectorName = data.title.split(':').pop();
+                const themeColor = isSubSector ? 'var(--accent-cyan)' : 'var(--accent-orange)';
+                const adminNoticeBtn = (isAdmin) ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
                 const createBtn = `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">${isSubSector ? '[+ NEW_POST]' : '[NEW_NODE]'}</button>`;
-                const adminNoticeBtn = (currentUser?.role === 'admin') ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
 
                 boardHtml = `
-                    <div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end;">
+                    <div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end; align-items:center;">
                         <div>${createBtn} ${adminNoticeBtn}</div>
                     </div>
                     <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
                         <thead>
                             <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
-                                <th style="padding:10px;">NODE</th>
-                                <th style="padding:10px; text-align:center;">ACTION</th>
-                                <th style="padding:10px;">AGENT</th>
-                                <th style="padding:10px; text-align:right;">TIMESTAMP</th>
+                                <th style="padding:10px; color:${themeColor};">NODE</th>
+                                <th style="padding:10px; color:${themeColor}; text-align:center;">ACTION</th>
+                                <th style="padding:10px; color:${themeColor};">AGENT</th>
+                                <th style="padding:10px; color:${themeColor}; text-align:right;">TIMESTAMP</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${subNodes.map(sub => `
                                 <tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}')" style="border-bottom:1px solid #111; cursor:pointer;" class="node-row">
-                                    <td style="padding:10px;">▶ ${escapeHTML(sub.title.split('/').pop())}</td>
+                                    <td style="padding:10px;"><span style="color:var(--accent-cyan); font-weight:bold;">▶ ${escapeHTML(sub.title.split('/').pop())}</span></td>
                                     <td style="padding:10px; text-align:center;">
                                         <button onclick="event.stopPropagation(); window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history')" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px;">[HISTORY]</button>
                                     </td>
-                                    <td style="padding:10px;">${escapeHTML(sub.author)}</td>
-                                    <td style="padding:10px; text-align:right;">${window.timeAgo(sub.updated_at)}</td>
+                                    <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
+                                    <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
                                 </tr>
                             `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_ACTIVE_CHANNELS]</td></tr>'}
                         </tbody>
-                    </table>
-                `;
+                    </table>`;
                 contentHtml = ""; 
             }
 
