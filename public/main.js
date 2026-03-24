@@ -1,20 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- [BOOT SEQUENCE] ---
-    const bootTerminal = document.getElementById('boot-terminal');
-    if (bootTerminal) {
-        if (sessionStorage.getItem('yomi_booted')) {
-            bootTerminal.style.display = 'none';
-        } else {
-            setTimeout(() => {
-                bootTerminal.classList.add('fade-out');
-                setTimeout(() => { 
-                    bootTerminal.style.display = 'none'; 
-                    sessionStorage.setItem('yomi_booted', 'true');
-                }, 200);
-            }, 300);
-        }
-    }
-
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
