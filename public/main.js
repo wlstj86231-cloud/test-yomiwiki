@@ -592,12 +592,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function init() {
-        const path = window.location.pathname;
+        const path = decodeURIComponent(window.location.pathname);
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
         if (path === '/admin') { await loadAdminDashboard(); updateAuthUI(); updateSidebarActivity(); return; }
+        
         let titleOrId = "Main_Page";
-        if (path.startsWith('/w/')) { titleOrId = window.slugToTitle(path.substring(3)); }
+        if (path.startsWith('/w/')) {
+            titleOrId = path.substring(3); // Already decoded above
+        }
+        
         currentRenderedTitle = titleOrId;
         if (mode === 'login' || mode === 'register') await renderAuthForm(mode);
         else if (mode === 'edit') await loadEditor(titleOrId);
