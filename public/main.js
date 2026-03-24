@@ -331,9 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const slug = window.titleToSlug(titleOrId);
-            // Must match renderArticle's double encoding for backend path consistency
-            const doubleEncodedSlug = encodeURIComponent(encodeURIComponent(slug));
-            const res = await securedFetch(`${API_ENDPOINT}/article/${doubleEncodedSlug}`);
+            // UNIFIED: Use same single encoding as renderArticle
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(slug)}`);
             const data = await res.json();
             
             if (data.error && data.error !== "RECORD_NOT_FOUND") {
@@ -342,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (data.error === "RECORD_NOT_FOUND") {
-                currentContent = "[NEW_ARCHIVE_DATA_NODE]";
+                currentContent = "[NEW_ARCHIVE_DATA_NODE]\n\nType archival data here...";
             } else if (data.current_content) {
                 currentContent = data.current_content;
                 const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/);
@@ -382,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div style="margin-top:20px; display:flex; gap:15px;">
                                 <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle" style="flex:2; padding:15px; font-weight:bold;">[TRANSMIT_TO_ARCHIVE]</button>
-                                <button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(titleOrId))}')" class="btn-clinical-toggle" style="flex:1; padding:15px; border-color:#444; color:#888;">[ABORT_MISSION]</button>
+                                <button onclick="window.navigateTo('/w/${encodeURIComponent(slug)}')" class="btn-clinical-toggle" style="flex:1; padding:15px; border-color:#444; color:#888;">[ABORT_MISSION]</button>
                             </div>
                         </div>
                         <div class="infobox-builder">
