@@ -345,10 +345,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentContent = "[NEW_ARCHIVE_DATA_NODE]";
             } else if (data.current_content) {
                 currentContent = data.current_content;
-                // ... infobox logic ...
+                const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/);
+                if (infoMatch) {
+                    const body = infoMatch[1];
+                    currentContent = currentContent.replace(infoMatch[0], "").trim();
+                    body.split('|').forEach(row => {
+                        if (row.includes('=')) {
+                            const parts = row.split('=');
+                            const key = parts[0].trim().toLowerCase();
+                            const val = parts.slice(1).join('=').trim();
+                            if (key === 'title') existingInfobox.title = val;
+                            else if (key === 'image') existingInfobox.image = val;
+                            else if (key === 'caption') existingInfobox.caption = val;
+                            else if (key === 'type') existingInfobox.type = val;
+                            else existingInfobox.data.push({ key: parts[0].trim(), val });
+                        }
+                    });
+                }
             }
-            
-            // Render editor UI (simplified for brevity here, but full logic maintained)
+
             articleBody.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:20px;">
                     <div style="display:flex; gap:30px; align-items:flex-start;">
@@ -393,6 +408,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (tx) tx.value = currentContent;
             
             const cnt = tx?.parentElement;
+            if (cnt) {
+                cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
+                cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
+                cnt.addEventListener('drop', (e) => { cnt.classList.remove('dragover'); handleEditorDrop(e, tx); });
+            }
+
+            const idz = document.getElementById('ib-drop-zone');
+            if (idz) {
+                idz.addEventListener('dragover', (e) => { e.preventDefault(); idz.classList.add('dragover'); });
+                idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
+                idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
+            }
+        } catch (e) { 
+            console.error("EDITOR_ERROR", e);
+            articleBody.innerHTML = `<div style="color:var(--hazard-red); padding:20px;">[EDITOR_EXCEPTION]: ${e.message}</div>`; 
+        }
+    }
             if (cnt) {
                 cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
                 cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
