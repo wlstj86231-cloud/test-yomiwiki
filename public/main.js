@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    window.titleToSlug = (title) => (title || "").trim().replace(/ /g, '_');
-    window.slugToTitle = (slug) => decodeURIComponent(slug || "").replace(/_/g, ' ');
+    window.titleToSlug = (title) => (title || "").trim();
+    window.slugToTitle = (slug) => decodeURIComponent(slug || "");
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
         const date = new Date(dateStr);
@@ -542,26 +542,54 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    async function updateSidebarActivity() {
+        try {
+            const res = await fetch(`${API_ENDPOINT}/activity`);
+            const data = await res.json();
+            const list = document.getElementById('activity-list');
+            if (!list) return;
+            list.innerHTML = data.map(act => `
+                <div class="activity-item">
+                    <div style="font-size:0.6rem; color:var(--text-dim); font-family:var(--font-mono);">[${act.type}] ${act.actor}</div>
+                    <div style="font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        <a href="/w/${encodeURIComponent(window.titleToSlug(act.target))}" style="color:var(--accent-cyan); text-decoration:none;">▶ ${escapeHTML(act.target.split('/').pop())}</a>
+                    </div>
+                    <div style="font-size:0.6rem; color:#444; text-align:right;">${act.timestamp}</div>
+                </div>
+            `).join('');
+        } catch (e) { }
+    }
+
+    async function loadAdminDashboard() {
+        const articleBody = document.querySelector('.article-body');
+        articleBody.innerHTML = '<div class="loading">[INITIALIZING_ADMIN_OVERRIDE...]</div>';
+        try {
+            const res = await securedFetch(`${API_ENDPOINT}/admin/stats`);
+            const data = await res.json();
+            articleBody.innerHTML = `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-family:var(--font-mono);">
+                    <div style="border:1px solid #222; padding:20px; background:#050505;"><h4 style="color:var(--accent-orange); margin-top:0;">[DATABASE_METRICS]</h4><div style="font-size:1.2rem;">NODES: ${data.articleCount}</div><div style="font-size:1.2rem;">AGENTS: ${data.userCount}</div></div>
+                    <div style="border:1px solid #222; padding:20px; background:#050505;"><h4 style="color:var(--accent-orange); margin-top:0;">[SYSTEM_ACTION]</h4><button onclick="window.establishNewSector()" class="btn-clinical-toggle" style="width:100%; margin-bottom:10px;">[CREATE_SUB_SECTOR]</button></div>
+                </div>`;
+        } catch (e) { articleBody.innerHTML = "ADMIN_ACCESS_FAILED"; }
+    }
+
     async function init() {
         const path = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
+        if (path === '/admin') { await loadAdminDashboard(); updateAuthUI(); updateSidebarActivity(); return; }
         let titleOrId = "Main_Page";
         if (path.startsWith('/w/')) { titleOrId = window.slugToTitle(path.substring(3)); }
-        if (titleOrId === currentRenderedTitle && !mode) {
-            if (window.location.hash) {
-                const el = document.getElementById(decodeURIComponent(window.location.hash.substring(1)));
-                if (el) { el.scrollIntoView({ behavior: 'smooth' }); return; }
-            }
-        }
         currentRenderedTitle = titleOrId;
         if (mode === 'login' || mode === 'register') await renderAuthForm(mode);
         else if (mode === 'edit') await loadEditor(titleOrId);
         else if (mode === 'history') await loadRevisionHistory(titleOrId);
         else await renderArticle(titleOrId);
-        updateAuthUI(); 
+        updateAuthUI(); updateSidebarActivity();
     }
 
     let currentRenderedTitle = "";
     init();
+    setInterval(updateSidebarActivity, 60000);
 });
