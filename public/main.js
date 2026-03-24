@@ -263,16 +263,22 @@ document.addEventListener('DOMContentLoaded', () => {
                             </tr>
                         </thead>
                         <tbody>
-                            ${subNodes.map(sub => `
-                                <tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}')" style="border-bottom:1px solid #111; cursor:pointer;" class="node-row">
-                                    <td style="padding:10px;"><span style="color:var(--accent-cyan); font-weight:bold;">▶ ${escapeHTML(sub.title.split('/').pop())}</span></td>
+                            ${subNodes.map(sub => {
+                                const isNotice = sub.classification === 'NOTICE';
+                                const noticeTag = isNotice ? `<span style="background:var(--hazard-red); color:#000; padding:1px 4px; font-size:0.6rem; margin-right:5px; font-weight:bold;">[NOTICE]</span>` : "";
+                                const rowBg = isNotice ? "rgba(255, 60, 60, 0.05)" : "transparent";
+                                const linkColor = isNotice ? 'var(--hazard-red)' : 'var(--accent-cyan)';
+                                return `
+                                <tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}')" style="border-bottom:1px solid #111; background:${rowBg}; cursor:pointer;" class="node-row">
+                                    <td style="padding:10px;">${noticeTag}<span style="color:${linkColor}; font-weight:bold;">▶ ${escapeHTML(sub.title.split('/').pop())}</span></td>
                                     <td style="padding:10px; text-align:center;">
                                         <button onclick="event.stopPropagation(); window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history')" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px;">[HISTORY]</button>
                                     </td>
                                     <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
                                     <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
                                 </tr>
-                            `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[SIGNAL_QUIET_IN_SECTOR]</td></tr>'}
+                                `;
+                            }).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[SIGNAL_QUIET_IN_SECTOR]</td></tr>'}
                         </tbody>
                     </table>`;
                 contentHtml = ""; 
