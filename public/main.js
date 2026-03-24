@@ -19,7 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- [UTILS] ---
     window.titleToSlug = (title) => (title || "").trim().replace(/ /g, '_');
-    window.slugToTitle = (slug) => decodeURIComponent(slug || "").replace(/_/g, ' ');
+    window.slugToTitle = (slug) => {
+        if (!slug) return "";
+        // First decode the URL encoding, then restore underscores to spaces
+        const decoded = decodeURIComponent(slug);
+        return decoded.replace(/_/g, ' ');
+    };
     window.encodeSlug = (s) => (s || "").split('/').map(encodeURIComponent).join('/');
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
