@@ -186,8 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const encodedSlug = window.encodeSlug(slug);
-            const url = revId ? `${API_ENDPOINT}/article/${encodedSlug}?rev=${revId}` : `${API_ENDPOINT}/article/${encodedSlug}`;
+            // Double encode the entire slug to handle slashes correctly in the path-based API
+            const doubleEncodedSlug = encodeURIComponent(encodeURIComponent(slug));
+            const url = revId ? `${API_ENDPOINT}/article/${doubleEncodedSlug}?rev=${revId}` : `${API_ENDPOINT}/article/${doubleEncodedSlug}`;
             const res = await securedFetch(url);
             const data = await res.json();
 
@@ -338,7 +339,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const safeSlug = window.titleToSlug(titleOrId);
-            const res = await securedFetch(`${API_ENDPOINT}/article/${window.encodeSlug(safeSlug)}`);
+            const doubleEncodedSlug = encodeURIComponent(encodeURIComponent(safeSlug));
+            const res = await securedFetch(`${API_ENDPOINT}/article/${doubleEncodedSlug}`);
             const data = await res.json();
             
             if (data.error && data.error !== "RECORD_NOT_FOUND") {
