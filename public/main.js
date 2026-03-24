@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const isSubSector = data.title.startsWith('SubSector:');
-            // Strict Board Check: Must not have a slash in the last part of the title
+            // Strict Board Check: Only root Sector/SubSector (no slashes in identifier)
             const isBoard = (data.title.startsWith('Sector:') || isSubSector) && !data.title.split(':').pop().includes('/');
             const isHub = data.is_hub === true || data.title === 'SubSector_Archive';
 
@@ -284,6 +284,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             articleBody.innerHTML = `<div style="color:var(--hazard-red);">[CRITICAL_SYSTEM_ERROR]: Handshake failed.</div>`;
             console.error(e);
+        } finally {
+            document.documentElement.classList.remove('is-board-loading');
+            const antiFlicker = document.getElementById('anti-flicker');
+            if (antiFlicker) antiFlicker.remove();
         }
     }
 
@@ -574,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             articleBody.innerHTML = `
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-family:var(--font-mono);">
-                    <div style="border:1px solid #222; padding:20px; background:#050505;"><h4 style="color:var(--accent-orange); margin-top:0;">[DATABASE_METRICS]</h4><div style="font-size:1.2rem;">NODES: ${data.articleCount}</div><div style="font-size:1.2rem;">AGENTS: ${data.userCount}</div></div>
+                    <div style="border:1px solid #222; padding:20px; background:#050505;"><h4 style="color:var(--accent-orange); margin-top:0;">[DATABASE_METRICS]</h4><div style="font-size:1.2rem;">NODES: ${data.stats.articleCount}</div><div style="font-size:1.2rem;">AGENTS: ${data.stats.userCount}</div></div>
                     <div style="border:1px solid #222; padding:20px; background:#050505;"><h4 style="color:var(--accent-orange); margin-top:0;">[SYSTEM_ACTION]</h4><button onclick="window.establishNewSector()" class="btn-clinical-toggle" style="width:100%; margin-bottom:10px;">[CREATE_SUB_SECTOR]</button></div>
                 </div>`;
         } catch (e) { articleBody.innerHTML = "ADMIN_ACCESS_FAILED"; }
