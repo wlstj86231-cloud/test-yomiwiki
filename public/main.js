@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchDropdown.style.display = 'none';
                 return;
             }
-            debounceTimer = setTimeout(async () => {
+            debounceDebounceTimer = setTimeout(async () => {
                 try {
                     const res = await fetch(`${API_ENDPOINT}/search/suggest?q=${encodeURIComponent(query)}`);
                     const suggestions = await res.json();
@@ -199,8 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const isSubSector = data.title.startsWith('SubSector:');
-            const isBoard = (data.title.startsWith('Sector:') || isSubSector);
-            const isHub = data.is_hub === true;
+            // Strict Board Check: Must not have a slash in the last part of the title
+            const isBoard = (data.title.startsWith('Sector:') || isSubSector) && !data.title.split(':').pop().includes('/');
+            const isHub = data.is_hub === true || data.title === 'SubSector_Archive';
 
             if (isSubSector || isHub) document.body.classList.add('theme-subsector');
             else document.body.classList.remove('theme-subsector');
@@ -208,8 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const displayTitle = (data.title || title).split('/').pop();
             mainTitle.textContent = displayTitle;
             
-            const isOfficial = !data.title.startsWith('SubSector:');
             const isAdmin = currentUser?.role === 'admin';
+            const isOfficial = !data.title.startsWith('SubSector:');
             const purgeBtn = (isAdmin && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
 
@@ -306,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
+        
         mainTitle.textContent = `EDITING_NODE: ${titleOrId}`;
         metaText.textContent = "INITIALIZING_BUFFER...";
         articleBody.innerHTML = `
