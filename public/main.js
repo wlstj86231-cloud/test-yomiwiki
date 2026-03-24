@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchDropdown.style.display = 'none';
                 return;
             }
-            debounceDebounceTimer = setTimeout(async () => {
+            debounceTimer = setTimeout(async () => {
                 try {
                     const res = await fetch(`${API_ENDPOINT}/search/suggest?q=${encodeURIComponent(query)}`);
                     const suggestions = await res.json();
