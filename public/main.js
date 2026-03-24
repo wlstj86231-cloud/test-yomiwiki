@@ -325,31 +325,38 @@ document.addEventListener('DOMContentLoaded', () => {
         mainTitle.textContent = `EDITING_NODE: ${titleOrId}`;
         metaText.textContent = "CLEARANCE_GRANTED";
         articleBody.innerHTML = '<div class="loading">[INITIALIZING_NEURAL_INTERFACE...]</div>';
+        
         let currentContent = "";
         let existingInfobox = { title: "", image: "", caption: "", type: "", data: [] };
+        
         try {
-            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(titleOrId))}`);
+            // Use double encode for the slug part to ensure slashes don't break the path-based API
+            const safeSlug = window.titleToSlug(titleOrId);
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(safeSlug)}`);
             const data = await res.json();
+            
             if (data.current_content) {
                 currentContent = data.current_content;
+                // Refined non-greedy regex to prevent consuming the entire body
                 const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/);
                 if (infoMatch) {
                     const body = infoMatch[1];
                     currentContent = currentContent.replace(infoMatch[0], "").trim();
                     body.split('|').forEach(row => {
                         if (row.includes('=')) {
-                            const [k, ...v] = row.split('=');
-                            const key = k.trim().toLowerCase();
-                            const val = v.join('=').trim();
+                            const parts = row.split('=');
+                            const key = parts[0].trim().toLowerCase();
+                            const val = parts.slice(1).join('=').trim();
                             if (key === 'title') existingInfobox.title = val;
                             else if (key === 'image') existingInfobox.image = val;
                             else if (key === 'caption') existingInfobox.caption = val;
                             else if (key === 'type') existingInfobox.type = val;
-                            else existingInfobox.data.push({ key: k.trim(), val });
+                            else existingInfobox.data.push({ key: parts[0].trim(), val });
                         }
                     });
                 }
             }
+
             articleBody.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:20px;">
                     <div style="display:flex; gap:30px; align-items:flex-start;">
@@ -390,18 +397,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="font-family:var(--font-mono); font-size:0.7rem; color:#333; text-align:center;">TIP: Drag & Drop images anywhere. Use Edit Summary for history tracking.</div>
                 </div>`;
             
+            // Set values after the DOM elements are created
             const tx = document.getElementById('editor-text');
-            tx.value = currentContent; // Safely set content to avoid HTML injection/breaking
+            if (tx) tx.value = currentContent;
             
-            const cnt = tx.parentElement;
-            tx.parentElement.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
-            tx.parentElement.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
-            tx.parentElement.addEventListener('drop', (e) => { cnt.classList.remove('dragover'); handleEditorDrop(e, tx); });
+            const cnt = tx?.parentElement;
+            if (cnt) {
+                cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
+                cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
+                cnt.addEventListener('drop', (e) => { cnt.classList.remove('dragover'); handleEditorDrop(e, tx); });
+            }
+
             const idz = document.getElementById('ib-drop-zone');
-            idz.addEventListener('dragover', (e) => { e.preventDefault(); idz.classList.add('dragover'); });
-            idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
-            idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
-        } catch (e) { articleBody.innerHTML = "EDITOR_CRASHED"; }
+            if (idz) {
+                idz.addEventListener('dragover', (e) => { e.preventDefault(); idz.classList.add('dragover'); });
+                idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
+                idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
+            }
+        } catch (e) { 
+            console.error("EDITOR_ERROR", e);
+            articleBody.innerHTML = `<div style="color:var(--hazard-red); padding:20px;">[EDITOR_EXCEPTION]: ${e.message}</div>`; 
+        }
     }
 
     async function handleEditorDrop(e, targetTextarea) {
