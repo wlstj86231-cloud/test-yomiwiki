@@ -180,7 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const url = revId ? `${API_ENDPOINT}/article/${encodeURIComponent(slug)}?rev=${revId}` : `${API_ENDPOINT}/article/${encodeURIComponent(slug)}`;
+            const encodedSlug = encodeURIComponent(slug);
+            const url = revId ? `${API_ENDPOINT}/article/${encodedSlug}?rev=${revId}` : `${API_ENDPOINT}/article/${encodedSlug}`;
             const res = await securedFetch(url);
             const data = await res.json();
 
@@ -322,29 +323,75 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
+        
+        // --- [UI FIRST RENDERING] ---
+        // Render the editor shell immediately to avoid blank screen
         mainTitle.textContent = `EDITING_NODE: ${titleOrId}`;
-        metaText.textContent = "CLEARANCE_GRANTED";
-        articleBody.innerHTML = '<div class="loading">[INITIALIZING_NEURAL_INTERFACE...]</div>';
+        metaText.textContent = "INITIALIZING_BUFFER...";
+        articleBody.innerHTML = `
+            <div id="editor-container" style="display:flex; flex-direction:column; gap:20px;">
+                <div style="display:flex; gap:30px; align-items:flex-start;">
+                    <div style="flex:1;">
+                        <div class="textarea-container" style="position:relative; background:#000; border:1px solid #222;">
+                            <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6; caret-color:var(--accent-orange); opacity:0.5;" placeholder="[LOADING_ARCHIVAL_DATA...]"></textarea>
+                            <div class="editor-drop-overlay">[DRAG_DROP_IMAGE_TO_ENCRYPT]</div>
+                        </div>
+                        <style>
+                            #editor-text:focus { box-shadow: inset 0 0 10px rgba(255, 153, 0, 0.05); }
+                            .textarea-container:focus-within { border-color: var(--accent-orange-dim) !important; }
+                        </style>
+                        <div style="margin-top:20px; background:#0a0a0a; border:1px solid #111; padding:20px;">
+                            <label style="display:block; font-family:var(--font-mono); color:var(--accent-orange); font-size:0.7rem; margin-bottom:10px;">[EDIT_SUMMARY]</label>
+                            <input type="text" id="edit-summary" placeholder="Briefly describe your changes..." style="width:100%; background:#000; border:1px solid #222; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;">
+                        </div>
+                        <div style="margin-top:20px; display:flex; gap:15px;">
+                            <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle" id="btn-save" style="flex:2; padding:15px; font-weight:bold;">[TRANSMIT_TO_ARCHIVE]</button>
+                            <button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(titleOrId))}')" class="btn-clinical-toggle" style="flex:1; padding:15px; border-color:#444; color:#888;">[ABORT_MISSION]</button>
+                        </div>
+                    </div>
+                    <div class="infobox-builder" id="editor-ib-builder">
+                        <div style="padding:10px; font-family:var(--font-mono); font-size:0.65rem; color:var(--accent-orange); border-bottom:1px solid #222;">[VISUAL_INFOBOX_CONSTRUCTOR]</div>
+                        <input type="text" id="ib-title" placeholder="ARCHIVAL_TITLE" class="builder-title-input">
+                        <div id="ib-drop-zone" class="builder-drop-zone">
+                            <img id="ib-preview" style="display:none;">
+                            <div class="builder-placeholder">[DRAG_DROP_PRIMARY_IMAGE]</div>
+                        </div>
+                        <input type="hidden" id="ib-image-url">
+                        <div class="builder-rows" id="ib-rows">
+                            <div class="builder-row"><input type="text" placeholder="IMAGE_CAPTION" id="ib-caption" class="builder-val" style="width:100%;"></div>
+                            <div class="builder-row"><input type="text" placeholder="ENTITY_TYPE" id="ib-type" class="builder-val" style="width:100%;"></div>
+                            <div id="ib-extra-rows"></div>
+                            <button onclick="window.addInfoboxRow()" class="btn-clinical-toggle" style="width:100%; border:none; border-top:1px solid #222; font-size:0.6rem; padding:8px;">[+ ADD_METADATA_FIELD]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        const tx = document.getElementById('editor-text');
         
-        let currentContent = "";
-        let existingInfobox = { title: "", image: "", caption: "", type: "", data: [] };
-        
+        // --- [DATA FETCHING AFTER RENDER] ---
         try {
             const slug = window.titleToSlug(titleOrId);
-            // UNIFIED: Use same single encoding as renderArticle
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(slug)}`);
             const data = await res.json();
             
+            let currentContent = "";
+            let existingInfobox = { title: "", image: "", caption: "", type: "", data: [] };
+
             if (data.error && data.error !== "RECORD_NOT_FOUND") {
-                articleBody.innerHTML = `<div style="color:var(--hazard-red); padding:20px;">[ACCESS_DENIED]: ${data.error}</div>`;
+                tx.value = `[ACCESS_DENIED]: ${data.error}`;
+                metaText.textContent = "ERROR_UNAUTHORIZED";
                 return;
             }
 
             if (data.error === "RECORD_NOT_FOUND") {
-                currentContent = "[NEW_ARCHIVE_DATA_NODE]\n\nType archival data here...";
+                currentContent = "[NEW_ARCHIVE_DATA_NODE]\n\nInitiate archival records here...";
+                metaText.textContent = "NEW_NODE_DETECTION";
             } else if (data.current_content) {
                 currentContent = data.current_content;
-                const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/);
+                metaText.textContent = "CLEARANCE_GRANTED";
+                // Infobox parsing
+                const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/i);
                 if (infoMatch) {
                     const body = infoMatch[1];
                     currentContent = currentContent.replace(infoMatch[0], "").trim();
@@ -353,75 +400,46 @@ document.addEventListener('DOMContentLoaded', () => {
                             const parts = row.split('=');
                             const key = parts[0].trim().toLowerCase();
                             const val = parts.slice(1).join('=').trim();
-                            if (key === 'title') existingInfobox.title = val;
-                            else if (key === 'image') existingInfobox.image = val;
-                            else if (key === 'caption') existingInfobox.caption = val;
-                            else if (key === 'type') existingInfobox.type = val;
-                            else existingInfobox.data.push({ key: parts[0].trim(), val });
+                            if (key === 'title') { document.getElementById('ib-title').value = val; }
+                            else if (key === 'image') { 
+                                const img = document.getElementById('ib-preview');
+                                const urlInp = document.getElementById('ib-image-url');
+                                img.src = val; img.style.display = 'block'; urlInp.value = val;
+                                document.querySelector('.builder-placeholder').style.display = 'none';
+                            }
+                            else if (key === 'caption') { document.getElementById('ib-caption').value = val; }
+                            else if (key === 'type') { document.getElementById('ib-type').value = val; }
+                            else {
+                                const container = document.getElementById('ib-extra-rows');
+                                const div = document.createElement('div');
+                                div.className = 'builder-row';
+                                div.innerHTML = `<input type="text" placeholder="KEY" class="builder-key ib-extra-key" value="${escapeHTML(parts[0].trim())}"> <input type="text" placeholder="VALUE" class="builder-val ib-extra-val" value="${escapeHTML(val)}">`;
+                                container.appendChild(div);
+                            }
                         }
                     });
                 }
             }
 
-            articleBody.innerHTML = `
-                <div style="display:flex; flex-direction:column; gap:20px;">
-                    <div style="display:flex; gap:30px; align-items:flex-start;">
-                        <div style="flex:1;">
-                            <div class="textarea-container" style="position:relative; background:#000; border:1px solid #222;">
-                                <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6; caret-color:var(--accent-orange);"></textarea>
-                                <div class="editor-drop-overlay">[DRAG_DROP_IMAGE_TO_ENCRYPT]</div>
-                            </div>
-                            <style>
-                                #editor-text:focus { box-shadow: inset 0 0 10px rgba(255, 153, 0, 0.05); }
-                                .textarea-container:focus-within { border-color: var(--accent-orange-dim) !important; }
-                            </style>
-                            <div style="margin-top:20px; background:#0a0a0a; border:1px solid #111; padding:20px;">
-                                <label style="display:block; font-family:var(--font-mono); color:var(--accent-orange); font-size:0.7rem; margin-bottom:10px;">[EDIT_SUMMARY]</label>
-                                <input type="text" id="edit-summary" placeholder="Briefly describe your changes..." style="width:100%; background:#000; border:1px solid #222; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;">
-                            </div>
-                            <div style="margin-top:20px; display:flex; gap:15px;">
-                                <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle" style="flex:2; padding:15px; font-weight:bold;">[TRANSMIT_TO_ARCHIVE]</button>
-                                <button onclick="window.navigateTo('/w/${encodeURIComponent(slug)}')" class="btn-clinical-toggle" style="flex:1; padding:15px; border-color:#444; color:#888;">[ABORT_MISSION]</button>
-                            </div>
-                        </div>
-                        <div class="infobox-builder">
-                            <div style="padding:10px; font-family:var(--font-mono); font-size:0.65rem; color:var(--accent-orange); border-bottom:1px solid #222;">[VISUAL_INFOBOX_CONSTRUCTOR]</div>
-                            <input type="text" id="ib-title" placeholder="ARCHIVAL_TITLE" class="builder-title-input" value="${escapeHTML(existingInfobox.title)}">
-                            <div id="ib-drop-zone" class="builder-drop-zone">
-                                <img id="ib-preview" src="${existingInfobox.image}" style="${existingInfobox.image ? 'display:block;' : 'display:none;'}">
-                                <div class="builder-placeholder" style="${existingInfobox.image ? 'display:none;' : ''}">[DRAG_DROP_PRIMARY_IMAGE]</div>
-                            </div>
-                            <input type="hidden" id="ib-image-url" value="${existingInfobox.image}">
-                            <div class="builder-rows" id="ib-rows">
-                                <div class="builder-row"><input type="text" placeholder="IMAGE_CAPTION" id="ib-caption" class="builder-val" style="width:100%;" value="${escapeHTML(existingInfobox.caption)}"></div>
-                                <div class="builder-row"><input type="text" placeholder="ENTITY_TYPE" id="ib-type" class="builder-val" style="width:100%;" value="${escapeHTML(existingInfobox.type)}"></div>
-                                <div id="ib-extra-rows">${existingInfobox.data.map(row => `<div class="builder-row"><input type="text" placeholder="KEY" class="builder-key ib-extra-key" value="${escapeHTML(row.key)}"> <input type="text" placeholder="VALUE" class="builder-val ib-extra-val" value="${escapeHTML(row.val)}"></div>`).join('')}</div>
-                                <button onclick="window.addInfoboxRow()" class="btn-clinical-toggle" style="width:100%; border:none; border-top:1px solid #222; font-size:0.6rem; padding:8px;">[+ ADD_METADATA_FIELD]</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="font-family:var(--font-mono); font-size:0.7rem; color:#333; text-align:center;">TIP: Drag & Drop images anywhere. Use Edit Summary for history tracking.</div>
-                </div>`;
+            // Fill the editor and enable interaction
+            tx.value = currentContent;
+            tx.style.opacity = "1";
             
-            const tx = document.getElementById('editor-text');
-            if (tx) tx.value = currentContent;
-            
-            const cnt = tx?.parentElement;
-            if (cnt) {
-                cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
-                cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
-                cnt.addEventListener('drop', (e) => { cnt.classList.remove('dragover'); handleEditorDrop(e, tx); });
-            }
+            // Re-bind event listeners for drop zones
+            const cnt = tx.parentElement;
+            cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
+            cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
+            cnt.addEventListener('drop', (e) => { cnt.classList.remove('dragover'); handleEditorDrop(e, tx); });
 
             const idz = document.getElementById('ib-drop-zone');
-            if (idz) {
-                idz.addEventListener('dragover', (e) => { e.preventDefault(); idz.classList.add('dragover'); });
-                idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
-                idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
-            }
-        } catch (e) { 
-            console.error("EDITOR_ERROR", e);
-            articleBody.innerHTML = `<div style="color:var(--hazard-red); padding:20px;">[EDITOR_EXCEPTION]: ${e.message}</div>`; 
+            idz.addEventListener('dragover', (e) => { e.preventDefault(); idz.classList.add('dragover'); });
+            idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
+            idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
+
+        } catch (e) {
+            console.error("EDITOR_LOAD_ERROR", e);
+            tx.value = `[SYSTEM_EXCEPTION]: ${e.message}`;
+            metaText.textContent = "SYNCHRONIZATION_FAILED";
         }
     }
 
@@ -544,7 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const metaText = document.querySelector('.article-meta');
         
         mainTitle.textContent = mode === 'login' ? 'AGENT_IDENTIFICATION' : 'NEW_AGENT_REGISTRATION';
-        metaText.textContent = ""; // SECURE_TERMINAL_ACCESS REMOVED
+        metaText.textContent = ""; 
         
         articleBody.innerHTML = `
             <div style="max-width:400px; margin:40px auto; background:#0a0a0a; border:1px solid #222; padding:30px; box-shadow:0 0 20px rgba(0,0,0,0.5);">
