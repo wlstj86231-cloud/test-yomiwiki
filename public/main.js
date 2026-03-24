@@ -304,7 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
-        
         mainTitle.textContent = `EDITING_NODE: ${titleOrId}`;
         metaText.textContent = "INITIALIZING_BUFFER...";
         articleBody.innerHTML = `
@@ -347,18 +346,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
 
         const tx = document.getElementById('editor-text');
-        
         try {
             const slug = window.titleToSlug(titleOrId);
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(slug)}`);
             const data = await res.json();
-            
             let currentContent = "";
-            if (data.error && data.error !== "RECORD_NOT_FOUND") {
-                tx.value = `[ACCESS_DENIED]: ${data.error}`;
-                return;
-            }
-
+            if (data.error && data.error !== "RECORD_NOT_FOUND") { tx.value = `[ACCESS_DENIED]: ${data.error}`; return; }
             if (data.error === "RECORD_NOT_FOUND") {
                 currentContent = "[NEW_ARCHIVE_DATA_NODE]\n\nInitiate archival records here...";
                 metaText.textContent = "NEW_NODE_DETECTION";
@@ -394,23 +387,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
             }
-
-            tx.value = currentContent;
-            tx.style.opacity = "1";
-            
+            tx.value = currentContent; tx.style.opacity = "1";
             const cnt = tx.parentElement;
             cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
             cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
             cnt.addEventListener('drop', (e) => { cnt.classList.remove('dragover'); handleEditorDrop(e, tx); });
-
             const idz = document.getElementById('ib-drop-zone');
             idz.addEventListener('dragover', (e) => { e.preventDefault(); idz.classList.add('dragover'); });
             idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
             idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
-
-        } catch (e) {
-            tx.value = `[SYSTEM_EXCEPTION]: ${e.message}`;
-        }
+        } catch (e) { tx.value = `[SYSTEM_EXCEPTION]: ${e.message}`; }
     }
 
     async function handleEditorDrop(e, targetTextarea) {
@@ -446,8 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(); formData.append('file', file);
         try {
             const res = await securedFetch(`${API_ENDPOINT}/assets/upload`, { method: 'POST', body: formData });
-            const data = await res.json();
-            return data.url;
+            const data = await res.json(); return data.url;
         } catch (e) { alert("UPLOAD_FAILED"); return null; }
     }
 
@@ -462,8 +447,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.postComment = async (title) => {
         const content = document.getElementById('new-comment-content').value.trim();
         if (!content) return;
-        const btn = document.getElementById('transmit-btn');
-        btn.disabled = true;
+        const btn = document.getElementById('transmit-btn'); btn.disabled = true;
         try {
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}/comments`, { method: 'POST', body: JSON.stringify({ content }) });
             if (res.ok) init();
@@ -530,76 +514,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
-        
         mainTitle.textContent = mode === 'login' ? 'AGENT_IDENTIFICATION' : 'NEW_AGENT_REGISTRATION';
         metaText.textContent = ""; 
-        
         articleBody.innerHTML = `
             <div style="max-width:400px; margin:40px auto; background:#0a0a0a; border:1px solid #222; padding:30px; box-shadow:0 0 20px rgba(0,0,0,0.5);">
-                <div style="margin-bottom:20px; text-align:center; font-family:var(--font-mono); color:var(--accent-orange); font-size:0.8rem;">
-                    [${mode === 'login' ? 'ESTABLISH_UPLINK' : 'INITIATE_HANDSHAKE'}]
-                </div>
+                <div style="margin-bottom:20px; text-align:center; font-family:var(--font-mono); color:var(--accent-orange); font-size:0.8rem;">[${mode === 'login' ? 'ESTABLISH_UPLINK' : 'INITIATE_HANDSHAKE'}]</div>
                 <div style="display:flex; flex-direction:column; gap:15px;">
-                    <div>
-                        <label style="display:block; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:5px;">AGENT_ID</label>
-                        <input type="text" id="auth-username" style="width:100%; background:#000; border:1px solid #333; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;" autocomplete="off">
-                    </div>
-                    <div>
-                        <label style="display:block; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:5px;">ACCESS_KEY</label>
-                        <input type="password" id="auth-password" style="width:100%; background:#000; border:1px solid #333; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;">
-                    </div>
+                    <div><label style="display:block; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:5px;">AGENT_ID</label><input type="text" id="auth-username" style="width:100%; background:#000; border:1px solid #333; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;" autocomplete="off"></div>
+                    <div><label style="display:block; font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:5px;">ACCESS_KEY</label><input type="password" id="auth-password" style="width:100%; background:#000; border:1px solid #333; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;"></div>
                     <div id="auth-error" style="color:var(--hazard-red); font-size:0.7rem; font-family:var(--font-mono); min-height:1rem;"></div>
-                    <button id="auth-submit-btn" class="btn-clinical-toggle" style="width:100%; padding:12px; font-weight:bold; margin-top:10px;">
-                        ${mode === 'login' ? '[AUTHENTICATE]' : '[REGISTER_AGENT]'}
-                    </button>
-                    <div style="text-align:center; margin-top:15px;">
-                        <a href="/?mode=${mode === 'login' ? 'register' : 'login'}" style="color:var(--text-dim); font-size:0.65rem; text-decoration:none; font-family:var(--font-mono);">
-                            [${mode === 'login' ? 'REQUEST_NEW_ID' : 'EXISTING_AGENT_LOGIN'}]
-                        </a>
-                    </div>
+                    <button id="auth-submit-btn" class="btn-clinical-toggle" style="width:100%; padding:12px; font-weight:bold; margin-top:10px;">${mode === 'login' ? '[AUTHENTICATE]' : '[REGISTER_AGENT]'}</button>
+                    <div style="text-align:center; margin-top:15px;"><a href="/?mode=${mode === 'login' ? 'register' : 'login'}" style="color:var(--text-dim); font-size:0.65rem; text-decoration:none; font-family:var(--font-mono);">[${mode === 'login' ? 'REQUEST_NEW_ID' : 'EXISTING_AGENT_LOGIN'}]</a></div>
                 </div>
-            </div>
-        `;
-
+            </div>`;
         document.getElementById('auth-submit-btn').onclick = async () => {
             const username = document.getElementById('auth-username').value.trim();
             const password = document.getElementById('auth-password').value;
             const errorEl = document.getElementById('auth-error');
-            
-            if (!username || !password) {
-                errorEl.textContent = "[ERROR]: FIELDS_INCOMPLETE";
-                return;
-            }
-
-            const btn = document.getElementById('auth-submit-btn');
-            btn.disabled = true;
-            btn.textContent = "[PROCESSING...]";
-            errorEl.textContent = "";
-
+            if (!username || !password) { errorEl.textContent = "[ERROR]: FIELDS_INCOMPLETE"; return; }
+            const btn = document.getElementById('auth-submit-btn'); btn.disabled = true; btn.textContent = "[PROCESSING...]"; errorEl.textContent = "";
             try {
                 const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-Yomi-Request': 'true' },
-                    body: JSON.stringify({ username, password })
-                });
-                
+                const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Yomi-Request': 'true' }, body: JSON.stringify({ username, password }) });
                 const data = await res.json();
-                
-                if (res.ok && data.token) {
-                    localStorage.setItem('yomi_user', JSON.stringify(data));
-                    currentUser = data;
-                    window.navigateTo('/w/Main_Page');
-                } else {
-                    errorEl.textContent = `[ERROR]: ${data.error || 'ACCESS_DENIED'}`;
-                    if (data.message) errorEl.title = data.message;
-                }
-            } catch (e) {
-                errorEl.textContent = "[ERROR]: CONNECTION_TERMINATED";
-            } finally {
-                btn.disabled = false;
-                btn.textContent = mode === 'login' ? '[AUTHENTICATE]' : '[REGISTER_AGENT]';
-            }
+                if (res.ok && data.token) { localStorage.setItem('yomi_user', JSON.stringify(data)); currentUser = data; window.navigateTo('/w/Main_Page'); }
+                else { errorEl.textContent = `[ERROR]: ${data.error || 'ACCESS_DENIED'}`; }
+            } catch (e) { errorEl.textContent = "[ERROR]: CONNECTION_TERMINATED"; }
+            finally { btn.disabled = false; btn.textContent = mode === 'login' ? '[AUTHENTICATE]' : '[REGISTER_AGENT]'; }
         };
     }
 
@@ -608,9 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
         let titleOrId = "Main_Page";
-        if (path.startsWith('/w/')) {
-            titleOrId = window.slugToTitle(path.substring(3));
-        }
+        if (path.startsWith('/w/')) { titleOrId = window.slugToTitle(path.substring(3)); }
         if (titleOrId === currentRenderedTitle && !mode) {
             if (window.location.hash) {
                 const el = document.getElementById(decodeURIComponent(window.location.hash.substring(1)));
