@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display:flex; gap:30px; align-items:flex-start;">
                         <div style="flex:1;">
                             <div class="textarea-container" style="position:relative; background:#000; border:1px solid #222;">
-                                <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6; caret-color:var(--accent-orange);"></textarea>
+                                <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6; caret-color:var(--accent-orange);">${currentContent}</textarea>
                                 <div class="editor-drop-overlay">[DRAG_DROP_IMAGE_TO_ENCRYPT]</div>
                             </div>
                             <style>
