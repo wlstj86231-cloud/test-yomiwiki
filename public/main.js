@@ -18,14 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    window.titleToSlug = (title) => (title || "").trim().replace(/ /g, '_');
-    window.slugToTitle = (slug) => {
-        if (!slug) return "";
-        // First decode the URL encoding, then restore underscores to spaces
-        const decoded = decodeURIComponent(slug);
-        return decoded.replace(/_/g, ' ');
-    };
-    window.encodeSlug = (s) => (s || "").split('/').map(encodeURIComponent).join('/');
+    window.titleToSlug = (title) => (title || "").trim();
+    window.slugToTitle = (slug) => decodeURIComponent(slug || "");
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
         const date = new Date(dateStr);
@@ -186,9 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Double encode the entire slug to handle slashes correctly in the path-based API
-            const doubleEncodedSlug = encodeURIComponent(encodeURIComponent(slug));
-            const url = revId ? `${API_ENDPOINT}/article/${doubleEncodedSlug}?rev=${revId}` : `${API_ENDPOINT}/article/${doubleEncodedSlug}`;
+            const url = revId ? `${API_ENDPOINT}/article/${encodeURIComponent(slug)}?rev=${revId}` : `${API_ENDPOINT}/article/${encodeURIComponent(slug)}`;
             const res = await securedFetch(url);
             const data = await res.json();
 
@@ -339,8 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const safeSlug = window.titleToSlug(titleOrId);
-            const doubleEncodedSlug = encodeURIComponent(encodeURIComponent(safeSlug));
-            const res = await securedFetch(`${API_ENDPOINT}/article/${doubleEncodedSlug}`);
+            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(safeSlug)}`);
             const data = await res.json();
             
             if (data.error && data.error !== "RECORD_NOT_FOUND") {
@@ -348,9 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (data.error === "RECORD_NOT_FOUND") {
-                currentContent = "[NEW_ARCHIVE_DATA_NODE]";
-            } else if (data.current_content) {
+            if (data.current_content) {
                 currentContent = data.current_content;
                 const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/);
                 if (infoMatch) {
@@ -389,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div style="margin-top:20px; display:flex; gap:15px;">
                                 <button onclick="window.transmitEdit('${escapeHTML(titleOrId)}')" class="btn-clinical-toggle" style="flex:2; padding:15px; font-weight:bold;">[TRANSMIT_TO_ARCHIVE]</button>
-                                <button onclick="window.navigateTo('/w/${window.encodeSlug(window.titleToSlug(titleOrId))}')" class="btn-clinical-toggle" style="flex:1; padding:15px; border-color:#444; color:#888;">[ABORT_MISSION]</button>
+                                <button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(titleOrId))}')" class="btn-clinical-toggle" style="flex:1; padding:15px; border-color:#444; color:#888;">[ABORT_MISSION]</button>
                             </div>
                         </div>
                         <div class="infobox-builder">
