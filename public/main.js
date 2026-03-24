@@ -425,23 +425,6 @@ document.addEventListener('DOMContentLoaded', () => {
             articleBody.innerHTML = `<div style="color:var(--hazard-red); padding:20px;">[EDITOR_EXCEPTION]: ${e.message}</div>`; 
         }
     }
-            if (cnt) {
-                cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
-                cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
-                cnt.addEventListener('drop', (e) => { cnt.classList.remove('dragover'); handleEditorDrop(e, tx); });
-            }
-
-            const idz = document.getElementById('ib-drop-zone');
-            if (idz) {
-                idz.addEventListener('dragover', (e) => { e.preventDefault(); idz.classList.add('dragover'); });
-                idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
-                idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
-            }
-        } catch (e) { 
-            console.error("EDITOR_ERROR", e);
-            articleBody.innerHTML = `<div style="color:var(--hazard-red); padding:20px;">[EDITOR_EXCEPTION]: ${e.message}</div>`; 
-        }
-    }
 
     async function handleEditorDrop(e, targetTextarea) {
         e.preventDefault(); e.stopPropagation();
