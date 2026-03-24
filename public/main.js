@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    // Pure logic: No more complex regex, just simple trim and decode
     window.titleToSlug = (title) => (title || "").trim();
     window.slugToTitle = (slug) => decodeURIComponent(slug || "");
     window.timeAgo = (dateStr) => {
@@ -181,9 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Standardizing API call: Only Main_Page works because it has no slashes. 
-            // We'll use the same exact logic for everyone.
-            const url = revId ? `${API_ENDPOINT}/article/${encodeURIComponent(slug)}?rev=${revId}` : `${API_ENDPOINT}/article/${encodeURIComponent(slug)}`;
+            const encodedSlug = encodeURIComponent(slug);
+            const url = revId ? `${API_ENDPOINT}/article/${encodedSlug}?rev=${revId}` : `${API_ENDPOINT}/article/${encodedSlug}`;
             const res = await securedFetch(url);
             const data = await res.json();
 
@@ -244,43 +242,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             } else if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
-                const sectorName = data.title.split(':').pop();
-                const themeColor = isSubSector ? 'var(--accent-cyan)' : 'var(--accent-orange)';
-                const adminNoticeBtn = (currentUser?.role === 'admin') ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
                 const createBtn = `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">${isSubSector ? '[+ NEW_POST]' : '[NEW_NODE]'}</button>`;
+                const adminNoticeBtn = (currentUser?.role === 'admin') ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
 
                 boardHtml = `
-                    <div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end; align-items:center;">
+                    <div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end;">
                         <div>${createBtn} ${adminNoticeBtn}</div>
                     </div>
                     <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
                         <thead>
                             <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
-                                <th style="padding:10px; color:${themeColor};">NODE</th>
-                                <th style="padding:10px; color:${themeColor}; text-align:center;">ACTION</th>
-                                <th style="padding:10px; color:${themeColor};">AGENT</th>
-                                <th style="padding:10px; color:${themeColor}; text-align:right;">TIMESTAMP</th>
+                                <th style="padding:10px;">NODE</th>
+                                <th style="padding:10px; text-align:center;">ACTION</th>
+                                <th style="padding:10px;">AGENT</th>
+                                <th style="padding:10px; text-align:right;">TIMESTAMP</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${subNodes.map(sub => {
-                                const isNotice = sub.classification === 'NOTICE';
-                                const noticeTag = isNotice ? `<span style="background:var(--hazard-red); color:#000; padding:1px 4px; font-size:0.6rem; margin-right:5px; font-weight:bold;">[NOTICE]</span>` : "";
-                                const rowBg = isNotice ? "rgba(255, 60, 60, 0.05)" : "transparent";
-                                const adminActions = currentUser?.role === 'admin' ? `<button onclick="event.stopPropagation(); window.adminPurgeCurrentNode('${escapeHTML(sub.title)}', true)" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.6rem; margin-left:5px;">[PURGE]</button>` : "";
-                                const linkColor = isNotice ? 'var(--hazard-red)' : (isSubSector ? 'var(--accent-cyan)' : 'var(--accent-cyan)');
-                                return `
-                                <tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}')" style="border-bottom:1px solid #111; background:${rowBg}; cursor:pointer;" class="node-row">
-                                    <td style="padding:10px;">${noticeTag}<span style="color:${linkColor}; font-weight:bold;">▶ ${escapeHTML(sub.title.split('/').pop())}</span></td>
+                            ${subNodes.map(sub => `
+                                <tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}')" style="border-bottom:1px solid #111; cursor:pointer;" class="node-row">
+                                    <td style="padding:10px;">▶ ${escapeHTML(sub.title.split('/').pop())}</td>
                                     <td style="padding:10px; text-align:center;">
                                         <button onclick="event.stopPropagation(); window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(sub.title))}?mode=history')" class="btn-clinical-toggle" style="font-size:0.6rem; padding:2px 5px;">[HISTORY]</button>
-                                        ${adminActions}
                                     </td>
-                                    <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
-                                    <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
+                                    <td style="padding:10px;">${escapeHTML(sub.author)}</td>
+                                    <td style="padding:10px; text-align:right;">${window.timeAgo(sub.updated_at)}</td>
                                 </tr>
-                                `;
-                            }).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_ACTIVE_CHANNELS]</td></tr>'}
+                            `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_ACTIVE_CHANNELS]</td></tr>'}
                         </tbody>
                     </table>
                 `;
@@ -293,19 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             articleBody.innerHTML = `<div style="color:var(--hazard-red);">[CRITICAL_SYSTEM_ERROR]: Handshake failed.</div>`;
             console.error(e);
-        } finally {
-            document.documentElement.classList.remove('is-board-loading');
-            const antiFlicker = document.getElementById('anti-flicker');
-            if (antiFlicker) antiFlicker.remove();
         }
     }
 
     async function loadRevisionHistory(title) {
-        const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
-        const metaText = document.querySelector('.article-meta');
-        mainTitle.textContent = `REVISION_HISTORY: ${title}`;
-        metaText.textContent = "ARCHIVAL_RECORDS";
         articleBody.innerHTML = '<div class="loading">[RECOV_HISTORY_STREAM...]</div>';
         try {
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(title))}/history`);
@@ -314,8 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
             articleBody.innerHTML = `
                 <div style="margin-bottom:20px;"><button onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(title))}')" class="btn-clinical-toggle">[BACK_TO_CURRENT_NODE]</button></div>
                 <table class="clinical-table" style="width:100%; border-collapse:collapse; font-family:var(--font-mono); font-size:0.8rem;">
-                    <thead><tr style="background:#111; border-bottom:2px solid #222; text-align:left;"><th style="padding:10px; color:var(--accent-orange);">REV_ID</th><th style="padding:10px; color:var(--accent-orange);">AGENT</th><th style="padding:10px; color:var(--accent-orange);">SUMMARY</th><th style="padding:10px; color:var(--accent-orange); text-align:right;">TIMESTAMP</th></tr></thead>
-                    <tbody>${revisions.map(rev => `<tr style="border-bottom:1px solid #111;"><td style="padding:10px;"><a href="/w/${encodeURIComponent(window.titleToSlug(title))}?rev=${rev.id}" style="color:var(--accent-cyan); text-decoration:none;">#${rev.id}</a></td><td style="padding:10px;">${escapeHTML(rev.author)}</td><td style="padding:10px; color:var(--text-dim); font-style:italic;">${escapeHTML(rev.edit_summary || "No summary provided")}</td><td style="padding:10px; text-align:right;">${rev.timestamp}</td></tr>`).join('')}</tbody>
+                    <thead><tr style="background:#111; border-bottom:2px solid #222; text-align:left;"><th>REV_ID</th><th>AGENT</th><th>SUMMARY</th><th style="text-align:right;">TIMESTAMP</th></tr></thead>
+                    <tbody>${revisions.map(rev => `<tr style="border-bottom:1px solid #111;"><td style="padding:10px;"><a href="/w/${encodeURIComponent(window.titleToSlug(title))}?rev=${rev.id}" style="color:var(--accent-cyan);">#${rev.id}</a></td><td>${escapeHTML(rev.author)}</td><td>${escapeHTML(rev.edit_summary || "")}</td><td style="text-align:right;">${rev.timestamp}</td></tr>`).join('')}</tbody>
                 </table>`;
         } catch (e) { articleBody.innerHTML = "FAILED_TO_LOAD_HISTORY"; }
     }
@@ -370,8 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const slug = window.titleToSlug(titleOrId);
-            // ESSENTIAL: Triple encoding attempt OR custom segment bypass to force backend recognition
-            // But to keep it simple and match Main_Page, we use the EXACT same call pattern.
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(slug)}`);
             const data = await res.json();
             
@@ -629,10 +607,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const path = window.location.pathname;
         const urlParams = new URLSearchParams(window.location.search);
         const mode = urlParams.get('mode');
-        if (path === '/admin') { await loadAdminDashboard(); updateAuthUI(); updateSidebarActivity(); return; }
         let titleOrId = "Main_Page";
         if (path.startsWith('/w/')) {
-            // PURE EXTRACTION: Exact same as Main_Page extraction
             titleOrId = window.slugToTitle(path.substring(3));
         }
         if (titleOrId === currentRenderedTitle && !mode) {
@@ -646,10 +622,9 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (mode === 'edit') await loadEditor(titleOrId);
         else if (mode === 'history') await loadRevisionHistory(titleOrId);
         else await renderArticle(titleOrId);
-        updateAuthUI(); updateSidebarActivity();
+        updateAuthUI(); 
     }
 
     let currentRenderedTitle = "";
     init();
-    setInterval(updateSidebarActivity, 60000);
 });
