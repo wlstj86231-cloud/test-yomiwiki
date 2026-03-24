@@ -355,9 +355,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display:flex; gap:30px; align-items:flex-start;">
                         <div style="flex:1;">
                             <div class="textarea-container" style="position:relative; background:#000; border:1px solid #222;">
-                                <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6;">${currentContent}</textarea>
+                                <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6; caret-color:var(--accent-orange);"></textarea>
                                 <div class="editor-drop-overlay">[DRAG_DROP_IMAGE_TO_ENCRYPT]</div>
                             </div>
+                            <style>
+                                #editor-text:focus {
+                                    box-shadow: inset 0 0 10px rgba(255, 153, 0, 0.05);
+                                }
+                                .textarea-container:focus-within {
+                                    border-color: var(--accent-orange-dim) !important;
+                                }
+                            </style>
                             <div style="margin-top:20px; background:#0a0a0a; border:1px solid #111; padding:20px;">
                                 <label style="display:block; font-family:var(--font-mono); color:var(--accent-orange); font-size:0.7rem; margin-bottom:10px;">[EDIT_SUMMARY]</label>
                                 <input type="text" id="edit-summary" placeholder="Briefly describe your changes..." style="width:100%; background:#000; border:1px solid #222; color:var(--accent-cyan); padding:10px; font-family:var(--font-mono); outline:none;">
