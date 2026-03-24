@@ -19,7 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- [UTILS] ---
     window.titleToSlug = (title) => (title || "").trim().replace(/ /g, '_');
-    window.slugToTitle = (slug) => decodeURIComponent(slug || "").replace(/_/g, ' ');
+    window.slugToTitle = (slug) => {
+        if (!slug) return "";
+        try {
+            return decodeURIComponent(slug).replace(/_/g, ' ');
+        } catch (e) { return slug.replace(/_/g, ' '); }
+    };
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
         const date = new Date(dateStr);
