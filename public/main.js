@@ -208,10 +208,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
 
-            // --- [FIX: HIDE META FOR MAIN_PAGE] ---
+            // --- [AUTH-BASED EDIT ACCESS] ---
             const isMainPage = data.title === 'Main_Page' || window.location.pathname === '/' || window.location.pathname === '/w/Main_Page';
-            if (isBoard || isHub || isMainPage) metaText.innerHTML = "";
-            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${historyBtn} ${purgeBtn}`;
+            const isAdmin = currentUser?.role === 'admin';
+            const isAuthor = currentUser?.username && data.author && (currentUser.username === data.author);
+            const canEdit = isMainPage ? isAdmin : (isAdmin || isAuthor);
+            const editBtn = canEdit ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
+
+            if (isBoard || isHub) metaText.innerHTML = "";
+            else if (isMainPage) metaText.innerHTML = editBtn;
+            else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${historyBtn} ${editBtn} ${purgeBtn}`;
 
             let contentHtml = typeof wikiParse === 'function' ? wikiParse(data.current_content) : data.current_content;
 
