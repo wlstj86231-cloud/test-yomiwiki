@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    window.titleToSlug = (title) => (title || "").trim();
-    window.slugToTitle = (slug) => decodeURIComponent(slug || "");
+    window.titleToSlug = (title) => (title || "").trim().replace(/ /g, '_');
+    window.slugToTitle = (slug) => decodeURIComponent(slug || "").replace(/_/g, ' ');
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
         const date = new Date(dateStr);
@@ -239,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>`;
             } else if (isBoard && !revId) {
                 const subNodes = data.sub_articles || [];
-                const sectorName = data.title.split(':').pop();
                 const themeColor = isSubSector ? 'var(--accent-cyan)' : 'var(--accent-orange)';
                 const adminNoticeBtn = (isAdmin) ? `<button onclick="window.establishNewNode('${escapeHTML(data.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
                 const createBtn = `<button onclick="window.establishNewNode('${escapeHTML(data.title)}')" class="btn-clinical-toggle">${isSubSector ? '[+ NEW_POST]' : '[NEW_NODE]'}</button>`;
@@ -302,6 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
+        
         mainTitle.textContent = `EDITING_NODE: ${titleOrId}`;
         metaText.textContent = "INITIALIZING_BUFFER...";
         articleBody.innerHTML = `
