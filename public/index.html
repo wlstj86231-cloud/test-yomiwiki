@@ -20,9 +20,6 @@
             const path = decodeURIComponent(window.location.pathname).toLowerCase();
             const isBoard = path.includes('/sector:') || path.includes('/subsector:') || path.includes('/subsector_archive');
             
-            if (sessionStorage.getItem('yomi_booted')) {
-                document.documentElement.classList.add('already-booted');
-            }
             if (isBoard) {
                 document.documentElement.classList.add('is-board-loading');
                 // Force immediate hidden state via style injection to bypass rendering race conditions
@@ -31,16 +28,6 @@
         })();
     </script>
     <div class="scanlines"></div>
-    <div id="boot-terminal" class="boot-terminal">
-        <div class="terminal-output">
-            [BOOT_PROTOCOL_INITIATED]<br>
-            [CONNECTING_TO_ARCHIVAL_GRID_7...] OK<br>
-            [DECRYPTING_GATEWAY_HANDSHAKE...] OK<br>
-            [VERIFYING_CLEARANCE_CREDENTIALS...] OK<br>
-            [LOADING_CLINICAL_INTERFACE...]
-        </div>
-        <div class="terminal-cursor">_</div>
-    </div>
     <div class="news-ticker" id="news-ticker">
         <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED TO NODE_772. [WARNING]: SENSITIVE_DATA_EXPOSURE_DETECTED_IN_SECTOR_4. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT.</div>
     </div>
