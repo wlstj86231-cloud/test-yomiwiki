@@ -330,8 +330,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let existingInfobox = { title: "", image: "", caption: "", type: "", data: [] };
         
         try {
-            const safeSlug = window.titleToSlug(titleOrId);
-            const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(safeSlug)}`);
+            const slug = window.titleToSlug(titleOrId);
+            // Must match renderArticle's double encoding for backend path consistency
+            const doubleEncodedSlug = encodeURIComponent(encodeURIComponent(slug));
+            const res = await securedFetch(`${API_ENDPOINT}/article/${doubleEncodedSlug}`);
             const data = await res.json();
             
             if (data.error && data.error !== "RECORD_NOT_FOUND") {
@@ -339,7 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (data.current_content) {
+            if (data.error === "RECORD_NOT_FOUND") {
+                currentContent = "[NEW_ARCHIVE_DATA_NODE]";
+            } else if (data.current_content) {
                 currentContent = data.current_content;
                 const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/);
                 if (infoMatch) {
