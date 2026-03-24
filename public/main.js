@@ -199,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const isSubSector = data.title.startsWith('SubSector:');
-            // Strict Board Check: Only root Sector/SubSector (no slashes in identifier)
             const isBoard = (data.title.startsWith('Sector:') || isSubSector) && !data.title.split(':').pop().includes('/');
             const isHub = data.is_hub === true || data.title === 'SubSector_Archive';
 
@@ -311,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <tbody>${revisions.map(rev => `<tr style="border-bottom:1px solid #111;"><td style="padding:10px;"><a href="/w/${encodeURIComponent(window.titleToSlug(title))}?rev=${rev.id}" style="color:var(--accent-cyan);">#${rev.id}</a></td><td>${escapeHTML(rev.author)}</td><td>${escapeHTML(rev.edit_summary || "")}</td><td style="text-align:right;">${rev.timestamp}</td></tr>`).join('')}</tbody>
                 </table>`;
         } catch (e) { articleBody.innerHTML = "FAILED_TO_LOAD_HISTORY"; }
+        finally { document.documentElement.classList.remove('is-board-loading'); }
     }
 
     async function loadEditor(titleOrId) {
@@ -411,6 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
             idz.addEventListener('dragleave', () => idz.classList.remove('dragover'));
             idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
         } catch (e) { tx.value = `[SYSTEM_EXCEPTION]: ${e.message}`; }
+        finally { document.documentElement.classList.remove('is-board-loading'); }
     }
 
     async function handleEditorDrop(e, targetTextarea) {
