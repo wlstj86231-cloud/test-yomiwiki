@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const canEdit = isMainPage ? isAdmin : (isAdmin || isAuthor);
             const editBtn = canEdit ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=edit" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[EDIT_NODE]</a>` : "";
 
-            if (isBoard || isHub) metaText.innerHTML = "";
+            if (isBoard || isHub) metaText.innerHTML = isAdmin ? editBtn : "";
             else if (isMainPage) metaText.innerHTML = editBtn;
             else metaText.innerHTML = `REV: ${data.updated_at || "STABLE"} | AUTH: ${data.author || "Archive_Admin"} ${historyBtn} ${editBtn} ${purgeBtn}`;
 
