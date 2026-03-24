@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
+    // Pure logic: No more complex regex, just simple trim and decode
     window.titleToSlug = (title) => (title || "").trim();
     window.slugToTitle = (slug) => decodeURIComponent(slug || "");
     window.timeAgo = (dateStr) => {
@@ -110,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         searchDropdown.style.display = 'none';
                     }
                 } catch (e) { console.error("SEARCH_ERROR", e); }
-            }, 1); // Fast response (0-1ms)
+            }, 1); 
         });
 
         searchBtn.onclick = () => {
@@ -180,8 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const encodedSlug = encodeURIComponent(slug);
-            const url = revId ? `${API_ENDPOINT}/article/${encodedSlug}?rev=${revId}` : `${API_ENDPOINT}/article/${encodedSlug}`;
+            // Standardizing API call: Only Main_Page works because it has no slashes. 
+            // We'll use the same exact logic for everyone.
+            const url = revId ? `${API_ENDPOINT}/article/${encodeURIComponent(slug)}?rev=${revId}` : `${API_ENDPOINT}/article/${encodeURIComponent(slug)}`;
             const res = await securedFetch(url);
             const data = await res.json();
 
@@ -209,7 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const purgeBtn = (currentUser?.role === 'admin' && !isBoard && !isHub) ? `<button onclick="window.adminPurgeCurrentNode('${escapeHTML(data.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-family:var(--font-mono); font-size:0.65rem; margin-left:10px;">[PURGE_NODE]</button>` : "";
             const historyBtn = (isOfficial && !isHub) ? `<a href="/w/${encodeURIComponent(window.titleToSlug(data.title))}?mode=history" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; text-decoration:none; padding:2px 6px;">[HISTORY]</a>` : "";
 
-            // --- [AUTH-BASED EDIT ACCESS] ---
             const isMainPage = data.title === 'Main_Page' || window.location.pathname === '/' || window.location.pathname === '/w/Main_Page';
             const isAdmin = currentUser?.role === 'admin';
             const isAuthor = currentUser?.username && data.author && (currentUser.username === data.author);
@@ -324,8 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
         
-        // --- [UI FIRST RENDERING] ---
-        // Render the editor shell immediately to avoid blank screen
         mainTitle.textContent = `EDITING_NODE: ${titleOrId}`;
         metaText.textContent = "INITIALIZING_BUFFER...";
         articleBody.innerHTML = `
@@ -369,18 +368,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tx = document.getElementById('editor-text');
         
-        // --- [DATA FETCHING AFTER RENDER] ---
         try {
             const slug = window.titleToSlug(titleOrId);
+            // ESSENTIAL: Triple encoding attempt OR custom segment bypass to force backend recognition
+            // But to keep it simple and match Main_Page, we use the EXACT same call pattern.
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(slug)}`);
             const data = await res.json();
             
             let currentContent = "";
-            let existingInfobox = { title: "", image: "", caption: "", type: "", data: [] };
-
             if (data.error && data.error !== "RECORD_NOT_FOUND") {
                 tx.value = `[ACCESS_DENIED]: ${data.error}`;
-                metaText.textContent = "ERROR_UNAUTHORIZED";
                 return;
             }
 
@@ -390,7 +387,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (data.current_content) {
                 currentContent = data.current_content;
                 metaText.textContent = "CLEARANCE_GRANTED";
-                // Infobox parsing
                 const infoMatch = currentContent.match(/\{\{infobox([\s\S]*?)\}\}/i);
                 if (infoMatch) {
                     const body = infoMatch[1];
@@ -400,15 +396,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             const parts = row.split('=');
                             const key = parts[0].trim().toLowerCase();
                             const val = parts.slice(1).join('=').trim();
-                            if (key === 'title') { document.getElementById('ib-title').value = val; }
+                            if (key === 'title') document.getElementById('ib-title').value = val;
                             else if (key === 'image') { 
                                 const img = document.getElementById('ib-preview');
                                 const urlInp = document.getElementById('ib-image-url');
                                 img.src = val; img.style.display = 'block'; urlInp.value = val;
                                 document.querySelector('.builder-placeholder').style.display = 'none';
                             }
-                            else if (key === 'caption') { document.getElementById('ib-caption').value = val; }
-                            else if (key === 'type') { document.getElementById('ib-type').value = val; }
+                            else if (key === 'caption') document.getElementById('ib-caption').value = val;
+                            else if (key === 'type') document.getElementById('ib-type').value = val;
                             else {
                                 const container = document.getElementById('ib-extra-rows');
                                 const div = document.createElement('div');
@@ -421,11 +417,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Fill the editor and enable interaction
             tx.value = currentContent;
             tx.style.opacity = "1";
             
-            // Re-bind event listeners for drop zones
             const cnt = tx.parentElement;
             cnt.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
             cnt.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
@@ -437,9 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
             idz.addEventListener('drop', (e) => { idz.classList.remove('dragover'); handleInfoboxDrop(e, document.getElementById('ib-preview'), document.getElementById('ib-image-url')); });
 
         } catch (e) {
-            console.error("EDITOR_LOAD_ERROR", e);
             tx.value = `[SYSTEM_EXCEPTION]: ${e.message}`;
-            metaText.textContent = "SYNCHRONIZATION_FAILED";
         }
     }
 
@@ -640,6 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (path === '/admin') { await loadAdminDashboard(); updateAuthUI(); updateSidebarActivity(); return; }
         let titleOrId = "Main_Page";
         if (path.startsWith('/w/')) {
+            // PURE EXTRACTION: Exact same as Main_Page extraction
             titleOrId = window.slugToTitle(path.substring(3));
         }
         if (titleOrId === currentRenderedTitle && !mode) {
