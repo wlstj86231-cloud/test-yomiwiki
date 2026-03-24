@@ -113,8 +113,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else articleBody.innerHTML = `[SYSTEM_EXCEPTION]: ${data.error}`;
                 return;
             }
-            const isBoard = (data.title.startsWith('Sector:') || data.title.startsWith('SubSector:')) && !data.title.split(':').pop().includes('/');
-            document.body.classList.toggle('theme-subsector', data.title.startsWith('SubSector:') || data.is_hub);
+            const isSubSector = data.title.startsWith('SubSector:');
+            const isBoard = (data.title.startsWith('Sector:') || isSubSector) && !data.title.split(':').pop().includes('/');
+            const isArchiveHub = data.title === 'SubSector_Archive' || data.is_hub === true;
+            // Theme Logic: Only SubSectors or Archive Hubs get the Cyan theme.
+            const useCyanTheme = (isSubSector || isArchiveHub) && !data.title.startsWith('Sector:') && data.title !== 'Main_Page';
+            document.body.classList.toggle('theme-subsector', useCyanTheme);
             document.getElementById('article-title').textContent = data.title.split('/').pop();
             
             const isAdmin = currentUser?.role === 'admin';
