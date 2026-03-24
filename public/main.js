@@ -355,16 +355,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display:flex; gap:30px; align-items:flex-start;">
                         <div style="flex:1;">
                             <div class="textarea-container" style="position:relative; background:#000; border:1px solid #222;">
-                                <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6; caret-color:var(--accent-orange);">${currentContent}</textarea>
+                                <textarea id="editor-text" style="width:100%; height:550px; background:transparent; color:var(--text-main); padding:20px; border:none; font-family:var(--font-mono); resize:vertical; outline:none; line-height:1.6; caret-color:var(--accent-orange);"></textarea>
                                 <div class="editor-drop-overlay">[DRAG_DROP_IMAGE_TO_ENCRYPT]</div>
                             </div>
                             <style>
-                                #editor-text:focus {
-                                    box-shadow: inset 0 0 10px rgba(255, 153, 0, 0.05);
-                                }
-                                .textarea-container:focus-within {
-                                    border-color: var(--accent-orange-dim) !important;
-                                }
+                                #editor-text:focus { box-shadow: inset 0 0 10px rgba(255, 153, 0, 0.05); }
+                                .textarea-container:focus-within { border-color: var(--accent-orange-dim) !important; }
                             </style>
                             <div style="margin-top:20px; background:#0a0a0a; border:1px solid #111; padding:20px;">
                                 <label style="display:block; font-family:var(--font-mono); color:var(--accent-orange); font-size:0.7rem; margin-bottom:10px;">[EDIT_SUMMARY]</label>
@@ -377,16 +373,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <div class="infobox-builder">
                             <div style="padding:10px; font-family:var(--font-mono); font-size:0.65rem; color:var(--accent-orange); border-bottom:1px solid #222;">[VISUAL_INFOBOX_CONSTRUCTOR]</div>
-                            <input type="text" id="ib-title" placeholder="ARCHIVAL_TITLE" class="builder-title-input" value="${existingInfobox.title}">
+                            <input type="text" id="ib-title" placeholder="ARCHIVAL_TITLE" class="builder-title-input" value="${escapeHTML(existingInfobox.title)}">
                             <div id="ib-drop-zone" class="builder-drop-zone">
                                 <img id="ib-preview" src="${existingInfobox.image}" style="${existingInfobox.image ? 'display:block;' : 'display:none;'}">
                                 <div class="builder-placeholder" style="${existingInfobox.image ? 'display:none;' : ''}">[DRAG_DROP_PRIMARY_IMAGE]</div>
                             </div>
                             <input type="hidden" id="ib-image-url" value="${existingInfobox.image}">
                             <div class="builder-rows" id="ib-rows">
-                                <div class="builder-row"><input type="text" placeholder="IMAGE_CAPTION" id="ib-caption" class="builder-val" style="width:100%;" value="${existingInfobox.caption}"></div>
-                                <div class="builder-row"><input type="text" placeholder="ENTITY_TYPE" id="ib-type" class="builder-val" style="width:100%;" value="${existingInfobox.type}"></div>
-                                <div id="ib-extra-rows">${existingInfobox.data.map(row => `<div class="builder-row"><input type="text" placeholder="KEY" class="builder-key ib-extra-key" value="${row.key}"> <input type="text" placeholder="VALUE" class="builder-val ib-extra-val" value="${row.val}"></div>`).join('')}</div>
+                                <div class="builder-row"><input type="text" placeholder="IMAGE_CAPTION" id="ib-caption" class="builder-val" style="width:100%;" value="${escapeHTML(existingInfobox.caption)}"></div>
+                                <div class="builder-row"><input type="text" placeholder="ENTITY_TYPE" id="ib-type" class="builder-val" style="width:100%;" value="${escapeHTML(existingInfobox.type)}"></div>
+                                <div id="ib-extra-rows">${existingInfobox.data.map(row => `<div class="builder-row"><input type="text" placeholder="KEY" class="builder-key ib-extra-key" value="${escapeHTML(row.key)}"> <input type="text" placeholder="VALUE" class="builder-val ib-extra-val" value="${escapeHTML(row.val)}"></div>`).join('')}</div>
                                 <button onclick="window.addInfoboxRow()" class="btn-clinical-toggle" style="width:100%; border:none; border-top:1px solid #222; font-size:0.6rem; padding:8px;">[+ ADD_METADATA_FIELD]</button>
                             </div>
                         </div>
@@ -395,6 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             
             const tx = document.getElementById('editor-text');
+            tx.value = currentContent; // Safely set content to avoid HTML injection/breaking
+            
             const cnt = tx.parentElement;
             tx.parentElement.addEventListener('dragover', (e) => { e.preventDefault(); cnt.classList.add('dragover'); });
             tx.parentElement.addEventListener('dragleave', () => cnt.classList.remove('dragover'));
