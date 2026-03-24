@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    window.titleToSlug = (title) => (title || "").trim();
-    window.slugToTitle = (slug) => decodeURIComponent(slug || "");
+    window.titleToSlug = (title) => (title || "").trim().replace(/ /g, '_');
+    window.slugToTitle = (slug) => decodeURIComponent(slug || "").replace(/_/g, ' ');
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
         const date = new Date(dateStr);
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const isSubSector = data.title.startsWith('SubSector:');
-            const isBoard = (data.title.startsWith('Sector:') || isSubSector) && !data.title.split(':').pop().includes('/');
+            const isBoard = (data.title.startsWith('Sector:') || isSubSector);
             const isHub = data.is_hub === true;
 
             if (isSubSector || isHub) document.body.classList.add('theme-subsector');
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <td style="padding:10px; color:var(--text-dim);">${escapeHTML(sub.author)}</td>
                                     <td style="padding:10px; text-align:right; color:var(--text-dim);">${window.timeAgo(sub.updated_at)}</td>
                                 </tr>
-                            `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[NO_ACTIVE_CHANNELS]</td></tr>'}
+                            `).join('') || '<tr><td colspan="4" style="padding:20px; text-align:center; opacity:0.3;">[SIGNAL_QUIET_IN_SECTOR]</td></tr>'}
                         </tbody>
                     </table>`;
                 contentHtml = ""; 
@@ -301,7 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const mainTitle = document.getElementById('article-title');
         const articleBody = document.querySelector('.article-body');
         const metaText = document.querySelector('.article-meta');
-        
         mainTitle.textContent = `EDITING_NODE: ${titleOrId}`;
         metaText.textContent = "INITIALIZING_BUFFER...";
         articleBody.innerHTML = `
