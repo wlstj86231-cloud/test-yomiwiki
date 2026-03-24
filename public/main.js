@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_ENDPOINT = '/api';
 
     // --- [UTILS] ---
-    window.titleToSlug = (title) => (title || "").trim();
-    window.slugToTitle = (slug) => decodeURIComponent(slug || "");
+    window.titleToSlug = (title) => (title || "").trim().replace(/ /g, '_');
+    window.slugToTitle = (slug) => decodeURIComponent(slug || "").replace(/_/g, ' ');
     window.timeAgo = (dateStr) => {
         if (!dateStr) return "UNKNOWN_TIME";
         const date = new Date(dateStr);
@@ -330,10 +330,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let existingInfobox = { title: "", image: "", caption: "", type: "", data: [] };
         
         try {
-            // Use double encode for the slug part to ensure slashes don't break the path-based API
             const safeSlug = window.titleToSlug(titleOrId);
             const res = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(safeSlug)}`);
             const data = await res.json();
+            
+            if (data.error && data.error !== "RECORD_NOT_FOUND") {
+                articleBody.innerHTML = `<div style="color:var(--hazard-red); padding:20px;">[ACCESS_DENIED]: ${data.error}</div>`;
+                return;
+            }
             
             if (data.current_content) {
                 currentContent = data.current_content;
