@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>YomiWiki | Archival Gateway [SECURE]</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="stylesheet" href="/style.css?v=2.5.2">
+    <!-- UI OPTIMIZATION v2.5.3 -->
+    <link rel="stylesheet" href="/style.css?v=2.5.3">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -13,6 +14,7 @@
 </head>
 <body class="clinical-dark">
     <script>
+        // [ULTIMATE_FLICKER_PREVENTION]
         (function() {
             const path = decodeURIComponent(window.location.pathname).toLowerCase();
             const isBoard = path.includes('/sector:') || path.includes('/subsector:') || path.includes('/subsector_archive');
@@ -23,26 +25,33 @@
         })();
     </script>
     <div class="scanlines"></div>
+    
+    <!-- NEWS TICKER RESTORED -->
     <div class="news-ticker" id="news-ticker">
-        <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT.</div>
+        <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED TO NODE_772. [WARNING]: SENSITIVE_DATA_EXPOSURE_DETECTED_IN_SECTOR_4. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT. [SYSTEM]: CLEARANCE_LEVEL_3_REQUIRED_FOR_RESTRICTED_NODES.</div>
     </div>
+
     <header class="header">
         <div class="logo-group">
             <a href="/w/Main_Page" class="logo" style="text-decoration:none; cursor:pointer;">YomiWiki</a>
             <div class="status-indicator"><span class="blink">●</span> SECURE_UPLINK</div>
         </div>
+        
         <nav class="nav">
             <ul class="nav-list">
                 <li><a href="/w/Main_Page">Archive</a></li>
                 <li><a href="/?mode=help">Protocols</a></li>
             </ul>
         </nav>
+
         <div class="search-bar">
             <input type="text" placeholder="Query database..." class="search-input" id="search-input">
             <button class="search-btn" id="search-btn">🔍</button>
             <div id="search-dropdown" class="search-dropdown"></div>
         </div>
+
         <div id="auth-controls" class="auth-controls"></div>
+        
         <nav class="mobile-sector-nav">
             <ul class="mobile-sector-list">
                 <li><a href="/w/Sector:South_Korea">S/KOR</a></li>
@@ -52,27 +61,41 @@
             </ul>
         </nav>
     </header>
+
     <div class="container">
         <aside class="sidebar">
             <section class="sidebar-box">
-                <h3 class="sidebar-title">[ARCHIVE_SECTORS]</h3>
+                <h3 class="sidebar-title">[REGIONAL_ARCHIVE_SECTORS]</h3>
                 <nav class="sidebar-nav">
                     <ul style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.8rem;">
                         <li><a href="/w/Sector:South_Korea">▶ SOUTH_KOREA</a></li>
                         <li><a href="/w/Sector:USA">▶ USA</a></li>
                         <li><a href="/w/Sector:Japan">▶ JAPAN</a></li>
-                        <li><a href="/w/Sector:North_Korea" style="color:#ff0000 !important; font-weight:bold;">▶ NORTH_KOREA</a></li>
+                        <li><a href="/w/Sector:India">▶ INDIA</a></li>
+                        <li><a href="/w/Sector:China">▶ CHINA</a></li>
+                        <li><a href="/w/Sector:Australia">▶ AUSTRALIA</a></li>
+                        <li><a href="/w/Sector:France">▶ FRANCE</a></li>
+                        <li><a href="/w/Sector:North_Korea" style="color:#ff0000 !important; font-weight:bold;">▶ NORTH_KOREA [RESTRICTED]</a></li>
                     </ul>
                     <div style="margin-top:20px; border-top:1px solid #222; padding-top:20px; display:flex; flex-direction:column; gap:12px;">
                         <button onclick="window.navigateTo('/w/SubSector_Archive')" class="btn-clinical-toggle" style="width:100%; font-size:1rem; padding:15px; border-width:2px; font-weight:900; background:rgba(91, 192, 222, 0.05); border-color:var(--accent-cyan); color:var(--accent-cyan);">[ SUB-SECTOR HUB ]</button>
                     </div>
                 </nav>
             </section>
+
+            <div id="sidebar-ad-container" class="sidebar-box" style="padding-top:10px; text-align:center;">
+                <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:10px; opacity:0.5;">[ARCHIVAL_SPONSOR_SIGNAL]</div>
+                <div class="ad-placeholder" style="min-height:250px; background:rgba(255,255,255,0.01); border:1px solid #111; display:flex; align-items:center; justify-content:center; color:#222; font-family:var(--font-mono); font-size:0.8rem;">
+                    [AD_SIGNAL_PENDING]
+                </div>
+            </div>
+
             <section class="sidebar-box" style="margin-top:20px;">
                 <h3 class="sidebar-title">[LIVE_ACTIVITY_LOG]</h3>
                 <div id="activity-list" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); max-height:400px; overflow-y:auto;">Establishing link...</div>
             </section>
         </aside>
+
         <main class="main-content">
             <article class="article">
                 <h1 class="article-title" id="article-title">DECRYPTING...</h1>
@@ -81,8 +104,9 @@
             </article>
         </main>
     </div>
+
     <button id="btn-top" class="btn-floating" style="display:none;" onclick="window.scrollToTop()">[TOP_OF_NODE]</button>
-    <script src="/parser.js?v=2.5.2"></script>
-    <script src="/main.js?v=2.5.2"></script>
+    <script src="/parser.js?v=2.5.3"></script>
+    <script src="/main.js?v=2.5.3"></script>
 </body>
 </html>
