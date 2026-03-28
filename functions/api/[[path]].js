@@ -217,13 +217,13 @@ export async function onRequest(context) {
         }
 
         // 3. GLOBAL HISTORY (Combined Edit & Comment Feed)
-        else if (path === '/history' && method === "GET") {
+        else if ((path === '/history' || path === '/activity') && method === "GET") {
             const { results } = await env.DB.prepare(`
-                SELECT 'edit' as type, a.title, r.timestamp, r.editor_info as author 
+                SELECT 'EDIT' as type, r.editor_info as actor, a.title as target, r.timestamp 
                 FROM revisions r 
                 JOIN articles a ON r.article_id = a.id
                 UNION ALL
-                SELECT 'comment' as type, article_title as title, timestamp, sender as author
+                SELECT 'COMM' as type, sender as actor, article_title as target, timestamp
                 FROM notifications
                 WHERE type = 'comment'
                 ORDER BY timestamp DESC LIMIT 30
