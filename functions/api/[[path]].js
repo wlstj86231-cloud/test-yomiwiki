@@ -56,7 +56,9 @@ export async function onRequest(context) {
     function base64UrlEncode(str) {
         const encoder = new TextEncoder();
         const bytes = encoder.encode(str);
-        return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        let binary = "";
+        for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
 
     function base64UrlDecode(str) {
@@ -64,9 +66,7 @@ export async function onRequest(context) {
         while (base64.length % 4) base64 += '=';
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
         return new TextDecoder().decode(bytes);
     }
 
@@ -82,7 +82,10 @@ export async function onRequest(context) {
             false, ["sign"]
         );
         const signature = await crypto.subtle.sign("HMAC", key, data);
-        const signatureStr = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        const signatureBytes = new Uint8Array(signature);
+        let signatureBinary = "";
+        for (let i = 0; i < signatureBytes.byteLength; i++) signatureBinary += String.fromCharCode(signatureBytes[i]);
+        const signatureStr = btoa(signatureBinary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         return `${header}.${payloadStr}.${signatureStr}`;
     }
 
@@ -295,7 +298,11 @@ export async function onRequest(context) {
                     if (existing) {
                         status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
                     } else {
-                        const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+                        const saltArr = crypto.getRandomValues(new Uint8Array(16));
+                        let saltBinary = "";
+                        for(let i=0; i<saltArr.length; i++) saltBinary += String.fromCharCode(saltArr[i]);
+                        const salt = btoa(saltBinary);
+                        
                         const passHash = await hashPassword(password, salt);
                         await env.DB.prepare("INSERT INTO users (username, password_hash, salt, role, registration_ip) VALUES (?, ?, ?, 'viewer', ?)").bind(username, passHash, salt, clientIP).run();
                         const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
@@ -320,7 +327,7 @@ export async function onRequest(context) {
                 }
             } catch (authErr) {
                 status = 500;
-                resData = { error: "AUTH_GATEWAY_FAILURE", message: authErr.message };
+                resData = { error: `AUTH_FAILURE: ${authErr.message}` };
             }
         }
 
