@@ -24,7 +24,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const pb = ia ? `<button onclick="window.adminPurgeArticle('${escapeHTML(d.title)}')" class="btn-clinical-toggle" style="font-size:0.65rem; margin-left:5px; color:var(--hazard-red); border-color:var(--hazard-red);">[PURGE_NODE]</button>` : "";
             if (ib || ih) mt.innerHTML = ia ? eb + pb : ""; else mt.innerHTML = `REV: ${d.updated_at || "STABLE"} | AUTH: ${d.author || "Archive_Admin"} ${hb} ${eb} ${pb}`;
             let ch = typeof wikiParse === 'function' ? wikiParse(d.current_content) : d.current_content; let bh = "";
-            if (ib || ih) { const sl = d.sub_articles || []; const nb = ia ? `<button onclick="window.establishNewNode('${escapeHTML(d.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : ""; const cb = `<button onclick="window.establishNewNode('${escapeHTML(d.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>`; bh = `<div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end;"><div>${cb} ${nb}</div></div><table class="clinical-table" style="width:100%; border-collapse:collapse; font-size:0.8rem;"><thead><tr style="background:#111; border-bottom:2px solid #222; text-align:left;"><th style="padding:10px;">NODE</th><th style="padding:10px;">AGENT</th><th style="padding:10px; text-align:right;">TIMESTAMP</th></tr></thead><tbody>${sl.map(x => { const n = x.classification === 'NOTICE'; const r = n ? "rgba(255, 60, 60, 0.05)" : "transparent"; const l = n ? 'var(--hazard-red)' : 'var(--accent-cyan)'; return `<tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(x.title))}')" style="border-bottom:1px solid #111; cursor:pointer; background:${r};"><td style="padding:10px;">${n ? '<span style="background:var(--hazard-red); color:#000; padding:1px 4px; font-size:0.6rem; margin-right:5px; font-weight:bold;">[NOTICE]</span>' : ''} <span style="color:${l};">▶ ${escapeHTML(x.title.split('/').pop())}</span></td><td style="padding:10px;">${escapeHTML(x.author)}</td><td style="padding:10px; text-align:right;">${window.timeAgo(x.updated_at)}</td></tr>` }).join('') || '<tr><td colspan="3" style="padding:20px; text-align:center;">[SIGNAL_QUIET]</td></tr>'}</tbody></table>`; ch = ""; }
+            if (ib || ih) {
+                const sl = d.sub_articles || [];
+                const nb = ia ? `<button onclick="window.establishNewNode('${escapeHTML(d.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
+                const cb = `<button onclick="window.establishNewNode('${escapeHTML(d.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>`;
+                bh = `<div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end;"><div>${cb} ${nb}</div></div>
+                <table class="clinical-table" style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+                    <thead>
+                        <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
+                            <th style="padding:10px;">NODE</th>
+                            <th style="padding:10px;">AGENT</th>
+                            <th style="padding:10px; text-align:right;">TIMESTAMP</th>
+                            ${ia ? '<th style="padding:10px; text-align:right;">CONTROL</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody>${sl.map(x => {
+                        const n = x.classification === 'NOTICE';
+                        const r = n ? "rgba(255, 60, 60, 0.05)" : "transparent";
+                        const l = n ? 'var(--hazard-red)' : 'var(--accent-cyan)';
+                        const ctrl = ia ? `<td style="padding:10px; text-align:right;"><button onclick="event.stopPropagation(); window.adminPurgeArticle('${escapeHTML(x.title)}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-size:0.65rem;">[PURGE]</button></td>` : '';
+                        return `<tr onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(x.title))}')" style="border-bottom:1px solid #111; cursor:pointer; background:${r};">
+                            <td style="padding:10px;">${n ? '<span style="background:var(--hazard-red); color:#000; padding:1px 4px; font-size:0.6rem; margin-right:5px; font-weight:bold;">[NOTICE]</span>' : ''} <span style="color:${l};">▶ ${escapeHTML(x.title.split('/').pop())}</span></td>
+                            <td style="padding:10px;">${escapeHTML(x.author)}</td>
+                            <td style="padding:10px; text-align:right;">${window.timeAgo(x.updated_at)}</td>
+                            ${ctrl}
+                        </tr>`
+                    }).join('') || `<tr><td colspan="${ia ? 4 : 3}" style="padding:20px; text-align:center;">[SIGNAL_QUIET]</td></tr>`}</tbody>
+                </table>`;
+                ch = "";
+            }
             const co = (ib || ih) ? "" : renderCommentsHTML(d.title, d.comments || []); ab.innerHTML = ch + bh + co;
         } catch (e) { ab.innerHTML = "[Handshake failed.]"; }
         finally { document.documentElement.classList.remove('is-board-loading'); const af = document.getElementById('anti-flicker'); if (af) af.remove(); }
@@ -56,6 +84,25 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateSidebarActivity() { try { const r = await fetch(`${API_ENDPOINT}/activity`); const d = await r.json(); const l = document.getElementById('activity-list'); if (l) l.innerHTML = d.map(a => `<div style="margin-bottom:8px; border-bottom:1px solid #111; padding-bottom:4px;"><div style="font-size:0.6rem; color:var(--text-dim);">[${a.type}] ${a.actor}</div><div style="font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><a href="/w/${encodeURIComponent(window.titleToSlug(a.target))}" style="color:var(--accent-cyan);">▶ ${escapeHTML(a.target.split('/').pop())}</a></div></div>`).join(''); } catch (e) { } }
     async function init() { const p = decodeURIComponent(window.location.pathname); const u = new URLSearchParams(window.location.search); const m = u.get('mode'); let t = "Main_Page"; if (p.startsWith('/w/')) t = p.substring(3); if (m === 'login' || m === 'register') await renderAuthForm(m); else if (m === 'edit') await loadEditor(t); else await renderArticle(t); updateAuthUI(); updateSidebarActivity(); }
     window.transmitEdit = async (t) => { const c = document.getElementById('editor-text').value; const s = document.getElementById('edit-summary').value; const it = document.getElementById('ib-title').value.trim(); const ii = document.getElementById('ib-image-url').value.trim(); const ic = document.getElementById('ib-caption')?.value || ""; const ty = document.getElementById('ib-type')?.value || ""; const up = new URLSearchParams(window.location.search); const cl = up.get('type') === 'notice' ? 'NOTICE' : 'GENERAL'; let im = ""; if (it || ii) { im = `{{infobox\n| title = ${it}\n| image = ${ii}\n| caption = ${ic}\n| type = ${ty}\n`; document.querySelectorAll('.infobox-builder .builder-key').forEach((k, i) => { const v = document.querySelectorAll('.infobox-builder .builder-val')[i + 2]; if (k.value.trim()) im += `| ${k.value.trim()} = ${v.value.trim()}\n`; }); im += `}}\n\n`; } try { await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(t))}`, { method: 'POST', body: JSON.stringify({ content: im + c, edit_summary: s, classification: cl }) }); window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(t))}`); } catch (e) { alert("FAILED"); } };
-    window.adminPurgeArticle = async (t) => { if (!confirm(`[CRITICAL_WARNING]: PURGE NODE "${t}"? THIS ACTION IS IRREVERSIBLE.`)) return; try { const r = await securedFetch(`${API_ENDPOINT}/admin/article/purge`, { method: 'DELETE', body: JSON.stringify({ title: t }) }); if (r.ok) { alert("NODE_PURGED"); window.navigateTo('/w/Main_Page'); } else { const d = await r.json(); alert(`FAILED: ${d.error}`); } } catch (e) { alert("NETWORK_ERROR"); } };
+    window.adminPurgeArticle = async (t) => {
+        if (!confirm(`[CRITICAL_WARNING]: PURGE NODE "${t}"? THIS ACTION IS IRREVERSIBLE.`)) return;
+        try {
+            const r = await securedFetch(`${API_ENDPOINT}/admin/article/purge`, { method: 'DELETE', body: JSON.stringify({ title: t }) });
+            if (r.ok) {
+                alert("NODE_PURGED");
+                const currentPath = decodeURIComponent(window.location.pathname);
+                const targetPath = `/w/${window.titleToSlug(t)}`;
+                if (currentPath === targetPath) {
+                    const lastSlash = t.lastIndexOf('/');
+                    const parent = lastSlash !== -1 ? t.substring(0, lastSlash) : "Main_Page";
+                    window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(parent))}`);
+                } else {
+                    init();
+                }
+            } else {
+                const d = await r.json(); alert(`FAILED: ${d.error}`);
+            }
+        } catch (e) { alert("NETWORK_ERROR"); }
+    };
     init(); setInterval(updateSidebarActivity, 60000);
 });
