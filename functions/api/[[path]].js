@@ -53,10 +53,31 @@ export async function onRequest(context) {
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
+    function base64UrlEncode(str) {
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(str);
+        let binary = "";
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    function base64UrlDecode(str) {
+        let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) base64 += '=';
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder().decode(bytes);
+    }
+
     async function signJWT(payload, secret) {
         const encoder = new TextEncoder();
-        const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-        const payloadStr = btoa(JSON.stringify(payload));
+        const header = base64UrlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+        const payloadStr = base64UrlEncode(JSON.stringify(payload));
         const data = encoder.encode(`${header}.${payloadStr}`);
         
         const key = await crypto.subtle.importKey(
@@ -65,7 +86,12 @@ export async function onRequest(context) {
             false, ["sign"]
         );
         const signature = await crypto.subtle.sign("HMAC", key, data);
-        const signatureStr = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/=/g, "");
+        const signatureBytes = new Uint8Array(signature);
+        let signatureBinary = "";
+        for (let i = 0; i < signatureBytes.byteLength; i++) {
+            signatureBinary += String.fromCharCode(signatureBytes[i]);
+        }
+        const signatureStr = btoa(signatureBinary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         return `${header}.${payloadStr}.${signatureStr}`;
     }
 
@@ -77,7 +103,10 @@ export async function onRequest(context) {
             
             const encoder = new TextEncoder();
             const data = encoder.encode(`${parts[0]}.${parts[1]}`);
-            const signature = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+            
+            let sigBase64 = parts[2].replace(/-/g, '+').replace(/_/g, '/');
+            while (sigBase64.length % 4) sigBase64 += '=';
+            const signature = Uint8Array.from(atob(sigBase64), c => c.charCodeAt(0));
             
             const key = await crypto.subtle.importKey(
                 "raw", encoder.encode(secret || "YOMI_FALLBACK_SECRET"),
@@ -88,7 +117,7 @@ export async function onRequest(context) {
             const isValid = await crypto.subtle.verify("HMAC", key, signature, data);
             if (!isValid) return null;
 
-            const payload = JSON.parse(atob(parts[1]));
+            const payload = JSON.parse(base64UrlDecode(parts[1]));
             if (payload.exp && Date.now() > payload.exp) return null;
             return payload;
         } catch (e) { return null; }
@@ -270,24 +299,16 @@ export async function onRequest(context) {
             if (!username || !password) {
                 status = 400; resData = { error: "FIELDS_INCOMPLETE" };
             } else if (path.includes('register')) {
-                // Check if IP already has an account
-                const ipCheck = await env.DB.prepare("SELECT id FROM users WHERE registration_ip = ?").bind(clientIP).first();
-                if (ipCheck) {
-                    // Temporarily allow multiple accounts for testing if needed, or keep strict.
-                    // Given the user's report of "not working", we keep it strict but provide clear error.
-                    status = 403; resData = { error: "MULTIPLE_ACCOUNTS_PROHIBITED", message: "Only one agent ID per IP uplink is permitted." };
+                const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
+                if (existing) {
+                    status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
                 } else {
-                    const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
-                    if (existing) {
-                        status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
-                    } else {
-                        const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
-                        const passHash = await hashPassword(password, salt);
-                        await env.DB.prepare("INSERT INTO users (username, password_hash, salt, role, registration_ip) VALUES (?, ?, ?, 'viewer', ?)").bind(username, passHash, salt, clientIP).run();
-                        const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
-                        const tokenStr = await signJWT(payload, env.JWT_SECRET);
-                        resData = { success: true, username, token: tokenStr, role: 'viewer' };
-                    }
+                    const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+                    const passHash = await hashPassword(password, salt);
+                    await env.DB.prepare("INSERT INTO users (username, password_hash, salt, role, registration_ip) VALUES (?, ?, ?, 'viewer', ?)").bind(username, passHash, salt, clientIP).run();
+                    const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
+                    const tokenStr = await signJWT(payload, env.JWT_SECRET);
+                    resData = { success: true, username, token: tokenStr, role: 'viewer' };
                 }
             } else {
                 // Login
