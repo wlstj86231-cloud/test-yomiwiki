@@ -56,11 +56,7 @@ export async function onRequest(context) {
     function base64UrlEncode(str) {
         const encoder = new TextEncoder();
         const bytes = encoder.encode(str);
-        let binary = "";
-        for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
 
     function base64UrlDecode(str) {
@@ -86,12 +82,7 @@ export async function onRequest(context) {
             false, ["sign"]
         );
         const signature = await crypto.subtle.sign("HMAC", key, data);
-        const signatureBytes = new Uint8Array(signature);
-        let signatureBinary = "";
-        for (let i = 0; i < signatureBytes.byteLength; i++) {
-            signatureBinary += String.fromCharCode(signatureBytes[i]);
-        }
-        const signatureStr = btoa(signatureBinary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        const signatureStr = btoa(String.fromCharCode(...new Uint8Array(signature))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
         return `${header}.${payloadStr}.${signatureStr}`;
     }
 
@@ -295,36 +286,41 @@ export async function onRequest(context) {
 
         // 7. AUTHENTICATION (Login/Register)
         else if ((path.endsWith('/auth/login') || path.endsWith('/auth/register')) && method === "POST") {
-            const { username, password } = await request.json();
-            if (!username || !password) {
-                status = 400; resData = { error: "FIELDS_INCOMPLETE" };
-            } else if (path.includes('register')) {
-                const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
-                if (existing) {
-                    status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
-                } else {
-                    const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
-                    const passHash = await hashPassword(password, salt);
-                    await env.DB.prepare("INSERT INTO users (username, password_hash, salt, role, registration_ip) VALUES (?, ?, ?, 'viewer', ?)").bind(username, passHash, salt, clientIP).run();
-                    const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
-                    const tokenStr = await signJWT(payload, env.JWT_SECRET);
-                    resData = { success: true, username, token: tokenStr, role: 'viewer' };
-                }
-            } else {
-                // Login
-                const userRec = await env.DB.prepare("SELECT * FROM users WHERE username = ? COLLATE NOCASE").bind(username).first();
-                if (!userRec) {
-                    status = 404; resData = { error: "IDENTIFIER_NOT_FOUND" };
-                } else {
-                    const passHash = await hashPassword(password, userRec.salt);
-                    if (userRec.password_hash === passHash) {
-                        const payload = { username: userRec.username, role: userRec.role, exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
-                        const tokenStr = await signJWT(payload, env.JWT_SECRET);
-                        resData = { success: true, username: userRec.username, token: tokenStr, role: userRec.role };
+            try {
+                const { username, password } = await request.json();
+                if (!username || !password) {
+                    status = 400; resData = { error: "FIELDS_INCOMPLETE" };
+                } else if (path.includes('register')) {
+                    const existing = await env.DB.prepare("SELECT id FROM users WHERE username = ?").bind(username).first();
+                    if (existing) {
+                        status = 409; resData = { error: "IDENTIFIER_ALREADY_EXISTS" };
                     } else {
-                        status = 401; resData = { error: "PASSWORD_MISMATCH" };
+                        const salt = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+                        const passHash = await hashPassword(password, salt);
+                        await env.DB.prepare("INSERT INTO users (username, password_hash, salt, role, registration_ip) VALUES (?, ?, ?, 'viewer', ?)").bind(username, passHash, salt, clientIP).run();
+                        const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
+                        const tokenStr = await signJWT(payload, env.JWT_SECRET);
+                        resData = { success: true, username, token: tokenStr, role: 'viewer' };
+                    }
+                } else {
+                    // Login
+                    const userRec = await env.DB.prepare("SELECT * FROM users WHERE username = ? COLLATE NOCASE").bind(username).first();
+                    if (!userRec) {
+                        status = 404; resData = { error: "IDENTIFIER_NOT_FOUND" };
+                    } else {
+                        const passHash = await hashPassword(password, userRec.salt);
+                        if (userRec.password_hash === passHash) {
+                            const payload = { username: userRec.username, role: userRec.role, exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
+                            const tokenStr = await signJWT(payload, env.JWT_SECRET);
+                            resData = { success: true, username: userRec.username, token: tokenStr, role: userRec.role };
+                        } else {
+                            status = 401; resData = { error: "PASSWORD_MISMATCH" };
+                        }
                     }
                 }
+            } catch (authErr) {
+                status = 500;
+                resData = { error: "AUTH_GATEWAY_FAILURE", message: authErr.message };
             }
         }
 
