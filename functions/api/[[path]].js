@@ -304,7 +304,10 @@ export async function onRequest(context) {
                         const salt = btoa(saltBinary);
                         
                         const passHash = await hashPassword(password, salt);
-                        await env.DB.prepare("INSERT INTO users (username, password_hash, salt, role, registration_ip) VALUES (?, ?, ?, 'viewer', ?)").bind(username, passHash, salt, clientIP).run();
+                        // Combine salt and hash into one column to avoid missing 'salt' column error in DB
+                        const combinedHash = `${salt}.${passHash}`;
+                        
+                        await env.DB.prepare("INSERT INTO users (username, password_hash, role, registration_ip) VALUES (?, ?, 'viewer', ?)").bind(username, combinedHash, clientIP).run();
                         const payload = { username, role: 'viewer', exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
                         const tokenStr = await signJWT(payload, env.JWT_SECRET);
                         resData = { success: true, username, token: tokenStr, role: 'viewer' };
@@ -315,8 +318,12 @@ export async function onRequest(context) {
                     if (!userRec) {
                         status = 404; resData = { error: "IDENTIFIER_NOT_FOUND" };
                     } else {
-                        const passHash = await hashPassword(password, userRec.salt);
-                        if (userRec.password_hash === passHash) {
+                        // Extract salt and hash from combined string
+                        const storedHash = userRec.password_hash || "";
+                        const [salt, originalHash] = storedHash.includes('.') ? storedHash.split('.') : [userRec.salt || "", storedHash];
+                        
+                        const passHash = await hashPassword(password, salt);
+                        if (originalHash === passHash || userRec.password_hash === passHash) {
                             const payload = { username: userRec.username, role: userRec.role, exp: Date.now() + SECURITY_CONFIG.SESSION_EXPIRY * 1000 };
                             const tokenStr = await signJWT(payload, env.JWT_SECRET);
                             resData = { success: true, username: userRec.username, token: tokenStr, role: userRec.role };
