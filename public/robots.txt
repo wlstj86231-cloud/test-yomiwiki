@@ -1,11 +1,10 @@
 User-agent: *
 Allow: /
 Allow: /w/
-Allow: /api/sitemap.xml
 Disallow: /api/
 Disallow: /?mode=edit
 Disallow: /?mode=history
 Disallow: /?mode=discuss
 Disallow: /?mode=search
 
-Sitemap: https://test-yomiwiki.pages.dev/api/sitemap.xml
+Sitemap: https://test-yomiwiki.pages.dev/sitemap.xml
