@@ -477,6 +477,30 @@ export async function onRequest(context) {
             return new Response(object.body, { headers });
         }
 
+        else if (path === '/sitemap.xml' && method === "GET") {
+            const baseUrl = `${url.protocol}//${url.host}`;
+            const { results } = await env.DB.prepare(
+                "SELECT title, updated_at FROM articles WHERE is_deleted = 0 ORDER BY updated_at DESC"
+            ).all();
+
+            const urlEntries = results.map(article => {
+                // Encode title first so XML special chars are percent-encoded, then normalise spaces to underscores
+                const encodedTitle = encodeURIComponent(article.title).replace(/%20/g, '_');
+                const lastmod = article.updated_at
+                    ? new Date(article.updated_at).toISOString().split('T')[0]
+                    : new Date().toISOString().split('T')[0];
+                return `  <url>\n    <loc>${baseUrl}/w/${encodedTitle}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`;
+            }).join('\n');
+
+            const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urlEntries}\n</urlset>`;
+            return new Response(sitemap, {
+                headers: {
+                    "Content-Type": "application/xml;charset=UTF-8",
+                    "Cache-Control": "public, max-age=3600"
+                }
+            });
+        }
+
         else { status = 404; resData = { error: "PATH_NOT_FOUND" }; }
 
         return new Response(JSON.stringify(resData), { status, headers: securityHeaders });
