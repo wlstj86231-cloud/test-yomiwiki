@@ -82,8 +82,40 @@ document.addEventListener('DOMContentLoaded', () => {
         sb.onclick = pa; pi.onkeydown = (e) => { if (e.key === 'Enter') pa(); }; ui.onkeydown = (e) => { if (e.key === 'Enter') pi.focus(); };
         document.documentElement.classList.remove('is-board-loading'); const af = document.getElementById('anti-flicker'); if (af) af.remove();
     }
+    async function renderHistory(t) {
+        const ab = document.querySelector('.article-body'); const mt = document.querySelector('.article-meta');
+        document.getElementById('article-title').textContent = `HISTORY: ${t}`;
+        ab.innerHTML = '<div class="loading">[DECRYPTING...]</div>';
+        try {
+            const [hr, ar] = await Promise.all([
+                securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(t))}/history`),
+                securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(t))}`)
+            ]);
+            const hd = await hr.json(); const ad = await ar.json();
+            if (hd.error) { ab.innerHTML = `[SYSTEM_EXCEPTION]: ${hd.error}`; return; }
+            const ia = currentUser?.role === 'admin'; const isAuthor = currentUser?.username === ad.author; const canRollback = ia || isAuthor;
+            mt.innerHTML = `<a href="/w/${encodeURIComponent(window.titleToSlug(t))}" class="btn-clinical-toggle" style="font-size:0.65rem;">[← BACK]</a>`;
+            const revs = hd.revisions || [];
+            if (revs.length === 0) { ab.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-dim);">[SIGNAL_QUIET]: No revision records found.</div>'; return; }
+            const rb = (rev, i) => canRollback ? (i > 0 ? `<button onclick="event.stopPropagation(); window.rollbackRevision('${escapeHTML(t)}', ${parseInt(rev.id)})" style="background:none; border:1px solid var(--accent-orange); color:var(--accent-orange); cursor:pointer; font-size:0.65rem; padding:3px 8px; font-family:var(--font-mono);">[ROLLBACK]</button>` : `<span style="color:var(--text-dim); font-size:0.65rem;">[CURRENT]</span>`) : '';
+            ab.innerHTML = `<table class="clinical-table" style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+                <thead><tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
+                    <th style="padding:10px;">REV_ID</th><th style="padding:10px;">TIMESTAMP</th><th style="padding:10px;">AGENT</th><th style="padding:10px;">SUMMARY</th>${canRollback ? '<th style="padding:10px; text-align:right;">CONTROL</th>' : ''}
+                </tr></thead>
+                <tbody>${revs.map((rev, i) => `<tr style="border-bottom:1px solid #111; cursor:pointer;" onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(t))}?rev=${parseInt(rev.id)}')">
+                    <td style="padding:10px; font-family:var(--font-mono); color:var(--accent-cyan);">#${parseInt(rev.id)}</td>
+                    <td style="padding:10px;">${escapeHTML(rev.timestamp || '')}</td>
+                    <td style="padding:10px;">${escapeHTML(rev.author || '')}</td>
+                    <td style="padding:10px; color:var(--text-dim);">${escapeHTML(rev.edit_summary || '-')}</td>
+                    ${canRollback ? `<td style="padding:10px; text-align:right;" onclick="event.stopPropagation();">${rb(rev, i)}</td>` : ''}
+                </tr>`).join('')}</tbody>
+            </table>`;
+        } catch(e) { ab.innerHTML = "[Handshake failed.]"; }
+        finally { document.documentElement.classList.remove('is-board-loading'); const af = document.getElementById('anti-flicker'); if (af) af.remove(); }
+    }
     async function updateSidebarActivity() { try { const r = await fetch(`${API_ENDPOINT}/activity`); const d = await r.json(); const l = document.getElementById('activity-list'); if (l) l.innerHTML = d.map(a => `<div style="margin-bottom:8px; border-bottom:1px solid #111; padding-bottom:4px;"><div style="font-size:0.6rem; color:var(--text-dim);">[${a.type}] ${a.actor}</div><div style="font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><a href="/w/${encodeURIComponent(window.titleToSlug(a.target))}" style="color:var(--accent-cyan);">▶ ${escapeHTML(a.target.split('/').pop())}</a></div></div>`).join(''); } catch (e) { } }
-    async function init() { const p = decodeURIComponent(window.location.pathname); const u = new URLSearchParams(window.location.search); const m = u.get('mode'); let t = "Main_Page"; if (p.startsWith('/w/')) t = p.substring(3); if (m === 'login' || m === 'register') await renderAuthForm(m); else if (m === 'edit') await loadEditor(t); else await renderArticle(t); updateAuthUI(); updateSidebarActivity(); }
+    window.rollbackRevision = async (t, revId) => { if (!confirm(`[CAUTION]: Rollback "${t}" to revision #${revId}?\nCurrent content will be overwritten.`)) return; try { const r = await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(t))}/rollback`, { method: 'POST', body: JSON.stringify({ rev_id: revId }) }); if (r.ok) { alert('[ROLLBACK_SUCCESS]: Document has been restored.'); window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(t))}`); } else { const d = await r.json(); alert(`FAILED: ${d.error}`); } } catch(e) { alert("NETWORK_ERROR"); } };
+    async function init() { const p = decodeURIComponent(window.location.pathname); const u = new URLSearchParams(window.location.search); const m = u.get('mode'); let t = "Main_Page"; if (p.startsWith('/w/')) t = p.substring(3); if (m === 'login' || m === 'register') await renderAuthForm(m); else if (m === 'edit') await loadEditor(t); else if (m === 'history') await renderHistory(t); else await renderArticle(t); updateAuthUI(); updateSidebarActivity(); }
     window.transmitEdit = async (t) => { const c = document.getElementById('editor-text').value; const s = document.getElementById('edit-summary').value; const it = document.getElementById('ib-title').value.trim(); const ii = document.getElementById('ib-image-url').value.trim(); const ic = document.getElementById('ib-caption')?.value || ""; const ty = document.getElementById('ib-type')?.value || ""; const up = new URLSearchParams(window.location.search); const cl = up.get('type') === 'notice' ? 'NOTICE' : 'GENERAL'; let im = ""; if (it || ii) { im = `{{infobox\n| title = ${it}\n| image = ${ii}\n| caption = ${ic}\n| type = ${ty}\n`; document.querySelectorAll('.infobox-builder .builder-key').forEach((k, i) => { const v = document.querySelectorAll('.infobox-builder .builder-val')[i + 2]; if (k.value.trim()) im += `| ${k.value.trim()} = ${v.value.trim()}\n`; }); im += `}}\n\n`; } try { await securedFetch(`${API_ENDPOINT}/article/${encodeURIComponent(window.titleToSlug(t))}`, { method: 'POST', body: JSON.stringify({ content: im + c, edit_summary: s, classification: cl }) }); window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(t))}`); } catch (e) { alert("FAILED"); } };
     window.adminPurgeArticle = async (t) => {
         if (!confirm(`[CRITICAL_WARNING]: PURGE NODE "${t}"? THIS ACTION IS IRREVERSIBLE.`)) return;
