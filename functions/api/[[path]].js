@@ -204,6 +204,35 @@ export async function onRequest(context) {
             }
         }
 
+        // 1.2 ARTICLE ROLLBACK
+        else if (path.startsWith('/article/') && path.endsWith('/rollback') && method === "POST") {
+            if (!user) return new Response(JSON.stringify({ error: "UNAUTHORIZED_CLEARANCE_REQUIRED" }), { status: 401, headers: securityHeaders });
+            const titlePart = path.replace(/^\/article\//, '').replace(/\/rollback$/, '');
+            const title = normalizeTitle(titlePart);
+            const { rev_id } = await request.json();
+            if (!rev_id) {
+                status = 400; resData = { error: "MISSING_REVISION_ID" };
+            } else {
+                const article = await env.DB.prepare("SELECT id, title, author FROM articles WHERE title = ?").bind(title).first();
+                if (!article) {
+                    status = 404; resData = { error: "NODE_NOT_FOUND" };
+                } else if (user.role !== 'admin' && user.username !== article.author) {
+                    return new Response(JSON.stringify({ error: "INSUFFICIENT_CLEARANCE" }), { status: 403, headers: securityHeaders });
+                } else {
+                    const revision = await env.DB.prepare("SELECT content_snapshot FROM revisions WHERE id = ? AND article_id = ?").bind(rev_id, article.id).first();
+                    if (!revision) {
+                        status = 404; resData = { error: "REVISION_NOT_FOUND" };
+                    } else {
+                        await env.DB.batch([
+                            env.DB.prepare("UPDATE articles SET current_content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(revision.content_snapshot, article.id),
+                            env.DB.prepare("INSERT INTO revisions (article_id, content_snapshot, editor_info, edit_summary) VALUES (?, ?, ?, ?)").bind(article.id, revision.content_snapshot, user.username, `[ROLLBACK_TO_REV:${rev_id}]`)
+                        ]);
+                        resData = { success: true };
+                    }
+                }
+            }
+        }
+
         // 2. SEARCH SUGGEST
         else if (path === '/search/suggest' && method === "GET") {
             const query = url.searchParams.get('q') || "";
