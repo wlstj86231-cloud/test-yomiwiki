@@ -78,12 +78,12 @@ export async function onRequest(context) {
 
         const homepageEntry = `  <url>\n    <loc>${escapeXml(`${baseUrl}/`)}</loc>\n    <lastmod>${latestDate}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`;
         const staticPages = [
-            "about.html",
-            "editorial-policy.html",
-            "privacy.html",
-            "terms.html",
-            "disclaimer.html",
-            "contact.html"
+            "about",
+            "editorial-policy",
+            "privacy",
+            "terms",
+            "disclaimer",
+            "contact"
         ].map(page => `  <url>\n    <loc>${escapeXml(`${baseUrl}/${page}`)}</loc>\n    <lastmod>${latestDate}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>`).join('\n');
         const allEntries = [homepageEntry, staticPages, articleEntries].filter(Boolean).join('\n');
 
