@@ -1,6 +1,12 @@
 User-agent: *
 Allow: /
 Allow: /w/
+Allow: /about.html
+Allow: /editorial-policy.html
+Allow: /privacy.html
+Allow: /terms.html
+Allow: /disclaimer.html
+Allow: /contact.html
 Disallow: /w/SubSector:
 Disallow: /w/SubSector_Archive
 Disallow: /api/

@@ -124,7 +124,7 @@ export async function onRequest(context) {
 
         // Replace Title & Meta
         html = html.replace('<html lang="en">', `<html lang="${getLang(article.title)}">`);
-        html = html.replace('<title>YomiWiki | Archival Gateway [SECURE]</title>', `<title>${escapeHTML(displayTitle)} | YomiWiki</title>${ogTags}`);
+        html = html.replace('<title>YomiWiki | Occult and Internet Lore Archive</title>', `<title>${escapeHTML(displayTitle)} | YomiWiki</title>${ogTags}`);
         
         // Replace H1 Title
         html = html.replace('<h1 class="article-title" id="article-title">DECRYPTING...</h1>', `<h1 class="article-title" id="article-title">${escapeHTML(displayTitle)}</h1>`);

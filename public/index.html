@@ -1,13 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>YomiWiki | Archival Gateway [SECURE]</title>
+    <title>YomiWiki | Occult and Internet Lore Archive</title>
+    <meta name="description" content="YomiWiki is an edited archive for occult records, internet lore, regional rumors, and unusual experiences. Each page separates claims, context, reliability, and editorial interpretation.">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://yomiwiki.com/w/Main_Page">
+    <meta property="og:title" content="YomiWiki | Occult and Internet Lore Archive">
+    <meta property="og:description" content="Edited archive for occult records, internet lore, regional rumors, and unusual experiences.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yomiwiki.com/w/Main_Page">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({
+    'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-M3HSKLDR');</script>
@@ -21,8 +28,7 @@
       gtag('config', 'G-V4TQXXND3M');
     </script>
     <!-- End Google tag -->
-    <!-- UI OPTIMIZATION v2.5.3 -->
-    <link rel="stylesheet" href="/style.css?v=2.5.3">
+    <link rel="stylesheet" href="/style.css?v=2.5.4">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -34,7 +40,6 @@
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
     <script>
-        // [ULTIMATE_FLICKER_PREVENTION]
         (function() {
             const path = decodeURIComponent(window.location.pathname).toLowerCase();
             const isBoard = path.includes('/sector:') || path.includes('/subsector:') || path.includes('/subsector_archive');
@@ -45,27 +50,25 @@
         })();
     </script>
     <div class="scanlines"></div>
-    
-    <!-- NEWS TICKER RESTORED -->
+
     <div class="news-ticker" id="news-ticker">
-        <div class="ticker-content">[ESTABLISHING_GLOBAL_ACTIVITY_UPLINK...] CONNECTED TO NODE_772. [WARNING]: SENSITIVE_DATA_EXPOSURE_DETECTED_IN_SECTOR_4. [NOTICE]: ALL_EDIT_LOGS_ARE_PERMANENT. [SYSTEM]: CLEARANCE_LEVEL_3_REQUIRED_FOR_RESTRICTED_NODES.</div>
+        <div class="ticker-content">[EDITORIAL_ARCHIVE_ONLINE] Claims are separated from verified context. [NOTICE] Personal data, doxxing, hate, adult content, and unsafe instructions are not published. [REVIEW] Records are updated when better sources or reader corrections arrive.</div>
     </div>
 
     <header class="header">
         <div class="logo-group">
             <a href="/w/Main_Page" class="logo" style="text-decoration:none; cursor:pointer;">YomiWiki</a>
-            <div class="status-indicator"><span class="blink">●</span> SECURE_UPLINK</div>
+            <div class="status-indicator"><span class="blink">*</span> EDITED_ARCHIVE</div>
         </div>
-        
 
         <div class="search-bar">
-            <input type="text" placeholder="Query database..." class="search-input" id="search-input">
-            <button class="search-btn" id="search-btn">🔍</button>
+            <input type="text" placeholder="Search records..." class="search-input" id="search-input">
+            <button class="search-btn" id="search-btn" aria-label="Search">SEARCH</button>
             <div id="search-dropdown" class="search-dropdown"></div>
         </div>
 
         <div id="auth-controls" class="auth-controls"></div>
-        
+
         <nav class="mobile-sector-nav">
             <ul class="mobile-sector-list">
                 <li><a href="/w/Sector:South_Korea">S/KOR</a></li>
@@ -81,20 +84,24 @@
                 <h3 class="sidebar-title">[REGIONAL_ARCHIVE_SECTORS]</h3>
                 <nav class="sidebar-nav">
                     <ul style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.8rem;">
-                        <li><a href="/w/Sector:South_Korea">▶ SOUTH_KOREA</a></li>
-                        <li><a href="/w/Sector:USA">▶ USA</a></li>
-                        <li><a href="/w/Sector:Japan">▶ JAPAN</a></li>
-
+                        <li><a href="/w/Sector:South_Korea">SOUTH_KOREA</a></li>
+                        <li><a href="/w/Sector:USA">USA</a></li>
+                        <li><a href="/w/Sector:Japan">JAPAN</a></li>
                     </ul>
                 </nav>
             </section>
 
-            <div id="sidebar-ad-container" class="sidebar-box" style="padding-top:10px; text-align:center;">
-                <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--text-dim); margin-bottom:10px; opacity:0.5;">[ARCHIVAL_SPONSOR_SIGNAL]</div>
-                <div class="ad-placeholder" style="min-height:250px; background:rgba(255,255,255,0.01); border:1px solid #111; display:flex; align-items:center; justify-content:center; color:#222; font-family:var(--font-mono); font-size:0.8rem;">
-                    [AD_SIGNAL_PENDING]
-                </div>
-            </div>
+            <section class="sidebar-box" style="margin-top:20px;">
+                <h3 class="sidebar-title">[SITE_POLICY]</h3>
+                <nav class="sidebar-nav">
+                    <ul style="display:flex; flex-direction:column; gap:10px; font-family:var(--font-mono); font-size:0.75rem;">
+                        <li><a href="/about.html">ABOUT_YOMIWIKI</a></li>
+                        <li><a href="/editorial-policy.html">EDITORIAL_POLICY</a></li>
+                        <li><a href="/privacy.html">PRIVACY_POLICY</a></li>
+                        <li><a href="/contact.html">CONTACT</a></li>
+                    </ul>
+                </nav>
+            </section>
 
             <section class="sidebar-box" style="margin-top:20px;">
                 <h3 class="sidebar-title">[LIVE_ACTIVITY_LOG]</h3>
@@ -112,7 +119,15 @@
     </div>
 
     <button id="btn-top" class="btn-floating" style="display:none;" onclick="window.scrollToTop()">[TOP_OF_NODE]</button>
-    <script src="/parser.js?v=2.5.3"></script>
-    <script src="/main.js?v=2.5.3"></script>
+    <footer class="site-footer">
+        <a href="/about.html">About</a>
+        <a href="/editorial-policy.html">Editorial Policy</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+        <a href="/disclaimer.html">Disclaimer</a>
+        <a href="/contact.html">Contact</a>
+    </footer>
+    <script src="/parser.js?v=2.5.4"></script>
+    <script src="/main.js?v=2.5.4"></script>
 </body>
 </html>
