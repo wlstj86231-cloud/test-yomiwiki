@@ -67,7 +67,9 @@ export async function onRequest(context) {
 
         // 2. Fetch Data from D1
         // Search canonical underscore titles first; old space titles are a fallback only.
-        const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ? OR title = ?").bind(underscoreTitle, title).first();
+        const article = await env.DB.prepare(
+            "SELECT * FROM articles WHERE title = ? OR title = ? ORDER BY CASE WHEN title = ? THEN 0 ELSE 1 END LIMIT 1"
+        ).bind(underscoreTitle, title, underscoreTitle).first();
         
         if (!article || article.is_deleted) {
             return notFoundResponse();
