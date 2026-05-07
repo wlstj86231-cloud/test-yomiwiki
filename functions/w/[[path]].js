@@ -14,7 +14,54 @@ export async function onRequest(context) {
 
     try {
         function escapeHTML(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function stripWikiForDescription(content = "") {
+            return content
+                .replace(/\{\{infobox[\s\S]*?\}\}/gi, " ")
+                .replace(/<[^>]*>/g, " ")
+                .replace(/\[\[File:[^\]]+\]\]/gi, " ")
+                .replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, "$2")
+                .replace(/\[\[([^\]]+)\]\]/g, "$1")
+                .replace(/\[(https?:\/\/[^\s\]]+)\s+([^\]]+)\]/g, "$2")
+                .replace(/\[\/?CLINICAL\]/gi, " ")
+                .replace(/={2,}\s*(.*?)\s*={2,}/g, "$1. ")
+                .replace(/'''(.*?)'''/g, "$1")
+                .replace(/''(.*?)''/g, "$1")
+                .replace(/[=#*_`~|{}[\]]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function extractLeadDescription(content, fallbackTitle) {
+            const plain = stripWikiForDescription(content);
+            const fallback = `${fallbackTitle.replace(/[_/]+/g, " ")} archival record from YomiWiki.`;
+            const source = plain || fallback;
+            return source.length > 155 ? `${source.substring(0, 155).trim()}...` : source;
+        }
+
+        function extractOgImage(content = "") {
+            const infoboxImage = content.match(/\|\s*image\s*=\s*(https?:\/\/[^\s|}]+)/i);
+            if (infoboxImage) return infoboxImage[1].trim();
+            const fileImage = content.match(/\[\[File:(https?:\/\/[^|\]]+)/i);
+            return fileImage ? fileImage[1].trim() : "";
+        }
+
+        function getLang(articleTitle) {
+            if (articleTitle.startsWith("Sector:South_Korea")) return "ko";
+            if (articleTitle.startsWith("Sector:Japan")) return "ja";
+            return "en";
+        }
+
+        async function notFoundResponse() {
+            const notFoundAsset = await env.ASSETS.fetch(new URL('/404.html', request.url));
+            let notFoundHtml = await notFoundAsset.text();
+            notFoundHtml = notFoundHtml.replace('</head>', '<meta name="robots" content="noindex,follow"></head>');
+            return new Response(notFoundHtml, {
+                status: 404,
+                headers: { "Content-Type": "text/html;charset=UTF-8" }
+            });
         }
 
         // 2. Fetch Data from D1
@@ -22,8 +69,7 @@ export async function onRequest(context) {
         const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ? OR title = ?").bind(title, underscoreTitle).first();
         
         if (!article || article.is_deleted) {
-            // Fallback to the main SPA shell instead of 404
-            return env.ASSETS.fetch(new URL('/', request.url));
+            return notFoundResponse();
         }
 
         // 3. Simple Server-Side Parser (Basic markdown-ish to HTML)
@@ -53,28 +99,32 @@ export async function onRequest(context) {
         let html = await templateResponse.text();
 
         // 5. Injection (Match exactly with index.html tags)
-        // Strip HTML tags and wiki markup for a clean description
-        const plainContent = (article.current_content || "")
-            .replace(/<[^>]*>/g, '') // Strip HTML tags
-            .replace(/[\[\]{}|*]/g, '') // Strip wiki symbols
-            .substring(0, 160)
-            .trim();
-        const description = `${escapeHTML(plainContent)}... [AUTHORIZED_CLEARANCE_REQUIRED]`;
+        const displayTitle = article.title.split('/').pop().replace(/_/g, ' ');
+        const description = escapeHTML(extractLeadDescription(rawContent || article.current_content || "", displayTitle));
+        const canonicalUrl = `${url.origin}/w/${encodeURIComponent(article.title).replace(/%20/g, '_')}`;
+        const ogImage = extractOgImage(rawContent || article.current_content || "");
+        const noindex = article.title.startsWith('SubSector:') || article.title === 'SubSector_Archive';
         const ogTags = `
+            <link rel="canonical" href="${escapeHTML(canonicalUrl)}">
+            <meta name="robots" content="${noindex ? 'noindex,follow' : 'index,follow'}">
             <meta name="description" content="${description}">
-            <meta property="og:title" content="${article.title} | YomiWiki Archival Node">
+            <meta property="og:title" content="${escapeHTML(displayTitle)} | YomiWiki Archival Node">
             <meta property="og:description" content="${description}">
             <meta property="og:type" content="article">
-            <meta name="twitter:card" content="summary">
-            <meta name="twitter:title" content="${article.title}">
+            <meta property="og:url" content="${escapeHTML(canonicalUrl)}">
+            ${ogImage ? `<meta property="og:image" content="${escapeHTML(ogImage)}">` : ''}
+            <meta name="twitter:card" content="${ogImage ? 'summary_large_image' : 'summary'}">
+            <meta name="twitter:title" content="${escapeHTML(displayTitle)}">
             <meta name="twitter:description" content="${description}">
+            ${ogImage ? `<meta name="twitter:image" content="${escapeHTML(ogImage)}">` : ''}
         `;
 
         // Replace Title & Meta
-        html = html.replace('<title>YomiWiki | Archival Gateway [SECURE]</title>', `<title>${article.title} | YomiWiki</title>${ogTags}`);
+        html = html.replace('<html lang="en">', `<html lang="${getLang(article.title)}">`);
+        html = html.replace('<title>YomiWiki | Archival Gateway [SECURE]</title>', `<title>${escapeHTML(displayTitle)} | YomiWiki</title>${ogTags}`);
         
         // Replace H1 Title
-        html = html.replace('<h1 class="article-title" id="article-title">DECRYPTING...</h1>', `<h1 class="article-title" id="article-title">${article.title}</h1>`);
+        html = html.replace('<h1 class="article-title" id="article-title">DECRYPTING...</h1>', `<h1 class="article-title" id="article-title">${escapeHTML(displayTitle)}</h1>`);
         
         // Replace Meta Text
         html = html.replace('<div class="article-meta">REVISION: STABLE | AUTH: Admin</div>', `<div class="article-meta">REV: ${article.updated_at} | AUTH: ${article.author} [EDGE_HYDRATED]</div>`);
@@ -85,9 +135,10 @@ export async function onRequest(context) {
         
         // 6. Hydration Data Injection
         // Inject the full article object so main.js doesn't have to fetch it again
+        const { comments_data, ...articleForHydration } = article;
         const ssrData = {
-            ...article,
-            current_content: contentHtml // Note: already potentially chunk-joined
+            ...articleForHydration,
+            current_content: rawContent
         };
         html = html.replace('</body>', `<script id="ssr-data" type="application/json">${JSON.stringify(ssrData).replace(/</g, '\\u003c')}</script></body>`);
 

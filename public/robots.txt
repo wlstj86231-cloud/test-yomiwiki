@@ -1,10 +1,12 @@
 User-agent: *
 Allow: /
 Allow: /w/
+Disallow: /w/SubSector:
+Disallow: /w/SubSector_Archive
 Disallow: /api/
 Disallow: /?mode=edit
 Disallow: /?mode=history
 Disallow: /?mode=discuss
 Disallow: /?mode=search
 
-Sitemap: https://test-yomiwiki.pages.dev/sitemap.xml
+Sitemap: https://yomiwiki.com/sitemap.xml
