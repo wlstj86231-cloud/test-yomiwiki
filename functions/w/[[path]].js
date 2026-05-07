@@ -100,6 +100,9 @@ export async function onRequest(context) {
             let misconception = "the strongest reading is not always the most useful one";
             let evidenceLevel = "contextual";
             let editorialObservation = "records like this usually become more useful when the page preserves uncertainty instead of forcing a single conclusion";
+            let coreQuestion = "what can a reader actually verify after leaving the page?";
+            let comparisonPoint = "unlike a simple retelling, this record is kept with its uncertainty and editorial limits visible";
+            let nextReviewPoint = "additional dates, clearer source trails, or reader corrections would make the record easier to judge";
 
             if (/scam|voice|customer|qr|market|offer|package|romance|safe|call/.test(lower)) {
                 theme = "risk signal";
@@ -108,6 +111,9 @@ export async function onRequest(context) {
                 misconception = "a convincing story is often mistaken for a verified request";
                 evidenceLevel = "practical caution";
                 editorialObservation = "the useful part of this record is not fear itself, but the checklist it gives readers before they respond";
+                coreQuestion = "what decision is the reader being pushed to make, and can it be verified without following the suspicious route?";
+                comparisonPoint = "compared with ordinary rumor pages, this record focuses on the pressure pattern and safer verification path";
+                nextReviewPoint = "future edits should add official reporting channels, repeated wording patterns, or confirmed platform warnings when available";
             } else if (/dream|backrooms|ghost|window|night|elevator|playground|tunnel|bridge|3am|photo|deleted|comment/.test(lower)) {
                 theme = "experience report";
                 lens = "the scene description, what can be independently checked, and which parts remain memory or interpretation";
@@ -115,6 +121,9 @@ export async function onRequest(context) {
                 misconception = "an unresolved detail can be mistaken for proof of a supernatural cause";
                 evidenceLevel = "reported experience";
                 editorialObservation = "the record is strongest when it keeps the witness scene intact while still leaving room for mundane explanations";
+                coreQuestion = "which part of the scene is observable, and which part depends on memory, timing, or interpretation?";
+                comparisonPoint = "unlike pure fiction summaries, this page preserves the reported sequence while marking the weak points";
+                nextReviewPoint = "future edits should add ordinary explanations, location-neutral context, or matching reports without exposing private details";
             } else if (/community|archive|submit|publish|editorial|records|rumor|lore/.test(lower)) {
                 theme = "archive method note";
                 lens = "how the record was framed, what was excluded, and whether the page helps readers judge similar submissions";
@@ -122,9 +131,12 @@ export async function onRequest(context) {
                 misconception = "archive inclusion can be mistaken for endorsement";
                 evidenceLevel = "method and policy";
                 editorialObservation = "the most important value here is transparency: readers should see how a record enters, changes, or leaves the archive";
+                coreQuestion = "does this page explain how the archive makes decisions, not just what the archive contains?";
+                comparisonPoint = "compared with a notice page, this record should also help readers apply the same rule to future submissions";
+                nextReviewPoint = "future edits should add clearer acceptance examples, rejection examples, and correction paths";
             }
 
-            return { titleText, sector, theme, lens, readerAction, misconception, evidenceLevel, editorialObservation, plainLength: plain.length };
+            return { titleText, sector, theme, lens, readerAction, misconception, evidenceLevel, editorialObservation, coreQuestion, comparisonPoint, nextReviewPoint, plainLength: plain.length };
         }
 
         function renderEditorialExpansion(article, rawContent = "") {
@@ -162,6 +174,18 @@ export async function onRequest(context) {
                         <section>
                             <h3>근거 수준</h3>
                             <p>현재 근거 수준은 ${escapeHTML(context.evidenceLevel)} 단계로 본다. 공개 본문만으로 확정하기 어려운 부분은 확정 표현을 피하고, 독자가 추가 확인을 할 수 있는 방향으로 남겨 둔다.</p>
+                        </section>
+                        <section>
+                            <h3>핵심 질문</h3>
+                            <p>${escapeHTML(context.coreQuestion)} 이 질문에 답할 수 있을수록 문서는 단순한 이야기보다 검토 가능한 기록에 가까워진다.</p>
+                        </section>
+                        <section>
+                            <h3>비슷한 사례와의 차이</h3>
+                            <p>${escapeHTML(context.comparisonPoint)}. 이 차이를 드러내야 검색으로 들어온 독자도 왜 이 문서가 별도 기록으로 남았는지 이해할 수 있다.</p>
+                        </section>
+                        <section>
+                            <h3>다음 검토 포인트</h3>
+                            <p>${escapeHTML(context.nextReviewPoint)}. 보강이 들어오면 기존 문장을 덮어쓰기보다, 무엇이 바뀌었는지 독자가 따라갈 수 있게 이력과 함께 남긴다.</p>
                         </section>
                     </div>
                     <p><b>편집 관찰:</b> ${escapeHTML(context.editorialObservation)}. 이 관찰은 문서의 신뢰도를 과장하기 위한 장식이 아니라, 독자가 같은 유형의 기록을 반복해서 만났을 때 적용할 수 있는 읽기 기준이다.</p>
@@ -203,6 +227,18 @@ export async function onRequest(context) {
                         <section>
                             <h3>품질 보강 방향</h3>
                             <p>하위 문서가 짧거나 맥락이 부족하면 편집자 의견, 반례, 공개 제외 사유를 추가해 보완한다. 검색 노출보다 먼저 보는 기준은 독자가 납득할 수 있는 설명 밀도다.</p>
+                        </section>
+                        <section>
+                            <h3>섹터 운영 의도</h3>
+                            <p>이 허브는 방문자가 특정 사건 하나만 소비하고 떠나는 페이지가 아니라, 같은 지역 안에서 기록들이 어떤 방식으로 반복되고 변형되는지 비교하는 기준점이다.</p>
+                        </section>
+                        <section>
+                            <h3>하위 문서 연결 기준</h3>
+                            <p>하위 문서는 제목의 자극성보다 문서 내부의 설명 밀도, 검토 가능한 단서, 편집자 주석의 존재를 기준으로 연결한다. 품질이 낮은 기록은 공개 색인에서 제외하거나 보강 후 연결한다.</p>
+                        </section>
+                        <section>
+                            <h3>독자 참여 기준</h3>
+                            <p>독자 제보는 추가 설명, 반례, 정정 근거를 중심으로 받는다. 단순한 공포 확대, 특정인 지목, 출처 없는 폭로는 섹터 품질을 낮추기 때문에 반영하지 않는다.</p>
                         </section>
                     </div>
                     <p class="density-footer">This sector note explains how YomiWiki selects, limits, and reviews records before they enter the public archive.</p>
