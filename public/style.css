@@ -30,8 +30,7 @@ ul, ol { list-style: none !important; padding: 0; margin: 0; }
 
     /* --- [2. Typography Enhancement] --- */
     --font-mono: 'IBM Plex Mono', 'JetBrains Mono', monospace;
-    --font-display: 'Montserrat', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-    --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    --font-sans: 'Montserrat', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 
     /* --- [3. UI Constants] --- */
     --radius: 0px; 
@@ -47,7 +46,7 @@ html, body {
     color: var(--text-main);
     font-family: var(--font-sans);
     line-height: 1.7; 
-    letter-spacing: 0; 
+    letter-spacing: -0.02em; 
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
@@ -228,7 +227,7 @@ body.theme-subsector .news-ticker {
 }
 
 .logo {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     color: var(--accent-orange);
     font-size: 1.8rem;
     font-weight: 900; 
@@ -361,14 +360,14 @@ body.theme-subsector .news-ticker {
 
 /* --- [Article Typography] --- */
 .article-title {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     color: var(--accent-orange);
     font-size: 2.0rem;
     margin-bottom: 1.2rem;
     font-weight: 900;
     border-bottom: 3px solid var(--accent-orange);
     padding-bottom: 12px;
-    letter-spacing: 0;
+    letter-spacing: -0.03em;
 }
 
 .article-body {
