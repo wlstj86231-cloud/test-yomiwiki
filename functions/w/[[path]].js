@@ -106,7 +106,8 @@ export async function onRequest(context) {
         const description = escapeHTML(extractLeadDescription(rawContent || article.current_content || "", displayTitle));
         const canonicalUrl = `${url.origin}/w/${encodeURIComponent(article.title).replace(/%20/g, '_')}`;
         const ogImage = extractOgImage(rawContent || article.current_content || "");
-        const noindex = article.title.startsWith('SubSector:') || article.title === 'SubSector_Archive';
+        const isUtilityView = url.searchParams.has('mode') || url.searchParams.has('rev');
+        const noindex = isUtilityView || article.title.startsWith('SubSector:') || article.title === 'SubSector_Archive';
         const ogTags = `
             <link rel="canonical" href="${escapeHTML(canonicalUrl)}">
             <meta name="robots" content="${noindex ? 'noindex,follow' : 'index,follow'}">

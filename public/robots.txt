@@ -12,7 +12,11 @@ Disallow: /w/SubSector_Archive
 Disallow: /api/
 Disallow: /?mode=edit
 Disallow: /?mode=history
+Disallow: /?mode=login
+Disallow: /?mode=register
 Disallow: /?mode=discuss
 Disallow: /?mode=search
+Disallow: /*?mode=
+Disallow: /*?rev=
 
 Sitemap: https://yomiwiki.com/sitemap.xml

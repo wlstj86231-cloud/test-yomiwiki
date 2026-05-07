@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function escapeHTML(s) { if (!s) return ""; return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
     let currentUser = JSON.parse(localStorage.getItem('yomi_user'));
     async function securedFetch(u, o = {}) { const h = o.headers || {}; if (currentUser?.token) h['Authorization'] = `Bearer ${currentUser.token}`; h['X-Yomi-Request'] = 'true'; if (!(o.body instanceof FormData) && o.body) h['Content-Type'] = 'application/json'; return fetch(u, { ...o, headers: h }); }
-    function updateAuthUI() { const c = document.getElementById('auth-controls'); if (!c) return; if (currentUser) c.innerHTML = `<span style="color:var(--accent-orange); font-family:var(--font-mono); font-size:0.75rem; margin-right:10px;">[AGENT_${escapeHTML(currentUser.username)}]</span><button onclick="window.logout()" class="auth-btn logout">[DEACTIVATE]</button>`; else c.innerHTML = `<a href="/?mode=login" class="auth-btn">[LOGIN]</a> <a href="/?mode=register" class="auth-btn">[REGISTER]</a>`; }
+    function updateAuthUI() { const c = document.getElementById('auth-controls'); if (!c) return; if (currentUser) c.innerHTML = `<span style="color:var(--accent-orange); font-family:var(--font-mono); font-size:0.75rem; margin-right:10px;">[AGENT_${escapeHTML(currentUser.username)}]</span><button onclick="window.logout()" class="auth-btn logout">[DEACTIVATE]</button>`; else c.innerHTML = `<a href="/?mode=login" class="auth-btn">[LOGIN]</a>`; }
     window.logout = () => { localStorage.removeItem('yomi_user'); currentUser = null; window.navigateTo('/w/Main_Page'); };
     let _currentPathSearch = window.location.pathname + window.location.search;
     window.navigateTo = (p) => { window.history.pushState({}, "", p); _currentPathSearch = window.location.pathname + window.location.search; init(); };
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </table>`;
                 ch = "";
             }
-            const co = (ib || ih) ? "" : renderCommentsHTML(d.title, d.comments || []); ab.innerHTML = ch + bh + co;
+            const co = (ib || ih || !currentUser) ? "" : renderCommentsHTML(d.title, d.comments || []); ab.innerHTML = ch + bh + co;
         } catch (e) { ab.innerHTML = "[Handshake failed.]"; }
         finally { document.documentElement.classList.remove('is-board-loading'); const af = document.getElementById('anti-flicker'); if (af) af.remove(); }
     }
