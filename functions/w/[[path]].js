@@ -218,70 +218,6 @@ export async function onRequest(context) {
             `;
         }
 
-        function renderBoardEditorialExpansion(article) {
-            if (!isTopLevelBoardTitle(article.title)) return "";
-            const sector = getSectorLabel(article.title);
-            const updated = article.updated_at ? new Date(article.updated_at).toISOString().split("T")[0] : "recent review";
-            return `
-                <section class="editorial-density-block board-density-block" aria-label="YomiWiki sector editorial notes">
-                    <div class="density-kicker">SECTOR EDITORIAL STANDARD</div>
-                    <h2>섹터 편집 기준</h2>
-                    <p><b>${escapeHTML(sector)}</b> 허브는 개별 괴담이나 사건을 무작위로 모으는 목록이 아니라, 지역별 기록을 같은 기준으로 비교하기 위한 출입구다. 이 섹터에 들어오는 문서는 주장, 현장 맥락, 확인 가능한 단서, 독자 주의점을 분리해 정리한다.</p>
-                    <div class="density-grid">
-                        <section>
-                            <h3>수록 기준</h3>
-                            <p>반복적으로 회자된 기록, 지역성이 뚜렷한 제보, 온라인 커뮤니티에서 맥락이 변형된 사례를 우선한다. 단순한 자극성 제목이나 출처가 전혀 없는 단정문은 공개 색인에서 제외한다.</p>
-                        </section>
-                        <section>
-                            <h3>검수 기준</h3>
-                            <p>개별 문서는 사실 확정이 아니라 편집 기록으로 취급한다. 확인 가능한 단서가 부족한 경우에는 전승, 주장, 해석을 분리하고, 독자가 오해할 수 있는 부분을 보수적으로 낮춰 쓴다.</p>
-                        </section>
-                        <section>
-                            <h3>비공개 원칙</h3>
-                            <p>개인 신상, 사적 연락처, 추적 가능한 위치, 혐오나 괴롭힘으로 이어질 수 있는 정보는 싣지 않는다. 기록의 목적은 대상을 특정하는 것이 아니라 정보가 퍼지는 방식을 보존하는 것이다.</p>
-                        </section>
-                        <section>
-                            <h3>업데이트 방식</h3>
-                            <p>${escapeHTML(updated)} 이후 새 근거, 정정 요청, 반례가 들어오면 하위 문서의 판단과 색인 노출 기준을 함께 조정한다. 오래된 문서도 독자 제보가 있으면 재검토 대상이 된다.</p>
-                        </section>
-                        <section>
-                            <h3>독자 경험 기준</h3>
-                            <p>독자가 실제로 얻어야 하는 것은 자극적인 결말이 아니라, 비슷한 기록을 만났을 때 무엇을 의심하고 무엇을 확인할지에 대한 기준이다. 섹터 허브는 그 기준을 반복적으로 노출하는 역할을 한다.</p>
-                        </section>
-                        <section>
-                            <h3>품질 보강 방향</h3>
-                            <p>하위 문서가 짧거나 맥락이 부족하면 편집자 의견, 반례, 공개 제외 사유를 추가해 보완한다. 검색 노출보다 먼저 보는 기준은 독자가 납득할 수 있는 설명 밀도다.</p>
-                        </section>
-                        <section>
-                            <h3>섹터 운영 의도</h3>
-                            <p>이 허브는 방문자가 특정 사건 하나만 소비하고 떠나는 페이지가 아니라, 같은 지역 안에서 기록들이 어떤 방식으로 반복되고 변형되는지 비교하는 기준점이다.</p>
-                        </section>
-                        <section>
-                            <h3>하위 문서 연결 기준</h3>
-                            <p>하위 문서는 제목의 자극성보다 문서 내부의 설명 밀도, 검토 가능한 단서, 편집자 주석의 존재를 기준으로 연결한다. 품질이 낮은 기록은 공개 색인에서 제외하거나 보강 후 연결한다.</p>
-                        </section>
-                        <section>
-                            <h3>독자 참여 기준</h3>
-                            <p>독자 제보는 추가 설명, 반례, 정정 근거를 중심으로 받는다. 단순한 공포 확대, 특정인 지목, 출처 없는 폭로는 섹터 품질을 낮추기 때문에 반영하지 않는다.</p>
-                        </section>
-                        <section>
-                            <h3>첫 방문자 안내</h3>
-                            <p>처음 들어온 독자는 최신 글부터 소비하기보다, 각 문서의 편집자 의견과 공개 제외 기준을 먼저 확인하는 편이 좋다. 이 허브는 흥미로운 제목보다 읽는 기준을 먼저 세우도록 설계되어 있다.</p>
-                        </section>
-                        <section>
-                            <h3>재방문 가치</h3>
-                            <p>하위 문서는 새 제보, 정정, 반례가 들어오면 해석이 달라질 수 있다. 따라서 같은 섹터를 다시 방문했을 때는 새 문서뿐 아니라 기존 문서의 업데이트 기준도 함께 보는 것이 중요하다.</p>
-                        </section>
-                        <section>
-                            <h3>편집 우선순위</h3>
-                            <p>YomiWiki는 조회수를 위해 모든 제보를 즉시 공개하지 않는다. 먼저 독자 안전, 설명 밀도, 출처 추적 가능성, 사생활 보호를 확인하고 그 다음에 색인 노출 여부를 판단한다.</p>
-                        </section>
-                    </div>
-                    <p class="density-footer">This sector note explains how YomiWiki selects, limits, and reviews records before they enter the public archive.</p>
-                </section>
-            `;
-        }
-
         function titleUrl(title = "") {
             return `${url.origin}/w/${encodeURIComponent(title)
                 .replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
@@ -329,7 +265,6 @@ export async function onRequest(context) {
         if (isTopLevelBoardTitle(article.title)) {
             contentHtml += '<div style="margin-top:30px; border:1px dashed #333; padding:20px; text-align:center; color:#444; font-family:monospace;">[RETRIVING_SUB_NODE_INDEX...]</div>';
         }
-        contentHtml += renderBoardEditorialExpansion(article);
         contentHtml += renderEditorialExpansion(article, rawContent);
 
         // 4. Fetch the static index.html as a template
