@@ -60,6 +60,23 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="density-footer">Reviewed by ${escapeHTML(author)}. This note is added to improve reader context, source caution, and editorial transparency.</p>
         </section>`;
     }
+    function renderBoardEditorialExpansion(d) {
+        if (!isTopLevelBoardTitle(d.title)) return "";
+        const sector = getSectorLabel(d.title);
+        const updated = d.updated_at ? new Date(d.updated_at).toISOString().split("T")[0] : "recent review";
+        return `<section class="editorial-density-block board-density-block" aria-label="YomiWiki sector editorial notes">
+            <div class="density-kicker">SECTOR EDITORIAL STANDARD</div>
+            <h2>섹터 편집 기준</h2>
+            <p><b>${escapeHTML(sector)}</b> 허브는 개별 괴담이나 사건을 무작위로 모으는 목록이 아니라, 지역별 기록을 같은 기준으로 비교하기 위한 출입구다. 이 섹터에 들어오는 문서는 주장, 현장 맥락, 확인 가능한 단서, 독자 주의점을 분리해 정리한다.</p>
+            <div class="density-grid">
+                <section><h3>수록 기준</h3><p>반복적으로 회자된 기록, 지역성이 뚜렷한 제보, 온라인 커뮤니티에서 맥락이 변형된 사례를 우선한다. 단순한 자극성 제목이나 출처가 전혀 없는 단정문은 공개 색인에서 제외한다.</p></section>
+                <section><h3>검수 기준</h3><p>개별 문서는 사실 확정이 아니라 편집 기록으로 취급한다. 확인 가능한 단서가 부족한 경우에는 전승, 주장, 해석을 분리하고, 독자가 오해할 수 있는 부분을 보수적으로 낮춰 쓴다.</p></section>
+                <section><h3>비공개 원칙</h3><p>개인 신상, 사적 연락처, 추적 가능한 위치, 혐오나 괴롭힘으로 이어질 수 있는 정보는 싣지 않는다. 기록의 목적은 대상을 특정하는 것이 아니라 정보가 퍼지는 방식을 보존하는 것이다.</p></section>
+                <section><h3>업데이트 방식</h3><p>${escapeHTML(updated)} 이후 새 근거, 정정 요청, 반례가 들어오면 하위 문서의 판단과 색인 노출 기준을 함께 조정한다. 오래된 문서도 독자 제보가 있으면 재검토 대상이 된다.</p></section>
+            </div>
+            <p class="density-footer">This sector note explains how YomiWiki selects, limits, and reviews records before they enter the public archive.</p>
+        </section>`;
+    }
     async function renderArticle(t) {
         const ab = document.querySelector('.article-body'); const mt = document.querySelector('.article-meta'); const s = window.titleToSlug(t); ab.innerHTML = '<div class="loading">[DECRYPTING...]</div>';
         try {
@@ -75,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sl = d.sub_articles || [];
                 const nb = ia ? `<button onclick="window.establishNewNode('${escapeHTML(d.title)}', true)" class="btn-clinical-toggle" style="border-color:var(--hazard-red); color:var(--hazard-red); margin-left:10px;">[POST_NOTICE]</button>` : "";
                 const cb = `<button onclick="window.establishNewNode('${escapeHTML(d.title)}')" class="btn-clinical-toggle">[NEW_NODE]</button>`;
-                bh = `<div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end;"><div>${cb} ${nb}</div></div>
+                bh = `${renderBoardEditorialExpansion(d)}<div style="margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:15px; display:flex; justify-content:flex-end;"><div>${cb} ${nb}</div></div>
                 <table class="clinical-table" style="width:100%; border-collapse:collapse; font-size:0.8rem;">
                     <thead>
                         <tr style="background:#111; border-bottom:2px solid #222; text-align:left;">
