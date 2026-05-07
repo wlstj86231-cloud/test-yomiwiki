@@ -97,22 +97,34 @@ export async function onRequest(context) {
             let theme = "unusual record";
             let lens = "reported details, repeated motifs, and the limits of what the archive can verify";
             let readerAction = "treat the page as a structured record rather than a final explanation";
+            let misconception = "the strongest reading is not always the most useful one";
+            let evidenceLevel = "contextual";
+            let editorialObservation = "records like this usually become more useful when the page preserves uncertainty instead of forcing a single conclusion";
 
             if (/scam|voice|customer|qr|market|offer|package|romance|safe|call/.test(lower)) {
                 theme = "risk signal";
                 lens = "the action requested from the reader, the channel used to create urgency, and whether a safer verification route exists";
                 readerAction = "pause before acting, verify through an official channel, and separate the story from any instruction that asks for money or personal data";
+                misconception = "a convincing story is often mistaken for a verified request";
+                evidenceLevel = "practical caution";
+                editorialObservation = "the useful part of this record is not fear itself, but the checklist it gives readers before they respond";
             } else if (/dream|backrooms|ghost|window|night|elevator|playground|tunnel|bridge|3am|photo|deleted|comment/.test(lower)) {
                 theme = "experience report";
                 lens = "the scene description, what can be independently checked, and which parts remain memory or interpretation";
                 readerAction = "compare the claim with ordinary explanations first, then keep the unresolved part clearly labeled";
+                misconception = "an unresolved detail can be mistaken for proof of a supernatural cause";
+                evidenceLevel = "reported experience";
+                editorialObservation = "the record is strongest when it keeps the witness scene intact while still leaving room for mundane explanations";
             } else if (/community|archive|submit|publish|editorial|records|rumor|lore/.test(lower)) {
                 theme = "archive method note";
                 lens = "how the record was framed, what was excluded, and whether the page helps readers judge similar submissions";
                 readerAction = "look for the editorial boundary: what is being documented, what is being rejected, and what would change the conclusion";
+                misconception = "archive inclusion can be mistaken for endorsement";
+                evidenceLevel = "method and policy";
+                editorialObservation = "the most important value here is transparency: readers should see how a record enters, changes, or leaves the archive";
             }
 
-            return { titleText, sector, theme, lens, readerAction, plainLength: plain.length };
+            return { titleText, sector, theme, lens, readerAction, misconception, evidenceLevel, editorialObservation, plainLength: plain.length };
         }
 
         function renderEditorialExpansion(article, rawContent = "") {
@@ -143,7 +155,16 @@ export async function onRequest(context) {
                             <h3>업데이트 기준</h3>
                             <p>새로운 출처, 반례, 당사자 정정, 독자 제보가 들어오면 ${escapeHTML(updated)} 기준의 현재 판단을 수정한다. 변경이 생기면 문서 이력에 남기고, 기존 해석과 새 근거가 충돌하는 지점을 분리해 표시한다.</p>
                         </section>
+                        <section>
+                            <h3>오해하기 쉬운 지점</h3>
+                            <p>${escapeHTML(context.misconception)}. 그래서 이 문서는 결론을 서두르기보다, 어느 문장이 주장이고 어느 문장이 관찰인지 구분해서 읽도록 구성한다.</p>
+                        </section>
+                        <section>
+                            <h3>근거 수준</h3>
+                            <p>현재 근거 수준은 ${escapeHTML(context.evidenceLevel)} 단계로 본다. 공개 본문만으로 확정하기 어려운 부분은 확정 표현을 피하고, 독자가 추가 확인을 할 수 있는 방향으로 남겨 둔다.</p>
+                        </section>
                     </div>
+                    <p><b>편집 관찰:</b> ${escapeHTML(context.editorialObservation)}. 이 관찰은 문서의 신뢰도를 과장하기 위한 장식이 아니라, 독자가 같은 유형의 기록을 반복해서 만났을 때 적용할 수 있는 읽기 기준이다.</p>
                     <p class="density-footer">Reviewed by ${escapeHTML(author)}. This note is added to improve reader context, source caution, and editorial transparency.</p>
                 </section>
             `;
@@ -174,6 +195,14 @@ export async function onRequest(context) {
                         <section>
                             <h3>업데이트 방식</h3>
                             <p>${escapeHTML(updated)} 이후 새 근거, 정정 요청, 반례가 들어오면 하위 문서의 판단과 색인 노출 기준을 함께 조정한다. 오래된 문서도 독자 제보가 있으면 재검토 대상이 된다.</p>
+                        </section>
+                        <section>
+                            <h3>독자 경험 기준</h3>
+                            <p>독자가 실제로 얻어야 하는 것은 자극적인 결말이 아니라, 비슷한 기록을 만났을 때 무엇을 의심하고 무엇을 확인할지에 대한 기준이다. 섹터 허브는 그 기준을 반복적으로 노출하는 역할을 한다.</p>
+                        </section>
+                        <section>
+                            <h3>품질 보강 방향</h3>
+                            <p>하위 문서가 짧거나 맥락이 부족하면 편집자 의견, 반례, 공개 제외 사유를 추가해 보완한다. 검색 노출보다 먼저 보는 기준은 독자가 납득할 수 있는 설명 밀도다.</p>
                         </section>
                     </div>
                     <p class="density-footer">This sector note explains how YomiWiki selects, limits, and reviews records before they enter the public archive.</p>
