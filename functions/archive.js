@@ -110,8 +110,10 @@ export async function onRequest(context) {
     <title>Archive Index | YomiWiki</title>
     <meta name="description" content="Browse YomiWiki's public archive of occult records, internet lore, regional rumors, and unusual experiences.">
     <meta name="robots" content="index,follow">
+    <meta name="google-adsense-account" content="ca-pub-7217591196020054">
     <link rel="canonical" href="${escapeHTML(`${url.origin}/archive`)}">
     <link rel="stylesheet" href="/style.css?v=2.5.9">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7217591196020054" crossorigin="anonymous"></script>
     <script type="application/ld+json">
     ${JSON.stringify({
         "@context": "https://schema.org",
