@@ -3,6 +3,7 @@ Allow: /
 Allow: /w/
 Allow: /about
 Allow: /archive
+Allow: /feed.xml
 Allow: /editorial-policy
 Allow: /privacy
 Allow: /terms

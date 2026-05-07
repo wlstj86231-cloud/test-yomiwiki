@@ -80,6 +80,7 @@ export async function onRequest(context) {
         const staticPages = [
             "about",
             "archive",
+            "feed.xml",
             "editorial-policy",
             "privacy",
             "terms",
