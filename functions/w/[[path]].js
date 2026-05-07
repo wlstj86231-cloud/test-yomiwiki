@@ -103,6 +103,9 @@ export async function onRequest(context) {
             let coreQuestion = "what can a reader actually verify after leaving the page?";
             let comparisonPoint = "unlike a simple retelling, this record is kept with its uncertainty and editorial limits visible";
             let nextReviewPoint = "additional dates, clearer source trails, or reader corrections would make the record easier to judge";
+            let experienceContext = "the page is written for readers who arrive with curiosity but still need a calm way to sort claim, mood, and usable context";
+            let whyWithholdJudgment = "the current record does not justify turning an open question into a fixed conclusion";
+            let afterReading = "save the useful standard, not the most dramatic version of the story";
 
             if (/scam|voice|customer|qr|market|offer|package|romance|safe|call/.test(lower)) {
                 theme = "risk signal";
@@ -114,6 +117,9 @@ export async function onRequest(context) {
                 coreQuestion = "what decision is the reader being pushed to make, and can it be verified without following the suspicious route?";
                 comparisonPoint = "compared with ordinary rumor pages, this record focuses on the pressure pattern and safer verification path";
                 nextReviewPoint = "future edits should add official reporting channels, repeated wording patterns, or confirmed platform warnings when available";
+                experienceContext = "many readers meet this type of record while already anxious, so the article is designed to slow the situation down and return control to verification";
+                whyWithholdJudgment = "the page should not accuse a person or group without a traceable source, even when the pattern looks suspicious";
+                afterReading = "check the official route, avoid replying inside the suspicious channel, and keep screenshots only when doing so is safe and lawful";
             } else if (/dream|backrooms|ghost|window|night|elevator|playground|tunnel|bridge|3am|photo|deleted|comment/.test(lower)) {
                 theme = "experience report";
                 lens = "the scene description, what can be independently checked, and which parts remain memory or interpretation";
@@ -124,6 +130,9 @@ export async function onRequest(context) {
                 coreQuestion = "which part of the scene is observable, and which part depends on memory, timing, or interpretation?";
                 comparisonPoint = "unlike pure fiction summaries, this page preserves the reported sequence while marking the weak points";
                 nextReviewPoint = "future edits should add ordinary explanations, location-neutral context, or matching reports without exposing private details";
+                experienceContext = "readers often come to these records because an ordinary place suddenly felt strange, so the edit keeps the felt experience while separating it from proof";
+                whyWithholdJudgment = "memory, darkness, stress, missing timestamps, or secondhand retellings can change the shape of the report";
+                afterReading = "compare the scene with ordinary causes first, then note what remains unexplained without turning it into a claim of fact";
             } else if (/community|archive|submit|publish|editorial|records|rumor|lore/.test(lower)) {
                 theme = "archive method note";
                 lens = "how the record was framed, what was excluded, and whether the page helps readers judge similar submissions";
@@ -134,9 +143,12 @@ export async function onRequest(context) {
                 coreQuestion = "does this page explain how the archive makes decisions, not just what the archive contains?";
                 comparisonPoint = "compared with a notice page, this record should also help readers apply the same rule to future submissions";
                 nextReviewPoint = "future edits should add clearer acceptance examples, rejection examples, and correction paths";
+                experienceContext = "readers use this page to understand the archive itself, so the article should make the editorial process visible instead of hiding it behind policy language";
+                whyWithholdJudgment = "a policy page can become misleading if it presents unfinished editorial choices as permanent rules";
+                afterReading = "use the page as a standard for judging whether a record belongs in the public archive, needs revision, or should stay unpublished";
             }
 
-            return { titleText, sector, theme, lens, readerAction, misconception, evidenceLevel, editorialObservation, coreQuestion, comparisonPoint, nextReviewPoint, plainLength: plain.length };
+            return { titleText, sector, theme, lens, readerAction, misconception, evidenceLevel, editorialObservation, coreQuestion, comparisonPoint, nextReviewPoint, experienceContext, whyWithholdJudgment, afterReading, plainLength: plain.length };
         }
 
         function renderEditorialExpansion(article, rawContent = "") {
@@ -186,6 +198,18 @@ export async function onRequest(context) {
                         <section>
                             <h3>다음 검토 포인트</h3>
                             <p>${escapeHTML(context.nextReviewPoint)}. 보강이 들어오면 기존 문장을 덮어쓰기보다, 무엇이 바뀌었는지 독자가 따라갈 수 있게 이력과 함께 남긴다.</p>
+                        </section>
+                        <section>
+                            <h3>경험 맥락</h3>
+                            <p>${escapeHTML(context.experienceContext)}. 이 문단은 독자의 감정을 자극하기보다, 왜 이 기록이 계속 읽히는지와 어디서 조심해야 하는지를 함께 설명한다.</p>
+                        </section>
+                        <section>
+                            <h3>판단 유보 사유</h3>
+                            <p>${escapeHTML(context.whyWithholdJudgment)}. 그래서 YomiWiki는 확정되지 않은 부분을 결론처럼 쓰지 않고, 확인된 단서와 남은 의문을 분리한다.</p>
+                        </section>
+                        <section>
+                            <h3>읽은 뒤 행동 기준</h3>
+                            <p>${escapeHTML(context.afterReading)}. 이 기준은 문서를 읽고 끝내는 것이 아니라, 비슷한 사례를 다시 만났을 때 적용할 수 있는 실제 독해 습관이다.</p>
                         </section>
                     </div>
                     <p><b>편집 관찰:</b> ${escapeHTML(context.editorialObservation)}. 이 관찰은 문서의 신뢰도를 과장하기 위한 장식이 아니라, 독자가 같은 유형의 기록을 반복해서 만났을 때 적용할 수 있는 읽기 기준이다.</p>
@@ -239,6 +263,18 @@ export async function onRequest(context) {
                         <section>
                             <h3>독자 참여 기준</h3>
                             <p>독자 제보는 추가 설명, 반례, 정정 근거를 중심으로 받는다. 단순한 공포 확대, 특정인 지목, 출처 없는 폭로는 섹터 품질을 낮추기 때문에 반영하지 않는다.</p>
+                        </section>
+                        <section>
+                            <h3>첫 방문자 안내</h3>
+                            <p>처음 들어온 독자는 최신 글부터 소비하기보다, 각 문서의 편집자 의견과 공개 제외 기준을 먼저 확인하는 편이 좋다. 이 허브는 흥미로운 제목보다 읽는 기준을 먼저 세우도록 설계되어 있다.</p>
+                        </section>
+                        <section>
+                            <h3>재방문 가치</h3>
+                            <p>하위 문서는 새 제보, 정정, 반례가 들어오면 해석이 달라질 수 있다. 따라서 같은 섹터를 다시 방문했을 때는 새 문서뿐 아니라 기존 문서의 업데이트 기준도 함께 보는 것이 중요하다.</p>
+                        </section>
+                        <section>
+                            <h3>편집 우선순위</h3>
+                            <p>YomiWiki는 조회수를 위해 모든 제보를 즉시 공개하지 않는다. 먼저 독자 안전, 설명 밀도, 출처 추적 가능성, 사생활 보호를 확인하고 그 다음에 색인 노출 여부를 판단한다.</p>
                         </section>
                     </div>
                     <p class="density-footer">This sector note explains how YomiWiki selects, limits, and reviews records before they enter the public archive.</p>
