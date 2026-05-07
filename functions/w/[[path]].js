@@ -76,6 +76,79 @@ export async function onRequest(context) {
             return false;
         }
 
+        function isEditorialExpansionTarget(articleTitle = "") {
+            if (!articleTitle || articleTitle === "SubSector_Archive") return false;
+            if (isTopLevelBoardTitle(articleTitle)) return false;
+            if (articleTitle.startsWith("SubSector:")) return false;
+            return true;
+        }
+
+        function compactPlainText(content = "") {
+            return stripWikiForDescription(content)
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        function getArticleContext(articleTitle = "", content = "") {
+            const titleText = articleTitle.split("/").pop().replace(/_/g, " ");
+            const sector = getSectorLabel(articleTitle);
+            const plain = compactPlainText(content);
+            const lower = `${articleTitle} ${plain}`.toLowerCase();
+            let theme = "unusual record";
+            let lens = "reported details, repeated motifs, and the limits of what the archive can verify";
+            let readerAction = "treat the page as a structured record rather than a final explanation";
+
+            if (/scam|voice|customer|qr|market|offer|package|romance|safe|call/.test(lower)) {
+                theme = "risk signal";
+                lens = "the action requested from the reader, the channel used to create urgency, and whether a safer verification route exists";
+                readerAction = "pause before acting, verify through an official channel, and separate the story from any instruction that asks for money or personal data";
+            } else if (/dream|backrooms|ghost|window|night|elevator|playground|tunnel|bridge|3am|photo|deleted|comment/.test(lower)) {
+                theme = "experience report";
+                lens = "the scene description, what can be independently checked, and which parts remain memory or interpretation";
+                readerAction = "compare the claim with ordinary explanations first, then keep the unresolved part clearly labeled";
+            } else if (/community|archive|submit|publish|editorial|records|rumor|lore/.test(lower)) {
+                theme = "archive method note";
+                lens = "how the record was framed, what was excluded, and whether the page helps readers judge similar submissions";
+                readerAction = "look for the editorial boundary: what is being documented, what is being rejected, and what would change the conclusion";
+            }
+
+            return { titleText, sector, theme, lens, readerAction, plainLength: plain.length };
+        }
+
+        function renderEditorialExpansion(article, rawContent = "") {
+            if (!isEditorialExpansionTarget(article.title)) return "";
+            const context = getArticleContext(article.title, rawContent);
+            const updated = article.updated_at ? new Date(article.updated_at).toISOString().split("T")[0] : "recent review";
+            const author = article.author || "YomiWiki Editor";
+            return `
+                <section class="editorial-density-block" aria-label="YomiWiki editorial review notes">
+                    <div class="density-kicker">YOMIWIKI EDITORIAL REVIEW</div>
+                    <h2>편집자 의견</h2>
+                    <p><b>${escapeHTML(context.titleText)}</b> 문서는 ${escapeHTML(context.sector)} 섹터의 ${escapeHTML(context.theme)}로 분류한다. 이 기록은 사실 확정문이 아니라, 제보된 장면과 반복되는 패턴을 분리해 읽기 위한 편집 기록이다. 그래서 본문은 분위기보다 확인 가능한 단서, 주장과 해석의 경계, 독자가 실제로 조심해야 할 지점을 우선한다.</p>
+                    <p>편집 기준은 ${escapeHTML(context.lens)}이다. 문서 안의 표현이 강하게 느껴지더라도, YomiWiki는 개인 신상, 무단 폭로, 혐오 조장, 위험 행동을 유도하는 세부 절차를 공개하지 않는다. 읽을 때는 사건을 믿거나 부정하기보다 어떤 근거가 남아 있고 어떤 부분이 아직 비어 있는지를 먼저 확인하는 편이 안전하다.</p>
+                    <div class="density-grid">
+                        <section>
+                            <h3>검수 메모</h3>
+                            <p>현재 공개 본문은 약 ${context.plainLength.toLocaleString("ko-KR")}자의 원문 맥락을 바탕으로 재검토되었다. 표현이 과장으로 흐르는 대목은 설명을 낮추고, 단정이 어려운 부분은 가능성 또는 해석으로 남기는 방향을 적용했다.</p>
+                        </section>
+                        <section>
+                            <h3>독자가 가져갈 기준</h3>
+                            <p>${escapeHTML(context.readerAction)} 이 기준을 적용하면 흥미로운 이야기와 실제 판단에 필요한 정보를 구분할 수 있다.</p>
+                        </section>
+                        <section>
+                            <h3>공개하지 않은 내용</h3>
+                            <p>개인 식별 정보, 추적 가능한 위치 단서, 사적인 계정명, 모방 위험이 있는 절차는 의도적으로 제거하거나 일반화한다. 문서의 목적은 누군가를 특정하는 것이 아니라 기록의 구조를 보존하는 것이다.</p>
+                        </section>
+                        <section>
+                            <h3>업데이트 기준</h3>
+                            <p>새로운 출처, 반례, 당사자 정정, 독자 제보가 들어오면 ${escapeHTML(updated)} 기준의 현재 판단을 수정한다. 변경이 생기면 문서 이력에 남기고, 기존 해석과 새 근거가 충돌하는 지점을 분리해 표시한다.</p>
+                        </section>
+                    </div>
+                    <p class="density-footer">Reviewed by ${escapeHTML(author)}. This note is added to improve reader context, source caution, and editorial transparency.</p>
+                </section>
+            `;
+        }
+
         function titleUrl(title = "") {
             return `${url.origin}/w/${encodeURIComponent(title)
                 .replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
@@ -123,6 +196,7 @@ export async function onRequest(context) {
         if (isTopLevelBoardTitle(article.title)) {
             contentHtml += '<div style="margin-top:30px; border:1px dashed #333; padding:20px; text-align:center; color:#444; font-family:monospace;">[RETRIVING_SUB_NODE_INDEX...]</div>';
         }
+        contentHtml += renderEditorialExpansion(article, rawContent);
 
         // 4. Fetch the static index.html as a template
         const templateResponse = await env.ASSETS.fetch(new URL('/', request.url));

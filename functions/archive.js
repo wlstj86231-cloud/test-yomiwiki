@@ -111,7 +111,7 @@ export async function onRequest(context) {
     <meta name="description" content="Browse YomiWiki's public archive of occult records, internet lore, regional rumors, and unusual experiences.">
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="${escapeHTML(`${url.origin}/archive`)}">
-    <link rel="stylesheet" href="/style.css?v=2.5.6">
+    <link rel="stylesheet" href="/style.css?v=2.5.9">
     <script type="application/ld+json">
     ${JSON.stringify({
         "@context": "https://schema.org",

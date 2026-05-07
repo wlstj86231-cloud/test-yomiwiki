@@ -15,6 +15,51 @@ document.addEventListener('DOMContentLoaded', () => {
     if (si && sd) { let dt; si.addEventListener('input', () => { clearTimeout(dt); const q = si.value.trim(); if (q.length < 1) { sd.style.display = 'none'; return; } dt = setTimeout(async () => { try { const r = await fetch(`${API_ENDPOINT}/search/suggest?q=${encodeURIComponent(q)}`); const s = await r.json(); if (s.length > 0) { sd.innerHTML = s.map(i => `<div class="dropdown-item" onclick="window.navigateTo('/w/${encodeURIComponent(window.titleToSlug(i))}')">${escapeHTML(i)}</div>`).join(''); sd.style.display = 'block'; } else sd.style.display = 'none'; } catch (e) { } }, 1); }); document.getElementById('search-btn').onclick = () => { const q = si.value.trim(); if (q) window.navigateTo(`/w/${encodeURIComponent(window.titleToSlug(q))}`); }; si.onkeydown = (e) => { if (e.key === 'Enter') document.getElementById('search-btn').onclick(); }; }
     function renderCommentsHTML(t, c) { if (!c || !Array.isArray(c)) return ""; const s = [...c].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); const bi = (i, n, d = 0) => { const p = currentUser?.role === 'admin' ? `<button onclick="window.adminDeleteComment('${escapeHTML(t)}', '${i.id}')" style="background:none; border:none; color:var(--hazard-red); cursor:pointer; font-size:0.65rem;">[PURGE]</button>` : ""; const sc = s.filter(x => x.parent_id === i.id); return `<div class="comment-item" style="margin-left:${d * 20}px; border-left:2px solid ${d > 0 ? '#222' : 'var(--accent-orange)'}; padding:10px 15px; margin-bottom:2px;"><div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-bottom:5px;">[${n}] AGENT: <span style="color:var(--accent-cyan);">${escapeHTML(i.author)}</span> ${p}</div><div style="font-size:0.9rem; color:var(--text-main); line-height:1.4;">${escapeHTML(i.content).replace(/\n/g, '<br>')}</div></div> ${sc.map((x, j) => bi(x, `${n}.${j + 1}`, d + 1)).join('')}`; }; return `<div id="discussion" style="margin-top:20px; border-top:1px solid #222; padding-top:20px;"><div class="comment-list">${s.filter(x => !x.parent_id).map((x, i) => bi(x, `#${i + 1}`)).join('') || '[SIGNAL_QUIET]'}</div><div style="margin-top:20px; background:#050505; border:1px solid #111; padding:15px;"><textarea id="new-comment-content" placeholder="Initiate transmission..." class="comment-input"></textarea><div style="margin-top:10px; text-align:right;"><button onclick="window.postComment('${escapeHTML(t)}')" class="btn-clinical-toggle" id="transmit-btn">[TRANSMIT]</button></div></div></div>`; }
     function isTopLevelBoardTitle(t = "") { if (t.startsWith('Sector:')) return !t.slice('Sector:'.length).includes('/'); if (t.startsWith('SubSector:')) return !t.slice('SubSector:'.length).includes('/'); return false; }
+    function isEditorialExpansionTarget(t = "") { if (!t || t === 'SubSector_Archive') return false; if (isTopLevelBoardTitle(t)) return false; if (t.startsWith('SubSector:')) return false; return true; }
+    function stripWikiForDensity(c = "") { return String(c || "").replace(/\{\{infobox[\s\S]*?\}\}/gi, " ").replace(/<[^>]*>/g, " ").replace(/\[\[File:[^\]]+\]\]/gi, " ").replace(/\[\[([^|\]]+)\|([^\]]+)\]\]/g, "$2").replace(/\[\[([^\]]+)\]\]/g, "$1").replace(/\[\/?CLINICAL\]/gi, " ").replace(/[=#*_`~|{}[\]]/g, " ").replace(/\s+/g, " ").trim(); }
+    function getSectorLabel(t = "") { if (t.startsWith("Sector:South_Korea")) return "South Korea"; if (t.startsWith("Sector:USA")) return "USA"; if (t.startsWith("Sector:Japan")) return "Japan"; return "Archive"; }
+    function getArticleContext(t = "", c = "") {
+        const titleText = t.split('/').pop().replace(/_/g, ' ');
+        const sector = getSectorLabel(t);
+        const plain = stripWikiForDensity(c);
+        const lower = `${t} ${plain}`.toLowerCase();
+        let theme = "unusual record";
+        let lens = "reported details, repeated motifs, and the limits of what the archive can verify";
+        let readerAction = "treat the page as a structured record rather than a final explanation";
+        if (/scam|voice|customer|qr|market|offer|package|romance|safe|call/.test(lower)) {
+            theme = "risk signal";
+            lens = "the action requested from the reader, the channel used to create urgency, and whether a safer verification route exists";
+            readerAction = "pause before acting, verify through an official channel, and separate the story from any instruction that asks for money or personal data";
+        } else if (/dream|backrooms|ghost|window|night|elevator|playground|tunnel|bridge|3am|photo|deleted|comment/.test(lower)) {
+            theme = "experience report";
+            lens = "the scene description, what can be independently checked, and which parts remain memory or interpretation";
+            readerAction = "compare the claim with ordinary explanations first, then keep the unresolved part clearly labeled";
+        } else if (/community|archive|submit|publish|editorial|records|rumor|lore/.test(lower)) {
+            theme = "archive method note";
+            lens = "how the record was framed, what was excluded, and whether the page helps readers judge similar submissions";
+            readerAction = "look for the editorial boundary: what is being documented, what is being rejected, and what would change the conclusion";
+        }
+        return { titleText, sector, theme, lens, readerAction, plainLength: plain.length };
+    }
+    function renderEditorialExpansion(d) {
+        if (!isEditorialExpansionTarget(d.title)) return "";
+        const context = getArticleContext(d.title, d.current_content || "");
+        const updated = d.updated_at ? new Date(d.updated_at).toISOString().split("T")[0] : "recent review";
+        const author = d.author || "YomiWiki Editor";
+        return `<section class="editorial-density-block" aria-label="YomiWiki editorial review notes">
+            <div class="density-kicker">YOMIWIKI EDITORIAL REVIEW</div>
+            <h2>편집자 의견</h2>
+            <p><b>${escapeHTML(context.titleText)}</b> 문서는 ${escapeHTML(context.sector)} 섹터의 ${escapeHTML(context.theme)}로 분류한다. 이 기록은 사실 확정문이 아니라, 제보된 장면과 반복되는 패턴을 분리해 읽기 위한 편집 기록이다. 그래서 본문은 분위기보다 확인 가능한 단서, 주장과 해석의 경계, 독자가 실제로 조심해야 할 지점을 우선한다.</p>
+            <p>편집 기준은 ${escapeHTML(context.lens)}이다. 문서 안의 표현이 강하게 느껴지더라도, YomiWiki는 개인 신상, 무단 폭로, 혐오 조장, 위험 행동을 유도하는 세부 절차를 공개하지 않는다. 읽을 때는 사건을 믿거나 부정하기보다 어떤 근거가 남아 있고 어떤 부분이 아직 비어 있는지를 먼저 확인하는 편이 안전하다.</p>
+            <div class="density-grid">
+                <section><h3>검수 메모</h3><p>현재 공개 본문은 약 ${context.plainLength.toLocaleString("ko-KR")}자의 원문 맥락을 바탕으로 재검토되었다. 표현이 과장으로 흐르는 대목은 설명을 낮추고, 단정이 어려운 부분은 가능성 또는 해석으로 남기는 방향을 적용했다.</p></section>
+                <section><h3>독자가 가져갈 기준</h3><p>${escapeHTML(context.readerAction)} 이 기준을 적용하면 흥미로운 이야기와 실제 판단에 필요한 정보를 구분할 수 있다.</p></section>
+                <section><h3>공개하지 않은 내용</h3><p>개인 식별 정보, 추적 가능한 위치 단서, 사적인 계정명, 모방 위험이 있는 절차는 의도적으로 제거하거나 일반화한다. 문서의 목적은 누군가를 특정하는 것이 아니라 기록의 구조를 보존하는 것이다.</p></section>
+                <section><h3>업데이트 기준</h3><p>새로운 출처, 반례, 당사자 정정, 독자 제보가 들어오면 ${escapeHTML(updated)} 기준의 현재 판단을 수정한다. 변경이 생기면 문서 이력에 남기고, 기존 해석과 새 근거가 충돌하는 지점을 분리해 표시한다.</p></section>
+            </div>
+            <p class="density-footer">Reviewed by ${escapeHTML(author)}. This note is added to improve reader context, source caution, and editorial transparency.</p>
+        </section>`;
+    }
     async function renderArticle(t) {
         const ab = document.querySelector('.article-body'); const mt = document.querySelector('.article-meta'); const s = window.titleToSlug(t); ab.innerHTML = '<div class="loading">[DECRYPTING...]</div>';
         try {
@@ -55,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </table>`;
                 ch = "";
             }
+            ch += renderEditorialExpansion(d);
             const co = (ib || ih || !currentUser) ? "" : renderCommentsHTML(d.title, d.comments || []); ab.innerHTML = ch + bh + co;
         } catch (e) { ab.innerHTML = "[Handshake failed.]"; }
         finally { document.documentElement.classList.remove('is-board-loading'); const af = document.getElementById('anti-flicker'); if (af) af.remove(); }
