@@ -55,6 +55,17 @@ export async function onRequest(context) {
             return "en";
         }
 
+        function getSectorLabel(articleTitle) {
+            if (articleTitle.startsWith("Sector:South_Korea")) return "South Korea";
+            if (articleTitle.startsWith("Sector:USA")) return "USA";
+            if (articleTitle.startsWith("Sector:Japan")) return "Japan";
+            return "Archive";
+        }
+
+        function jsonLdScript(data) {
+            return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
+        }
+
         async function notFoundResponse() {
             const notFoundAsset = await env.ASSETS.fetch(new URL('/404.html', request.url));
             let notFoundHtml = await notFoundAsset.text();
@@ -103,11 +114,69 @@ export async function onRequest(context) {
 
         // 5. Injection (Match exactly with index.html tags)
         const displayTitle = article.title.split('/').pop().replace(/_/g, ' ');
-        const description = escapeHTML(extractLeadDescription(rawContent || article.current_content || "", displayTitle));
+        const rawDescription = extractLeadDescription(rawContent || article.current_content || "", displayTitle);
+        const description = escapeHTML(rawDescription);
         const canonicalUrl = `${url.origin}/w/${encodeURIComponent(article.title).replace(/%20/g, '_')}`;
         const ogImage = extractOgImage(rawContent || article.current_content || "");
         const isUtilityView = url.searchParams.has('mode') || url.searchParams.has('rev');
         const noindex = isUtilityView || article.title.startsWith('SubSector:') || article.title === 'SubSector_Archive';
+        const lang = getLang(article.title);
+        const dateModified = article.updated_at ? new Date(article.updated_at).toISOString() : new Date().toISOString();
+        const articleSchema = {
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": displayTitle,
+            "description": rawDescription,
+            "url": canonicalUrl,
+            "dateModified": dateModified,
+            "datePublished": dateModified,
+            "inLanguage": lang,
+            "isPartOf": {
+                "@type": "WebSite",
+                "name": "YomiWiki",
+                "url": `${url.origin}/`
+            },
+            "author": {
+                "@type": "Person",
+                "name": article.author || "YomiWiki Editor"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "YomiWiki",
+                "url": `${url.origin}/`
+            },
+            "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": canonicalUrl
+            }
+        };
+        if (ogImage) articleSchema.image = [ogImage];
+        const breadcrumbSchema = {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "YomiWiki",
+                    "item": `${url.origin}/w/Main_Page`
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": getSectorLabel(article.title),
+                    "item": article.title.startsWith("Sector:")
+                        ? `${url.origin}/w/${encodeURIComponent(article.title.split("/")[0]).replace(/%20/g, "_")}`
+                        : `${url.origin}/archive`
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": displayTitle,
+                    "item": canonicalUrl
+                }
+            ]
+        };
         const ogTags = `
             <link rel="canonical" href="${escapeHTML(canonicalUrl)}">
             <meta name="robots" content="${noindex ? 'noindex,follow' : 'index,follow'}">
@@ -121,10 +190,12 @@ export async function onRequest(context) {
             <meta name="twitter:title" content="${escapeHTML(displayTitle)}">
             <meta name="twitter:description" content="${description}">
             ${ogImage ? `<meta name="twitter:image" content="${escapeHTML(ogImage)}">` : ''}
+            ${jsonLdScript(articleSchema)}
+            ${jsonLdScript(breadcrumbSchema)}
         `;
 
         // Replace Title & Meta
-        html = html.replace('<html lang="en">', `<html lang="${getLang(article.title)}">`);
+        html = html.replace('<html lang="ko">', `<html lang="${lang}">`);
         html = html.replace('<title>YomiWiki | Occult and Internet Lore Archive</title>', `<title>${escapeHTML(displayTitle)} | YomiWiki</title>${ogTags}`);
         
         // Replace H1 Title
