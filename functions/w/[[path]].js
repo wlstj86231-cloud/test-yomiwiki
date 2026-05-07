@@ -9,8 +9,9 @@ export async function onRequest(context) {
     let titleSlug = path.substring(3); // Remove '/w/'
     if (!titleSlug) return env.ASSETS.fetch(new URL('/', request.url));
     
-    const title = decodeURIComponent(titleSlug).replace(/[_\s]+/g, ' ').trim();
-    const underscoreTitle = title.replace(/ /g, '_');
+    const decodedTitle = decodeURIComponent(titleSlug).trim();
+    const underscoreTitle = decodedTitle.replace(/\s+/g, '_');
+    const title = underscoreTitle.replace(/_/g, ' ');
 
     try {
         function escapeHTML(str) {
@@ -65,8 +66,8 @@ export async function onRequest(context) {
         }
 
         // 2. Fetch Data from D1
-        // Search both with space and underscore for compatibility
-        const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ? OR title = ?").bind(title, underscoreTitle).first();
+        // Search canonical underscore titles first; old space titles are a fallback only.
+        const article = await env.DB.prepare("SELECT * FROM articles WHERE title = ? OR title = ?").bind(underscoreTitle, title).first();
         
         if (!article || article.is_deleted) {
             return notFoundResponse();
