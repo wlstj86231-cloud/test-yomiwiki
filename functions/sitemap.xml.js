@@ -79,6 +79,7 @@ export async function onRequest(context) {
         const homepageEntry = `  <url>\n    <loc>${escapeXml(`${baseUrl}/`)}</loc>\n    <lastmod>${latestDate}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`;
         const staticPages = [
             "about",
+            "archive",
             "editorial-policy",
             "privacy",
             "terms",
