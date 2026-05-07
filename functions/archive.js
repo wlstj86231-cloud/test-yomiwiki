@@ -41,6 +41,12 @@ export async function onRequest(context) {
         return title.split("/").pop().replace(/_/g, " ");
     }
 
+    function articleHref(title = "") {
+        return `/w/${encodeURIComponent(title)
+            .replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
+            .replace(/%20/g, "_")}`;
+    }
+
     function isIndexableArticle(article) {
         const title = article.title || "";
         const activeHubs = new Set(["Main_Page", "Sector:South_Korea", "Sector:USA", "Sector:Japan"]);
@@ -84,7 +90,7 @@ export async function onRequest(context) {
                 <h2>${escapeHTML(sector)} <span>${items.length} records</span></h2>
                 <div class="archive-list">
                     ${items.map(article => {
-                        const href = `/w/${encodeURIComponent(article.title).replace(/%20/g, "_")}`;
+                        const href = articleHref(article.title);
                         const date = article.updated_at ? new Date(article.updated_at).toISOString().split("T")[0] : "";
                         return `<article class="archive-item">
                             <a href="${escapeHTML(href)}">${escapeHTML(article.display)}</a>

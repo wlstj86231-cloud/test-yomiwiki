@@ -121,6 +121,16 @@ export async function onRequest(context) {
         return { level: "I", title: "AGENT" };
     }
 
+    function isTopLevelBoardTitle(title = "") {
+        if (title.startsWith("Sector:")) {
+            return !title.slice("Sector:".length).includes("/");
+        }
+        if (title.startsWith("SubSector:")) {
+            return !title.slice("SubSector:".length).includes("/");
+        }
+        return false;
+    }
+
     try {
         let resData = null;
         let status = 200;
@@ -179,7 +189,7 @@ export async function onRequest(context) {
                     } catch (e) { comments = []; }
                     
                     let subArticles = [];
-                    const isBoard = (article.title.startsWith('Sector:') || article.title.startsWith('SubSector:')) && !article.title.split(':').pop().includes('/');
+                    const isBoard = isTopLevelBoardTitle(article.title);
                     
                     if (isBoard) {
                         const { results } = await env.DB.prepare("SELECT id, title, author, updated_at, classification FROM articles WHERE title LIKE ? AND title != ? AND is_deleted = 0 ORDER BY CASE WHEN classification = 'NOTICE' THEN 0 ELSE 1 END, updated_at DESC").bind(`${article.title}/%`, article.title).all();

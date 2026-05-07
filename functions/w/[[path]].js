@@ -66,6 +66,22 @@ export async function onRequest(context) {
             return `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>`;
         }
 
+        function isTopLevelBoardTitle(articleTitle = "") {
+            if (articleTitle.startsWith("Sector:")) {
+                return !articleTitle.slice("Sector:".length).includes("/");
+            }
+            if (articleTitle.startsWith("SubSector:")) {
+                return !articleTitle.slice("SubSector:".length).includes("/");
+            }
+            return false;
+        }
+
+        function titleUrl(title = "") {
+            return `${url.origin}/w/${encodeURIComponent(title)
+                .replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
+                .replace(/%20/g, "_")}`;
+        }
+
         async function notFoundResponse() {
             const notFoundAsset = await env.ASSETS.fetch(new URL('/404.html', request.url));
             let notFoundHtml = await notFoundAsset.text();
@@ -104,7 +120,7 @@ export async function onRequest(context) {
             .replace(/\n/g, '<br>');
 
         // Add board placeholder if it's a sector
-        if (article.title.startsWith('Sector:') || article.title.startsWith('SubSector:')) {
+        if (isTopLevelBoardTitle(article.title)) {
             contentHtml += '<div style="margin-top:30px; border:1px dashed #333; padding:20px; text-align:center; color:#444; font-family:monospace;">[RETRIVING_SUB_NODE_INDEX...]</div>';
         }
 
@@ -116,7 +132,7 @@ export async function onRequest(context) {
         const displayTitle = article.title.split('/').pop().replace(/_/g, ' ');
         const rawDescription = extractLeadDescription(rawContent || article.current_content || "", displayTitle);
         const description = escapeHTML(rawDescription);
-        const canonicalUrl = `${url.origin}/w/${encodeURIComponent(article.title).replace(/%20/g, '_')}`;
+        const canonicalUrl = titleUrl(article.title);
         const ogImage = extractOgImage(rawContent || article.current_content || "");
         const isUtilityView = url.searchParams.has('mode') || url.searchParams.has('rev');
         const noindex = isUtilityView || article.title.startsWith('SubSector:') || article.title === 'SubSector_Archive';

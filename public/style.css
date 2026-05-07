@@ -30,7 +30,8 @@ ul, ol { list-style: none !important; padding: 0; margin: 0; }
 
     /* --- [2. Typography Enhancement] --- */
     --font-mono: 'IBM Plex Mono', 'JetBrains Mono', monospace;
-    --font-sans: 'Montserrat', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    --font-display: 'Montserrat', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    --font-sans: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
 
     /* --- [3. UI Constants] --- */
     --radius: 0px; 
@@ -46,7 +47,7 @@ html, body {
     color: var(--text-main);
     font-family: var(--font-sans);
     line-height: 1.7; 
-    letter-spacing: -0.02em; 
+    letter-spacing: 0; 
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
 }
@@ -227,7 +228,7 @@ body.theme-subsector .news-ticker {
 }
 
 .logo {
-    font-family: var(--font-sans);
+    font-family: var(--font-display);
     color: var(--accent-orange);
     font-size: 1.8rem;
     font-weight: 900; 
@@ -360,14 +361,14 @@ body.theme-subsector .news-ticker {
 
 /* --- [Article Typography] --- */
 .article-title {
-    font-family: var(--font-sans);
+    font-family: var(--font-display);
     color: var(--accent-orange);
     font-size: 2.0rem;
     margin-bottom: 1.2rem;
     font-weight: 900;
     border-bottom: 3px solid var(--accent-orange);
     padding-bottom: 12px;
-    letter-spacing: -0.03em;
+    letter-spacing: 0;
 }
 
 .article-body {
@@ -534,6 +535,9 @@ body.theme-subsector .news-ticker {
 .clinical-table {
     border: 1px solid #222;
     background: #050505;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.65;
 }
 .clinical-table th {
     background: #111;
@@ -550,6 +554,13 @@ body.theme-subsector .news-ticker {
 }
 .clinical-table td {
     border-bottom: 1px solid #111;
+    vertical-align: top;
+}
+.clinical-table td:first-child {
+    font-weight: 600;
+}
+.clinical-table td:first-child span {
+    line-height: 1.5;
 }
 
 /* --- [Links Styling] --- */
@@ -1115,5 +1126,3 @@ body.theme-subsector .btn-clinical-toggle:hover {
     text-transform: uppercase;
     margin-right: 10px;
 }
-`n/* --- [INFOBOX FIX: DO NOT REMOVE EXISTING STYLES] --- */`n.infobox { float: right; width: 300px; background: #050505; border: 1px solid var(--border-bright); margin: 0 0 20px 20px; padding: 0; font-family: var(--font-mono); font-size: 0.8rem; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; z-index: 10; }`n.infobox-title { background: var(--accent-orange); color: #000; padding: 10px; text-align: center; font-weight: 900; text-transform: uppercase; }`n.infobox table { width: 100%; border-collapse: collapse; }`n.infobox th { text-align: left; padding: 8px 12px; color: var(--text-dim); border-bottom: 1px solid #111; width: 40%; }`n.infobox td { padding: 8px 12px; color: var(--accent-cyan); border-bottom: 1px solid #111; }`n.infobox-image-cell { padding: 0 !important; border-bottom: 1px solid var(--border-bright) !important; }`n.infobox-image-cell img { width: 100%; height: auto; display: block; }`n.infobox-caption-cell { padding: 5px 10px !important; font-size: 0.65rem; color: var(--text-dim); text-align: center; font-style: italic; }
-`n/* --- [FIX: INFOBOX OVERLAP] --- */`n.infobox { float: right; width: 300px; background: #050505; border: 1px solid var(--border-bright); margin: 0 0 20px 20px; padding: 0; font-family: var(--font-mono); font-size: 0.8rem; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; z-index: 10; }`n.infobox-title { background: var(--accent-orange); color: #000; padding: 10px; text-align: center; font-weight: 900; text-transform: uppercase; }`n.infobox table { width: 100%; border-collapse: collapse; }`n.infobox th { text-align: left; padding: 8px 12px; color: var(--text-dim); border-bottom: 1px solid #111; width: 40%; }`n.infobox td { padding: 8px 12px; color: var(--accent-cyan); border-bottom: 1px solid #111; }`n.infobox-image-cell { padding: 0 !important; border-bottom: 1px solid var(--border-bright) !important; }`n.infobox-image-cell img { width: 100%; height: auto; display: block; }`n.infobox-caption-cell { padding: 5px 10px !important; font-size: 0.65rem; color: var(--text-dim); text-align: center; font-style: italic; }
