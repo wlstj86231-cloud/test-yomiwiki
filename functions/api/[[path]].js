@@ -555,6 +555,12 @@ export async function onRequest(context) {
                         .replace(/'/g, "&apos;");
                 }
 
+                function encodeWikiTitle(title = "") {
+                    return encodeURIComponent(title)
+                        .replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
+                        .replace(/%20/g, "_");
+                }
+
                 const baseUrl = `${url.protocol}//${url.host}`;
                 const { results } = await env.DB.prepare(
                     "SELECT title, updated_at, current_content FROM articles WHERE is_deleted = 0 ORDER BY updated_at DESC"
@@ -575,7 +581,7 @@ export async function onRequest(context) {
 
                 const now = Date.now();
                 const articleEntries = indexableArticles.map(article => {
-                    const encodedTitle = encodeURIComponent(article.title).replace(/%20/g, '_');
+                    const encodedTitle = encodeWikiTitle(article.title);
                     const lastmod = article.updated_at
                         ? new Date(article.updated_at).toISOString().split('T')[0]
                         : today;

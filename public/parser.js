@@ -268,8 +268,9 @@ function wikiParse(content) {
             const cleanTitle = link.title;
             const displayTitle = link.alias || cleanTitle;
             if (cleanTitle.toLowerCase().startsWith('category:')) return "";
-            const slug = cleanTitle.replace(/ /g, '_'); 
-            return `<a href="/w/${encodeURIComponent(slug)}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(displayTitle)}</a>`;
+            const slug = cleanTitle.replace(/ /g, '_');
+            const encodedSlug = encodeURIComponent(slug).replace(/[!'()*]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+            return `<a href="/w/${encodedSlug}" class="wiki-link" data-title="${escapeHTML(cleanTitle)}">${escapeHTML(displayTitle)}</a>`;
         }
         return match;
     });

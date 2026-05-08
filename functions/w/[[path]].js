@@ -151,11 +151,39 @@ export async function onRequest(context) {
             return { titleText, sector, theme, lens, readerAction, misconception, evidenceLevel, editorialObservation, coreQuestion, comparisonPoint, nextReviewPoint, experienceContext, whyWithholdJudgment, afterReading, plainLength: plain.length };
         }
 
+        function renderEditorialExpansionContent(context, updated, author) {
+            return `
+                <section class="editorial-density-block" aria-label="YomiWiki editorial review notes">
+                    <div class="density-kicker">YOMIWIKI EDITORIAL REVIEW</div>
+                    <h2>편집자 의견</h2>
+                    <p><b>${escapeHTML(context.titleText)}</b> 문서는 ${escapeHTML(context.sector)} 섹터의 ${escapeHTML(context.theme)}로 분류한다. 이 기록은 사실 확정문이 아니라, 제보된 장면과 반복되는 패턴을 분리해 읽기 위한 편집 기록이다. 그래서 본문은 분위기보다 확인 가능한 단서, 주장과 해석의 경계, 독자가 실제로 조심해야 할 지점을 우선한다.</p>
+                    <p>편집 기준은 ${escapeHTML(context.lens)}이다. 문서 안의 표현이 강하게 느껴지더라도, YomiWiki는 개인 신상, 무단 폭로, 혐오 조장, 위험 행동을 유도하는 세부 절차를 공개하지 않는다. 읽을 때는 사건을 믿거나 부정하기보다 어떤 근거가 남아 있고 어떤 부분이 아직 비어 있는지를 먼저 확인하는 편이 안전하다.</p>
+                    <div class="density-grid">
+                        <section><h3>검수 메모</h3><p>현재 공개 본문은 약 ${context.plainLength.toLocaleString("ko-KR")}자의 원문 맥락을 바탕으로 재검토되었다. 표현이 과장으로 흐르는 대목은 설명을 낮추고, 단정이 어려운 부분은 가능성 또는 해석으로 남기는 방향을 적용했다.</p></section>
+                        <section><h3>독자가 가져갈 기준</h3><p>${escapeHTML(context.readerAction)} 이 기준을 적용하면 흥미로운 이야기와 실제 판단에 필요한 정보를 구분할 수 있다.</p></section>
+                        <section><h3>공개하지 않은 내용</h3><p>개인 식별 정보, 추적 가능한 위치 단서, 사적인 계정명, 모방 위험이 있는 절차는 의도적으로 제거하거나 일반화한다. 문서의 목적은 누군가를 특정하는 것이 아니라 기록의 구조를 보존하는 것이다.</p></section>
+                        <section><h3>업데이트 기준</h3><p>새로운 출처, 반례, 당사자 정정, 독자 제보가 들어오면 ${escapeHTML(updated)} 기준의 현재 판단을 수정한다. 변경이 생기면 문서 이력에 남기고, 기존 해석과 새 근거가 충돌하는 지점을 분리해 표시한다.</p></section>
+                        <section><h3>오해하기 쉬운 지점</h3><p>${escapeHTML(context.misconception)}. 그래서 이 문서는 결론을 서두르기보다, 어느 문장이 주장이고 어느 문장이 관찰인지 구분해서 읽도록 구성한다.</p></section>
+                        <section><h3>근거 수준</h3><p>현재 근거 수준은 ${escapeHTML(context.evidenceLevel)} 단계로 본다. 공개 본문만으로 확정하기 어려운 부분은 확정 표현을 피하고, 독자가 추가 확인을 할 수 있는 방향으로 남겨 둔다.</p></section>
+                        <section><h3>핵심 질문</h3><p>${escapeHTML(context.coreQuestion)} 이 질문에 답할 수 있을수록 문서는 단순한 이야기보다 검토 가능한 기록에 가까워진다.</p></section>
+                        <section><h3>비슷한 사례와의 차이</h3><p>${escapeHTML(context.comparisonPoint)}. 이 차이를 드러내야 검색으로 들어온 독자도 왜 이 문서가 별도 기록으로 남았는지 이해할 수 있다.</p></section>
+                        <section><h3>다음 검토 포인트</h3><p>${escapeHTML(context.nextReviewPoint)}. 보강이 들어오면 기존 문장을 덮어쓰기보다, 무엇이 바뀌었는지 독자가 따라갈 수 있게 이력과 함께 남긴다.</p></section>
+                        <section><h3>경험 맥락</h3><p>${escapeHTML(context.experienceContext)}. 이 문단은 독자의 감정을 자극하기보다, 왜 이 기록이 계속 읽히는지와 어디서 조심해야 하는지를 함께 설명한다.</p></section>
+                        <section><h3>판단 유보 사유</h3><p>${escapeHTML(context.whyWithholdJudgment)}. 그래서 YomiWiki는 확정되지 않은 부분을 결론처럼 쓰지 않고, 확인된 단서와 남은 의문을 분리한다.</p></section>
+                        <section><h3>읽은 뒤 행동 기준</h3><p>${escapeHTML(context.afterReading)}. 이 기준은 문서를 읽고 끝내는 것이 아니라, 비슷한 사례를 다시 만났을 때 적용할 수 있는 실제 독해 습관이다.</p></section>
+                    </div>
+                    <p><b>편집 관찰:</b> ${escapeHTML(context.editorialObservation)}. 이 관찰은 문서의 신뢰도를 과장하기 위한 장식이 아니라, 독자가 같은 유형의 기록을 반복해서 만났을 때 적용할 수 있는 읽기 기준이다.</p>
+                    <p class="density-footer">Reviewed by ${escapeHTML(author)}. This note is added to improve reader context, source caution, and editorial transparency.</p>
+                </section>
+            `;
+        }
+
         function renderEditorialExpansion(article, rawContent = "") {
             if (!isEditorialExpansionTarget(article.title)) return "";
             const context = getArticleContext(article.title, rawContent);
             const updated = article.updated_at ? new Date(article.updated_at).toISOString().split("T")[0] : "recent review";
             const author = article.author || "YomiWiki Editor";
+            return renderEditorialExpansionContent(context, updated, author);
             return `
                 <section class="editorial-density-block" aria-label="YomiWiki editorial review notes">
                     <div class="density-kicker">YOMIWIKI EDITORIAL REVIEW</div>
@@ -263,7 +291,7 @@ export async function onRequest(context) {
 
         // Add board placeholder if it's a sector
         if (isTopLevelBoardTitle(article.title)) {
-            contentHtml += '<div style="margin-top:30px; border:1px dashed #333; padding:20px; text-align:center; color:#444; font-family:monospace;">[RETRIVING_SUB_NODE_INDEX...]</div>';
+            contentHtml += '<div style="margin-top:30px; border:1px dashed #333; padding:20px; text-align:center; color:#444; font-family:var(--font-mono);">[RETRIEVING_SUB_NODE_INDEX...]</div>';
         }
         contentHtml += renderEditorialExpansion(article, rawContent);
 
@@ -325,7 +353,7 @@ export async function onRequest(context) {
                     "position": 2,
                     "name": getSectorLabel(article.title),
                     "item": article.title.startsWith("Sector:")
-                        ? `${url.origin}/w/${encodeURIComponent(article.title.split("/")[0]).replace(/%20/g, "_")}`
+                        ? titleUrl(article.title.split("/")[0])
                         : `${url.origin}/archive`
                 },
                 {

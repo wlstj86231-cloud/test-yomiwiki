@@ -17,6 +17,12 @@ export async function onRequest(context) {
             .replace(/'/g, "&apos;");
     }
 
+    function encodeWikiTitle(title = "") {
+        return encodeURIComponent(title)
+            .replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)
+            .replace(/%20/g, "_");
+    }
+
     function stripContent(content = "") {
         return content
             .replace(/\{\{infobox[\s\S]*?\}\}/gi, " ")
@@ -59,7 +65,7 @@ export async function onRequest(context) {
             if (!isIndexableArticle(article) || seen.has(article.title)) continue;
             seen.add(article.title);
             const plain = stripContent(article.current_content || "");
-            const link = `${baseUrl}/w/${encodeURIComponent(article.title).replace(/%20/g, "_")}`;
+            const link = `${baseUrl}/w/${encodeWikiTitle(article.title)}`;
             const pubDate = article.updated_at ? new Date(article.updated_at).toUTCString() : new Date().toUTCString();
             items.push(`<item>
                 <title>${escapeXml(displayTitle(article.title))}</title>
