@@ -100,14 +100,17 @@ export async function onRequest(context) {
         return new Response(sitemap, {
             headers: {
                 "Content-Type": "application/xml;charset=UTF-8",
-                "Cache-Control": "public, max-age=3600"
+                "Cache-Control": "public, max-age=0, must-revalidate"
             }
         });
     } catch (err) {
         const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
         return new Response(emptySitemap, {
             status: 200,
-            headers: { "Content-Type": "application/xml;charset=UTF-8" }
+            headers: {
+                "Content-Type": "application/xml;charset=UTF-8",
+                "Cache-Control": "public, max-age=0, must-revalidate"
+            }
         });
     }
 }

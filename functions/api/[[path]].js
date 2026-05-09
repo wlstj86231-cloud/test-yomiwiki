@@ -592,20 +592,34 @@ export async function onRequest(context) {
                 }).join('\n');
 
                 const homepageEntry = `  <url>\n    <loc>${escapeXml(`${baseUrl}/`)}</loc>\n    <lastmod>${latestDate}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>`;
-                const allEntries = articleEntries ? `${homepageEntry}\n${articleEntries}` : homepageEntry;
+                const staticPages = [
+                    "about",
+                    "archive",
+                    "feed.xml",
+                    "editorial-policy",
+                    "review-readiness",
+                    "privacy",
+                    "terms",
+                    "disclaimer",
+                    "contact"
+                ].map(page => `  <url>\n    <loc>${escapeXml(`${baseUrl}/${page}`)}</loc>\n    <lastmod>${latestDate}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.5</priority>\n  </url>`).join('\n');
+                const allEntries = [homepageEntry, staticPages, articleEntries].filter(Boolean).join('\n');
 
                 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${allEntries}\n</urlset>`;
                 return new Response(sitemap, {
                     headers: {
                         "Content-Type": "application/xml;charset=UTF-8",
-                        "Cache-Control": "public, max-age=3600"
+                        "Cache-Control": "public, max-age=0, must-revalidate"
                     }
                 });
             } catch (sitemapErr) {
                 const emptySitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>`;
                 return new Response(emptySitemap, {
                     status: 200,
-                    headers: { "Content-Type": "application/xml;charset=UTF-8" }
+                    headers: {
+                        "Content-Type": "application/xml;charset=UTF-8",
+                        "Cache-Control": "public, max-age=0, must-revalidate"
+                    }
                 });
             }
         }
