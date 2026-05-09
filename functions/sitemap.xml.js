@@ -88,6 +88,7 @@ export async function onRequest(context) {
             "archive",
             "feed.xml",
             "editorial-policy",
+            "review-readiness",
             "privacy",
             "terms",
             "disclaimer",
