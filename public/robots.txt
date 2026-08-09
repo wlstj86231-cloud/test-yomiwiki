@@ -1,24 +1,7 @@
 User-agent: *
 Allow: /
-Allow: /w/
-Allow: /about
-Allow: /archive
-Allow: /feed.xml
-Allow: /editorial-policy
-Allow: /privacy
-Allow: /terms
-Allow: /disclaimer
-Allow: /contact
-Disallow: /w/SubSector:
-Disallow: /w/SubSector_Archive
 Disallow: /api/
-Disallow: /?mode=edit
-Disallow: /?mode=history
-Disallow: /?mode=login
-Disallow: /?mode=register
-Disallow: /?mode=discuss
-Disallow: /?mode=search
-Disallow: /*?mode=
-Disallow: /*?rev=
+Disallow: /admin
+Disallow: /w/
 
 Sitemap: https://yomiwiki.com/sitemap.xml
