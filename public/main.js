@@ -1,4 +1,22 @@
 const knowledge = {
+  '가락시장 시세 용어': {
+    title:'가락시장 시세와 가격 계산 용어', subtitle:'경락가 · 단량 · 실중량 · 결제액 구분', article:'trade-terms',
+    rows:[['book-open','가격 구분',['경락가·평균가격·판매자가 정한 직거래 가격은 서로 다른 정보입니다.','기준일·시장·품목·품종·등급·단위를 함께 읽습니다.']],['scale','중량 구분',['단량은 한 거래 단위에 들어 있는 양입니다.','kg당 가격 비교에는 포장재를 제외한 농산물 내용량을 사용합니다.']],['calculator','비용 구분',['상품금액과 배송비를 구분하고 배송비가 상자별인지 주문 전체인지 확인합니다.','구매자 결제액만으로 판매자 정산액이나 순이익을 알 수 없습니다.']]],
+    related:['감자 특품 기준','농기계 거래 용어','영농폐기물 용어'],
+    link:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=auction_price_terms',linkText:'조건을 맞춰 가락시장 시세표 보기'
+  },
+  '농기계 거래 용어': {
+    title:'농기계 판매·운송 용어', subtitle:'장비 정보 · 포함 범위 · 상하차 구분', article:'farm-machinery',
+    rows:[['tractor','기계 정보',['모델명·제조번호·연식·사용시간을 서로 구분합니다.','작업기 포함이면 명칭·수량·연결 규격과 상태를 각각 확인합니다.']],['truck','운송 조건',['상차·운송·하차는 다른 작업입니다. 견적의 포함 범위를 확인합니다.','작업기를 붙인 전체 크기·중량과 자력 이동 가능 여부를 전달합니다.']],['clipboard-check','판매 설명',['현재 하자, 과거 수리, 아직 확인하지 못한 부분을 구분합니다.','시동 확인만으로 작업 부하 상태까지 검증했다고 적지 않습니다.']]],
+    related:['중고 트랙터 사용시간','가락시장 시세 용어','영농폐기물 용어'],
+    link:'https://boribay.com/guides/farm-machinery-transport-checklist?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=machinery_transport_terms',linkText:'농기계 탁송 견적 요청 항목 보기'
+  },
+  '영농폐기물 용어': {
+    title:'영농폐기물 분류와 공동집하장 용어', subtitle:'품목 · 재질 · 내용물 · 지역 접수 여부', article:'farm-waste-terms',
+    rows:[['recycle','품목 구분',['농사에 쓴 모든 자재가 같은 수거 대상은 아닙니다.','폐비닐·농약 빈 용기와 그 밖의 자재를 구분합니다.']],['package','내용물 확인',['빈 용기와 내용물이 남은 용기를 구분합니다.','재질·내용물을 모르겠으면 사진과 표시를 준비해 담당기관에 문의합니다.']],['map-pin','집하장 확인',['주소와 별개로 현재 받는 품목·이용 대상·반입 시점을 확인합니다.','수거보상금과 일반 중고상품 판매가격은 다릅니다.']]],
+    related:['비료 사용 기준','농기계 거래 용어','가락시장 시세 용어'],
+    link:'https://boribay.com/guides/farm-supplies-disposal-guide?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=farm_waste_terms',linkText:'분류한 품목의 배출 안내·집하장 찾기'
+  },
   '감자 특품 기준': {
     title:'감자 특품 기준', subtitle:'핵심 요약 · 현장 기준',
     rows:[
@@ -56,7 +74,10 @@ const contextLink=document.querySelector('#boribay-context-link');
 
 function selectKnowledge(query){
   const normalized=(query||'').trim();
-  let key=Object.keys(knowledge).find(k=>normalized.includes(k)||k.includes(normalized));
+  let key=normalized?Object.keys(knowledge).find(k=>normalized.includes(k)||k.includes(normalized)):'감자 특품 기준';
+  if(!key&&/폐기물|폐비닐|농약.*(병|용기|봉지)|집하장|폐농자재/.test(normalized))key='영농폐기물 용어';
+  if(!key&&/가락|경락|시세|단량|실중량|kg당|가격.*계산/.test(normalized))key='가락시장 시세 용어';
+  if(!key&&/운송|탁송|상차|하차|작업기|PTO|농기계.*판매/i.test(normalized))key='농기계 거래 용어';
   if(!key&&/트랙터|농기계|사용시간/.test(normalized))key='중고 트랙터 사용시간';
   if(!key&&/양파|저장/.test(normalized))key='양파 저장 온도';
   if(!key&&/한우|출하|체중/.test(normalized))key='한우 출하 체중';
@@ -73,6 +94,9 @@ function render(query,track=false){
   rows.innerHTML=data.rows.map(([icon,label,points])=>`<section class="answer-row"><div class="answer-label"><i data-lucide="${icon}" aria-hidden="true"></i><span>${label}</span></div><ul class="answer-points">${points.map(point=>`<li>${point}</li>`).join('')}</ul></section>`).join('');
   related.innerHTML=data.related.map(item=>`<button type="button" data-related="${item}">${item}</button>`).join('');
   contextLink.href=data.link;contextLink.innerHTML=`${data.linkText} <i data-lucide="arrow-right" aria-hidden="true"></i>`;
+  const articleLink=document.querySelector('#knowledge-article-link');
+  articleLink.hidden=!data.article;
+  articleLink.innerHTML=data.article?`<a href="/knowledge/${data.article}">용어 설명·예시·공식 출처 전체 읽기</a>`:'';
   document.querySelectorAll('[data-query]').forEach(button=>button.classList.toggle('active',button.dataset.query===key));
   if(window.lucide)lucide.createIcons();
   if(track&&window.gtag)gtag('event','knowledge_search',{search_term:query,knowledge_result:key});

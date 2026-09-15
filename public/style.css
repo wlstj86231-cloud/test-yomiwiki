@@ -130,4 +130,5 @@ main{max-width:var(--max);margin:0 auto;padding:0 0 36px}
   .site-footer nav{justify-content:flex-start}
 }
 
+.reference-links{margin:0 0 28px;padding:20px;border:1px solid var(--line);border-radius:12px}.reference-links h2{font-size:18px;margin:0 0 12px}.reference-links nav{display:flex;gap:12px 24px;flex-wrap:wrap}.reference-links a,#knowledge-article-link a{color:var(--green);text-decoration:underline;text-underline-offset:4px}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
