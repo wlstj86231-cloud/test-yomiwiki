@@ -1,5 +1,6 @@
-const slugs=['potato-special-grade','produce-grading','storage-shipping','tractor-hours','farm-machinery','trade-terms','pack-unit-terms','fruit-box-terms','produce-box-terms','produce-items','cattle-traceability','rice-drying','fertilizer-use','farm-waste-terms'];
+const slugs=['potato-special-grade','produce-grading','storage-shipping','tractor-hours','farm-machinery','trade-terms','pack-unit-terms','fruit-box-terms','produce-box-terms','produce-items','cattle-traceability','rice-drying','fertilizer-use','farm-waste-terms','listing-field-terms','machinery-listing-terms','region-listing-terms','nearby-machinery-terms','meetup-parcel-terms','bulk-buyer-terms','c2c-vs-mall-terms','listing-date-terms'];
 const lastmodFor = (path) => {
+  if (path === 'knowledge/listing-field-terms' || path === 'knowledge/machinery-listing-terms' || path === 'knowledge/region-listing-terms' || path === 'knowledge/nearby-machinery-terms' || path === 'knowledge/meetup-parcel-terms' || path === 'knowledge/bulk-buyer-terms' || path === 'knowledge/c2c-vs-mall-terms' || path === 'knowledge/listing-date-terms') return '2026-09-20';
   if (path === 'knowledge/fruit-box-terms' || path === 'knowledge/pack-unit-terms' || path === 'knowledge/produce-box-terms') return '2026-09-20';
   if (path === 'knowledge/trade-terms') return '2026-09-19';
   if (path === '' || path === 'knowledge/farm-machinery' || path === 'knowledge/farm-waste-terms') return '2026-09-16';

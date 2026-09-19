@@ -148,7 +148,136 @@ const pages = {
     title:'벼 건조 전 확인: 수분 측정부터 저장까지', category:'보관·출하',description:'벼 수확 후 수분을 여러 지점에서 측정하고 건조기 방식과 용도에 맞춰 온도·시간·냉각·저장을 관리하는 확인 순서입니다.',lead:'벼 건조는 단일 온도 숫자보다 초기 수분, 품종, 용도, 건조기 방식과 처리량을 함께 봐야 합니다. 고온 급건조는 품질 저하 위험이 있어 장비 설명서와 공식 재배 지침을 우선합니다.',sections:[['수분 측정',['여러 지점에서 대표 시료를 채취해 초기 수분과 품온을 기록합니다.','수분계 교정 상태와 측정 오차를 확인합니다.']],['건조기 설정',['식용·종자용 등 용도와 건조기 방식에 맞는 설정을 사용합니다.','과다 투입을 피하고 순환·배출 상태와 이상 소음을 점검합니다.']],['냉각·저장',['건조 후 곡온을 충분히 낮추고 결로가 생기지 않게 저장합니다.','품종·수확일·건조 시작·종료·최종 수분을 출하 기록에 남깁니다.']]],sources:[['농촌진흥청 농사로','https://www.nongsaro.go.kr/'],['국립농산물품질관리원 양곡 표시','https://www.naqs.go.kr/hp/contents/contents.do?menuId=MN30613']],related:[['농산물 보관·출하 기본','storage-shipping'],['농산물 품목별 확인','produce-items'],['거래 용어 빠른 사전','trade-terms']],boribay:'https://boribay.com/guides/fresh-milled-rice-buying-guide?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=rice_drying',boribayText:'햅쌀 직거래 확인 기준 보기'
   },
   'fertilizer-use': {
-    title:'비료 사용 전 확인: 토양검정·성분량·살포 기록', category:'농자재',description:'비료를 사용하기 전에 작물과 생육 단계, 토양검정, 제품 성분과 표시사항, 살포 조건, 사용 기록을 확인하는 기본 순서입니다.',lead:'비료는 제품 이름보다 성분량과 작물·토양 상태를 기준으로 판단합니다. 포장 표시와 지역 농업기술센터 처방을 우선하고, 관행량을 그대로 반복하지 않습니다.',sections:[['토양과 작물 확인',['토양검정 결과와 작물의 생육 단계·재배 목표를 확인합니다.','질소·인산·칼리와 미량요소의 현재 상태를 봅니다.']],['제품 표시 읽기',['보증 성분량, 대상 작물, 사용량, 사용 시기, 주의사항을 확인합니다.','같은 상표라도 성분비가 다를 수 있어 포대 표시를 사진으로 남깁니다.']],['살포와 기록',['강풍·폭우 전 살포를 피하고 보호장비와 살포기 설명을 지킵니다.','제품명·사용량·사용일·포장을 기록하고 남은 제품은 건조하게 보관합니다.']]],sources:[['농촌진흥청 농사로','https://www.nongsaro.go.kr/'],['흙토람 토양환경정보시스템','https://soil.rda.go.kr/']],related:[['농산물 품목별 확인','produce-items'],['농산물 보관·출하 기본','storage-shipping'],['농기계 거래 기본','farm-machinery']],boribay:'https://boribay.com/?query=%EB%B9%84%EB%A3%8C&utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=fertilizer_use',boribayText:'농자재 지역 거래 준비 보기'
+    title:'비료 사용 전 확인: 토양검정·성분량·살포 기록', category:'농자재',description:'비료를 사용하기 전에 작물과 생육 단계, 토양검정, 제품 성분과 표시사항, 살포 조건, 사용 기록을 확인하는 기본 순서입니다.',lead:'비료는 제품 이름보다 성분량과 작물·토양 상태를 기준으로 판단합니다. 포장 표시와 지역 농업기술센터 처방을 우선하고, 관행량을 그대로 반복하지 않습니다.',sections:[['토양과 작물 확인',['토양검정 결과와 작물의 생육 단계·재배 목표를 확인합니다.','질소·인산·칼리와 미량요소의 현재 상태를 봅니다.']],['제품 표시 읽기',['보증 성분량, 대상 작물, 사용량, 사용 시기, 주의사항을 확인합니다.','같은 상표라도 성분비가 다를 수 있어 포대 표시를 사진으로 남깁니다.']],['살포와 기록',['강풍·폭우 전 살포를 피하고 보호장비와 살포기 설명을 지킵니다.','제품명·사용량·사용일·포장을 기록하고 남은 제품은 건조하게 보관합니다.']]],sources:[['농촌진흥청 농사로','https://www.nongsaro.go.kr/'],['흙토람 토양환경정보시스템','https://soil.rda.go.kr/']],related:[['농산물 품목별 확인','produce-items'],['농산물 보관·출하 기본','storage-shipping'],['농기계 거래 기본','farm-machinery']],    boribay:'https://boribay.com/?query=%EB%B9%84%EB%A3%8C&utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=fertilizer_use',boribayText:'농자재 지역 거래 준비 보기'
+  },
+  'listing-field-terms': {
+    title:'수확일·실중량·품종 칸이 뜻하는 것', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'농산물 직거래 판매글에서 수확일, 실중량, 품종 칸이 각각 무엇을 가리키는지 구분하는 용어입니다.',
+    lead:'판매글의 세 칸은 소개 문장과 다릅니다. 품종은 낸 작물의 이름, 실중량은 포장재를 뺀 내용 kg, 수확일은 실제로 딴 날입니다. 품목 통칭·망 이름·사진 촬영일과 바꿔 읽지 않습니다.',
+    sections:[
+      ['품종 칸',['품종은 실제 재배·출하한 작물 이름입니다. 배추·사과처럼 품목만 적으면 같은 글을 비교할 수 없습니다.','모르는 품종을 추측해 채우지 않습니다. 확인할 수 없으면 미확인으로 두고 그 칸을 빈 채 올리지 않습니다.']],
+      ['실중량 칸',['실중량은 포장재를 뺀 농산물 내용 kg입니다. 10kg 망·상자 이름은 포장 단위이지 실중량이 아닙니다.','총중량과 내용량을 한 칸에 넣지 않습니다. 여러 규격이면 글도 나눕니다.']],
+      ['수확일 칸',['수확일은 실제로 딴 날짜입니다. 오늘 찍은 사진의 촬영일과 같은 칸에 두지 않습니다.','아직 밭에 있으면 출하 가능일을 수확일로 바꿔 쓰지 않습니다.']]
+    ],
+    faq:[['상자 이름만 적어도 실중량인가요?','상자 이름은 포장 단위입니다. 비교하려면 내용 kg를 따로 적습니다.'],['품종을 모르면 비슷한 이름을 넣어도 되나요?','추측 품종은 다른 물건이 됩니다. 미확인으로 둡니다.']],
+    sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['국립농산물품질관리원','https://www.naqs.go.kr/']],
+    related:[['명판·시간계·작업기 포함의 뜻','machinery-listing-terms'],['우리 동네·산지·발송지를 구분하는 말','region-listing-terms'],['출하가능일·수확일·도정일','listing-date-terms']],
+    boribay:'https://boribay.com/guides/produce-listing-three-fields?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=listing-field-terms',
+    boribayText:'품종·실중량·수확일 칸을 채워 판매글 올리기',
+    boribayDescription:'세 칸의 뜻을 나눴다면 같은 칸으로 판매글을 올리세요.'
+  },
+  'machinery-listing-terms': {
+    title:'명판·시간계·작업기 포함의 뜻', category:'농기계', published:'2026-09-20', modified:'2026-09-20',
+    description:'중고 농기계 판매글에서 명판 형식명, 시간계 숫자, 작업기 포함이 각각 무엇을 가리키는지 구분하는 용어입니다.',
+    lead:'기계 글의 세 칸은 제조사 통칭과 다릅니다. 명판은 본체에 붙은 형식명, 시간계는 시동 전 숫자, 작업기 포함은 같이 넘기는 장비입니다. 생활가전·기타중고 칸의 한 줄 설명과 바꿔 읽지 않습니다.',
+    sections:[
+      ['명판',['명판은 본체에 붙은 제조사·형식명·제조번호입니다. 대동·LS 같은 통칭만으로는 같은 기계가 아닙니다.','공개 글에는 형식명을 적고, 전체 제조번호는 실물 대조용으로 일부를 가릴 수 있습니다.']],
+      ['시간계',['시간계는 계기판의 누적 숫자입니다. 적게 썼다는 말은 숫자가 아닙니다.','시동 전에 읽은 값과 정비 영수증의 시간이 다르면 미확인으로 둡니다.']],
+      ['작업기 포함',['작업기 포함은 로더·로터리처럼 본체와 같이 넘기는 장비입니다. 포함되지 않는 작업기를 장점으로 적지 않습니다.','본체 가격과 작업기 가격을 한 칸에 숨기지 않습니다.']],
+      ['생활가전 칸과의 차이',['트랙터가 생활가전·기타중고·취미 칸에 있으면 형식명이 묻힙니다. 명판·시간·작업기 칸이 보이는 농기계 칸의 글만 같은 기계로 읽습니다.','칸이 다른 글을 한 가격으로 대조하지 않습니다.']]
+    ],
+    faq:[['마력만 있으면 형식명을 생략해도 되나요?','마력대는 출력을 가리킵니다. 같은 마력이라도 형식명이 다르면 다른 기계입니다.'],['작업기를 나중에 적어도 포함인가요?','적히지 않은 작업기는 포함이 아닙니다.']],
+    sources:[['농촌진흥청 농사로 농업기계','https://www.nongsaro.go.kr/'],['농업기계 안전정보시스템','https://amis.rda.go.kr/']],
+    related:[['수확일·실중량·품종 칸이 뜻하는 것','listing-field-terms'],['지역 매물과 탁송 매물을 가리는 말','nearby-machinery-terms'],['개인 직거래와 입점몰 입점의 차이','c2c-vs-mall-terms']],
+    boribay:'https://boribay.com/guides/used-machinery-listing-nameplate?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=machinery-listing-terms',
+    boribayText:'명판·시간·작업기 칸을 채워 기계 글 올리기',
+    boribayDescription:'세 칸의 뜻을 나눴다면 같은 칸으로 기계 글을 올리세요.'
+  },
+  'region-listing-terms': {
+    title:'우리 동네·산지·발송지를 구분하는 말', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'근처 농산물 글에서 우리 동네, 산지, 택배 발송지가 같은 장소가 아님을 구분하는 용어입니다.',
+    lead:'지역 칸은 직매장 안내가 아닙니다. 우리 동네는 방문할 거래 장소, 산지는 난 곳, 발송지는 택배가 나가는 곳입니다. 셋이 같다는 말은 따로 확인하기 전에는 쓰지 않습니다.',
+    sections:[
+      ['우리 동네',['우리 동네는 구매자가 가서 받을 수 있는 거래 장소입니다. 판매자 주소만으로 근처라고 읽지 않습니다.','장소가 없으면 근처 글이 아닙니다.']],
+      ['산지',['산지는 작물이 난 지역입니다. 산지와 만나 장소가 다를 수 있습니다.','산지 통칭만 있고 거래 장소가 없으면 방문 조건이 아닙니다.']],
+      ['발송지',['발송지는 택배가 나가는 곳입니다. 산지와 물류지가 다를 수 있습니다.','방문 수령 글에 발송지만 적혀 있으면 근처 글이 아닙니다.']]
+    ],
+    faq:[['산지가 가까우면 우리 동네 글인가요?','산지와 거래 장소는 다를 수 있습니다. 방문할 장소가 적힌 글만 근처로 읽습니다.'],['지역이 없는 글은요?','근처 조건이 아니므로 후보에서 뺍니다.']],
+    sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['국립농산물품질관리원','https://www.naqs.go.kr/']],
+    related:[['수확일·실중량·품종 칸이 뜻하는 것','listing-field-terms'],['지역 매물과 탁송 매물을 가리는 말','nearby-machinery-terms'],['방문수령·산지직송·계근 시점','meetup-parcel-terms']],
+    boribay:'https://boribay.com/guides/nearby-produce-listing-search?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=region-listing-terms',
+    boribayText:'산지·수확일로 근처 농산물 글 찾기',
+    boribayDescription:'지역 칸의 뜻을 나눴다면 같은 조건의 근처 농산물 글을 찾으세요.'
+  },
+  'nearby-machinery-terms': {
+    title:'지역 매물과 탁송 매물을 가리는 말', category:'농기계', published:'2026-09-20', modified:'2026-09-20',
+    description:'중고 트랙터·관리기 글에서 근처 인도와 탁송을 같은 지역 매물로 읽지 않게 구분하는 용어입니다.',
+    lead:'기계의 지역 칸은 판매자 주소만으로 정하지 않습니다. 근처 매물은 가서 시동을 확인할 수 있는 인도 장소가 있는 글이고, 탁송 매물은 상차 장소와 운송이 따로 적힌 글입니다.',
+    sections:[
+      ['지역 매물',['지역 매물은 거래 장소에서 자력 확인이 가능한 글입니다. 명판·시간계·작업기 칸이 같아야 같은 기계입니다.','마력대만 같고 장소가 없으면 근처가 아닙니다.']],
+      ['탁송 매물',['탁송은 상차·운송·하차가 따로 있는 인도입니다. 판매자 주소와 상차 장소가 다를 수 있습니다.','탁송 비용이 본기 가격에 포함됐는지는 별도 칸입니다.']],
+      ['거리를 고르는 말',['거리는 인도 장소까지의 동선입니다. 사진 속 배경만으로 근처라고 읽지 않습니다.','작업기 포함 여부가 다른 글을 같은 거리 비교에 넣지 않습니다.']]
+    ],
+    faq:[['판매자 동네가 가까우면 지역 매물인가요?','인도 장소가 적힌 글만 지역 매물로 읽습니다.'],['탁송이면 시운전은 생략하나요?','탁송이어도 상차 전 상태를 확인하는 말이 따로 있어야 합니다.']],
+    sources:[['농촌진흥청 농사로 농업기계','https://www.nongsaro.go.kr/'],['농업기계 안전정보시스템','https://amis.rda.go.kr/']],
+    related:[['명판·시간계·작업기 포함의 뜻','machinery-listing-terms'],['우리 동네·산지·발송지를 구분하는 말','region-listing-terms'],['개인 직거래와 입점몰 입점의 차이','c2c-vs-mall-terms']],
+    boribay:'https://boribay.com/guides/nearby-used-tractor-search?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=nearby-machinery-terms',
+    boribayText:'작업기·거리로 근처 트랙터 글 찾기',
+    boribayDescription:'지역과 탁송을 나눴다면 같은 칸의 근처 기계 글을 찾으세요.'
+  },
+  'meetup-parcel-terms': {
+    title:'방문수령·산지직송·계근 시점', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'농산물 직거래에서 방문수령, 산지직송, 계근 시점이 각각 어느 장소와 날짜를 가리키는지 구분하는 용어입니다.',
+    lead:'만나기와 택배는 한 평균 비용이 아닙니다. 방문수령은 가서 받는 날, 산지직송은 출하일 이후 도착, 계근 시점은 무게를 재는 때입니다. 세 말을 한 칸에 섞지 않습니다.',
+    sections:[
+      ['방문수령',['방문수령은 거래 장소에서 받아 가는 방법입니다. 오늘 갈 수 있는 시간과 장소가 칸에 있어야 합니다.','아직 따기 전이면 방문 날짜를 수확일로 바꿔 쓰지 않습니다.']],
+      ['산지직송',['산지직송은 출고 후 택배로 보내는 방법입니다. 출하일이 없으면 직송 조건이 아닙니다.','산지와 물류 발송지가 다를 수 있어 발송지를 따로 읽습니다.']],
+      ['계근 시점',['계근은 무게를 재는 때입니다. 밭에서 달 때와 출고 전 상자 무게는 다를 수 있습니다.','방문이면 현장 계근, 택배면 출고 전 기준을 어느 칸에 적었는지 봅니다.']]
+    ],
+    faq:[['둘 다 가능하면 한 칸에 적어도 되나요?','이번 물량이 방문인지 택배인지 하나만 적습니다. 고르지 않은 방법은 장점이 아닙니다.'],['출하일 없는 택배 글은요?','산지직송 조건으로 읽지 않습니다.']],
+    sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['국립농산물품질관리원','https://www.naqs.go.kr/']],
+    related:[['우리 동네·산지·발송지를 구분하는 말','region-listing-terms'],['출하가능일·수확일·도정일','listing-date-terms'],['전량매입·제3자 계좌·운송비 선송금','bulk-buyer-terms']],
+    boribay:'https://boribay.com/guides/meetup-vs-direct-shipping-choice?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=meetup-parcel-terms',
+    boribayText:'만나기 또는 택배를 고른 뒤 글에 적기',
+    boribayDescription:'세 말의 뜻을 나눴다면 이번 물량의 수령 방법을 칸에 적으세요.'
+  },
+  'bulk-buyer-terms': {
+    title:'전량매입·제3자 계좌·운송비 선송금', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'직거래 판매글에 오는 전량매입, 제3자 명의 계좌, 운송비 선송금이 각각 무엇을 가리키는지 구분하는 용어입니다.',
+    lead:'전량 살게요는 재고를 한꺼번에 사겠다는 말일 뿐, 입금과 인도가 끝났다는 뜻이 아닙니다. 제3자 계좌는 판매자 명의가 아닌 입금처이고, 운송비 선송금은 물건을 보기 전에 보내는 돈입니다.',
+    sections:[
+      ['전량매입',['전량매입은 남은 물량 전부를 사겠다는 의사입니다. 수량·단가·수령 방법이 칸에 없으면 거래 조건이 아닙니다.','글을 내리라는 요청과 전량매입은 다른 말입니다. 조건을 적기 전에 글을 내리지 않습니다.']],
+      ['제3자 계좌',['제3자 계좌는 판매자 이름과 다른 명의의 입금처입니다. 회사·기사·지인 명의를 같은 판매자 계좌로 읽지 않습니다.','입금처가 바뀌면 이전 대화를 이어서 진행하지 않습니다.']],
+      ['운송비 선송금',['운송비 선송금은 실물을 확인하기 전에 보내는 운임입니다. 방문 수령·출고 전 계근과 같은 칸에 두지 않습니다.','운임을 먼저 보내야만 물건을 볼 수 있다는 말은 인도 조건이 아닙니다.']]
+    ],
+    faq:[['전량을 산다는데 글을 내려도 되나요?','입금과 인도 칸이 채워지기 전에는 내리지 않습니다.'],['기사 명의 계좌면 운송비인가요?','명의가 판매자와 다르면 제3자 계좌입니다. 운임 칸과 섞지 않습니다.']],
+    sources:[['경찰청 사이버수사','https://www.police.go.kr/'],['금융감독원 금융사기 예방','https://www.fss.or.kr/']],
+    related:[['방문수령·산지직송·계근 시점','meetup-parcel-terms'],['수확일·실중량·품종 칸이 뜻하는 것','listing-field-terms'],['개인 직거래와 입점몰 입점의 차이','c2c-vs-mall-terms']],
+    boribay:'https://boribay.com/guides/fake-bulk-buyer-seller-stop?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=bulk-buyer-terms',
+    boribayText:'전량 살게요가 오면 멈추는 순서 보기',
+    boribayDescription:'세 말을 나눴다면 칸이 비는 요청에서는 멈추세요.'
+  },
+  'c2c-vs-mall-terms': {
+    title:'개인 직거래와 입점몰 입점의 차이', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'개인 직거래 판매글과 입점몰 상세페이지가 같은 칸을 쓰지 않음을 구분하는 용어입니다.',
+    lead:'입점몰은 상세페이지·재고·결제 칸이 있고, 개인 글은 판매자와 수령 조건이 글에 있어야 합니다. 몰 문장을 개인 글에 붙여 넣어도 같은 거래가 되지 않습니다.',
+    sections:[
+      ['개인 직거래 글',['개인 글은 이번 물량의 품종·실중량·수확일 또는 명판·시간·작업기가 칸에 있어야 합니다.','수령 방법과 거래 장소가 글에 없으면 개인 직거래 조건이 아닙니다.']],
+      ['입점몰 입점',['입점은 몰의 상품 등록·정산 칸을 쓰는 방식입니다. 개인 글의 방문 수령과 같은 말이 아닙니다.','몰 재고 문구를 개인 글의 출하일로 바꿔 읽지 않습니다.']],
+      ['한 목록에서 고르는 말',['농산물 칸과 농기계 칸은 필수 항목이 다릅니다. 한 글에 섞지 않습니다.','지금 할 일이 팔기·찾기이면 시세 표를 목적지로 두지 않습니다.']]
+    ],
+    faq:[['몰 상품 설명을 개인 글에 복사해도 되나요?','결제·반품 칸이 다릅니다. 개인 글에는 이번 물량의 칸만 적습니다.'],['한 글에 농산물과 기계를 같이 올려도 되나요?','칸이 다르므로 글을 나눕니다.']],
+    sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['국립농산물품질관리원','https://www.naqs.go.kr/']],
+    related:[['수확일·실중량·품종 칸이 뜻하는 것','listing-field-terms'],['명판·시간계·작업기 포함의 뜻','machinery-listing-terms'],['지역 매물과 탁송 매물을 가리는 말','nearby-machinery-terms']],
+    boribay:'https://boribay.com/guides/produce-and-machinery-one-list?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=c2c-vs-mall-terms',
+    boribayText:'개인 직거래 글로 올리거나 찾기',
+    boribayDescription:'개인 글과 몰 상세를 나눴다면 해당 칸으로 올리거나 찾으세요.'
+  },
+  'listing-date-terms': {
+    title:'출하가능일·수확일·도정일', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'김장·햅쌀 판매글에서 출하 가능일, 수확일, 도정일이 같은 날짜가 아님을 구분하는 용어입니다.',
+    lead:'출하 가능일은 넘길 수 있는 날, 수확일은 실제로 딴 날, 도정일은 포장에 적힌 도정연월일입니다. 절임배추 도착일과 당일도정 문구와 바꿔 읽지 않습니다.',
+    sections:[
+      ['출하 가능일',['출하 가능일은 구매자에게 넘길 수 있는 날입니다. 아직 밭에 있는 날을 수확일로 바꿔 쓰지 않습니다.','몰의 배송 도착 예정일과 같은 칸에 두지 않습니다.']],
+      ['수확일',['수확일은 실제로 딴 날짜입니다. 사진 촬영일과 같은 칸에 두지 않습니다.','절임배추면 절인 날짜와 생배추 수확일을 나눕니다.']],
+      ['도정일',['도정일은 양곡 표시의 도정연월일입니다. 생산연도와 한 칸에 넣지 않습니다.','당일도정 문구로 도정일을 대신하지 않습니다.']]
+    ],
+    faq:[['절임 도착일을 수확일로 읽어도 되나요?','도착일은 배송 일정입니다. 수확일이 아닙니다.'],['도정일만 있으면 생산연도는 생략하나요?','양곡 표시는 생산연도와 도정연월일을 나눕니다.']],
+    sources:[['국립농산물품질관리원 양곡 표시','https://www.naqs.go.kr/hp/contents/contents.do?menuId=MN30613'],['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614']],
+    related:[['수확일·실중량·품종 칸이 뜻하는 것','listing-field-terms'],['방문수령·산지직송·계근 시점','meetup-parcel-terms'],['우리 동네·산지·발송지를 구분하는 말','region-listing-terms']],
+    boribay:'https://boribay.com/guides/kimjang-rice-listing-dates?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=c2c_howto_202609&utm_content=listing-date-terms',
+    boribayText:'출하일·도정일을 칸에 적어 시즌 글 올리기',
+    boribayDescription:'날짜 칸의 뜻을 나눴다면 시즌 판매글에 그 날짜를 적으세요.'
   }
 };
 
