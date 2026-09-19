@@ -18,7 +18,7 @@ const pages = {
     lead:'농산물 등급은 가격표가 아니라 품질을 객관적으로 설명하기 위한 거래 언어입니다. 품목별 규격이 다르므로 등급명 하나보다 어떤 항목으로 판정했는지 확인해야 합니다.',
     sections:[['등급을 구성하는 항목',['고르기, 형태, 크기, 결점 등 품질 구분에 필요한 항목을 품목별로 봅니다.','등급규격과 포장규격은 목적이 다릅니다. 등급은 품질, 포장은 단량·치수·재료·표시를 다룹니다.']],['표시사항 확인',['표준규격품 문구와 함께 품목·산지·품종·등급·무게 또는 개수·생산자 정보를 확인합니다.','온라인 거래 사진에도 표시사항과 실제 샘플이 일치하는지 확인합니다.']],['현장 거래에 적용',['판매자와 구매자가 같은 규격표를 놓고 크기·결점 허용 범위를 확인합니다.','선별 기준, 검수 표본 수, 반품·감액 조건을 문자나 계약서로 남깁니다.']]],
     sources:[['국립농산물품질관리원 표준규격','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['농산물 등급규격 품목 목록','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN40332']],
-    related:[['감자 특품 기준','potato-special-grade'],['농산물 품목별 확인','produce-items'],['거래 용어 빠른 사전','trade-terms']], boribay:'https://boribay.com/guides/agricultural-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=produce_grading',boribayText:'농산물 시세 확인 순서 보기'
+    related:[['감자 특품 기준','potato-special-grade'],['농산물 품목별 확인','produce-items'],['거래 용어 빠른 사전','trade-terms']], boribay:'https://boribay.com/guides/produce-price-calculator?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=produce_grading',boribayText:'등급을 맞춘 뒤 kg당 가격 계산하기'
   },
   'storage-shipping': {
     title:'농산물 보관·출하 기본: 온도 숫자보다 먼저 볼 것', category:'보관·출하',
@@ -67,7 +67,8 @@ const pages = {
     sections:[
       ['배추 10kg 그물망',['그물망 표시 10kg는 한 거래 단위의 이름입니다. 가격 비교에는 배추만의 실중량을 사용하고 포장재 무게를 넣지 않습니다.','김장 포기 수·결구 크기·겉잎 제거 여부가 다르면 같은 10kg 망으로 묶지 않습니다. 가락 표는 kg당이므로 망 가격을 나눈 뒤에 대조합니다.'],['서울가락 배추 10kg 그물망 kg당 보기','https://boribay.com/guides/garak-cabbage-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=baechu_net_kg']],
       ['대파 단·망과 쪽파',['대파 한 단의 무게는 묶음마다 다를 수 있습니다. 단 수만 보고 kg당 시세와 같다고 보지 않습니다.','쪽파는 파종 작형이고 대파는 출하·도매 품목입니다. 이름만 비슷한 작물을 한 가격으로 읽지 않습니다.'],['서울가락 대파 kg·망 단위 보기','https://boribay.com/guides/garak-daepa-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=daepa_bundle_kg']],
-      ['양파 15kg 망·김장무 20kg·홍로 10kg',['양파 15kg 그물망은 저장양파와 햇양파·품종을 같은 행으로 묶지 않습니다. 부패·발근 구를 뺀 판매 가능 중량으로 다시 나누면 kg당이 달라집니다.','김장무 20kg 상자는 심는 시기 안내와 다른 정보입니다. 상자 표시가 무 실중량인지 총중량인지 확인합니다.','홍로 10kg 상자는 품종명 홍로와 햇사과 판매 문구, 개수·실중량을 나눠 본 뒤 kg당으로 비교합니다.'],['서울가락 양파 15kg 망 kg당 보기','https://boribay.com/guides/garak-onion-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=onion_mesh_kg']]
+      ['양파 15kg 망',['양파 15kg 그물망은 저장양파와 햇양파·품종을 같은 행으로 묶지 않습니다. 부패·발근 구를 뺀 판매 가능 중량으로 다시 나누면 kg당이 달라집니다.','망 가격을 양파 실중량으로 나눈 뒤에만 서울가락 양파 행과 대조합니다.'],['서울가락 양파 15kg 망 kg당 보기','https://boribay.com/guides/garak-onion-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=onion_mesh_kg']],
+      ['김장무 20kg 상자',['김장무 20kg 상자는 출하 단위이고 심는 시기 안내는 파종 판단입니다. 상자 표시가 무 실중량인지 총중량인지 확인합니다.','열무·알타리와 김장무를 한 시세로 읽지 않습니다. 홍로 10kg 상자 시세는 과일 상자 용어에서 품종명과 실중량으로 맞춥니다.'],['서울가락 김장무 20kg 상자 kg당 보기','https://boribay.com/guides/garak-radish-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=kimjang_radish_20kg']]
     ],
     faq:[['10kg 망이면 무조건 kg당으로 나누면 되나요?','표시 중량이 내용물 실중량인지 먼저 확인합니다. 포장재 포함 총중량으로 나누면 kg당이 낮아져 시세와 어긋납니다.'],['단 가격을 망 가격과 바로 비교해도 되나요?','단과 망의 실제 내용 kg이 다를 수 있습니다. 둘 다 kg당으로 맞춘 뒤에만 비교합니다.']],
     sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do']],
@@ -83,7 +84,9 @@ const pages = {
     sections:[
       ['샤인마스캇 4kg',['표시 4kg는 한 거래 단위의 이름입니다. 가격 비교에는 포도만의 실중량을 사용합니다.','캠벨·마스캇베리에이 행을 샤인마스캇 시세로 쓰지 않습니다. 알 빠짐 송이를 뺀 뒤에 kg당을 다시 계산합니다.'],['서울가락 샤인마스캇 4kg kg당 보기','https://boribay.com/guides/garak-grape-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=shine_muscat_4kg']],
       ['신고배 7.5kg',['7.5kg 상자와 15kg 상자·파렛트는 같은 행이 아닐 수 있습니다.','몇 과 세트 가격은 개당입니다. 개수를 kg으로 바꾸기 전에 과실 크기 구성이 같은지 확인합니다.'],['서울가락 신고배 7.5kg kg당 보기','https://boribay.com/guides/garak-pear-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=niitaka_pear_75kg']],
-      ['홍로 10kg·복숭아 4kg·추희 5kg',['햇사과는 판매 문구이고 홍로는 품종명입니다. 10kg와 5kg를 같은 단가로 묶지 않습니다.','복숭아 숙도 표현은 경락가 표에 없습니다. 추희와 후무사·김천 산지 안내를 한 시세로 읽지 않습니다.'],['서울가락 홍로 10kg kg당 보기','https://boribay.com/guides/garak-apple-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=hongro_10kg']]
+      ['홍로 10kg',['햇사과는 판매 문구이고 홍로는 품종명입니다. 10kg 상자와 개수 세트를 같은 단가로 묶지 않습니다.','품종명과 실중량을 나눈 뒤에만 서울가락 홍로 행과 대조합니다.'],['서울가락 홍로 10kg kg당 보기','https://boribay.com/guides/garak-apple-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=hongro_10kg']],
+      ['복숭아 4kg',['복숭아 숙도 표현은 경락가 표에 없습니다. 4kg 상자 가격을 숙도 문구만으로 시세처럼 쓰지 않습니다.','백도·황도 행을 한 평균 kg당으로 합치지 않습니다.'],['서울가락 복숭아 4kg kg당 보기','https://boribay.com/guides/garak-peach-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=peach_4kg']],
+      ['추희자두 5kg',['추희와 후무사·김천 산지 안내를 한 시세로 읽지 않습니다.','5kg 상자 표시가 자두 실중량인지 확인한 뒤에 kg당으로 나눕니다.'],['서울가락 추희자두 5kg kg당 보기','https://boribay.com/guides/garak-plum-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=plum_5kg']]
     ],
     faq:[['4kg 상자면 무조건 4로 나누면 되나요?','표시 중량이 내용물 실중량인지 먼저 확인합니다. 포장재 포함 총중량으로 나누면 kg당이 낮아져 시세와 어긋납니다.'],['선물 개수 가격을 kg당과 바로 비교해도 되나요?','개당과 kg당은 다른 단위입니다. 과실 무게 구성을 맞춘 뒤에만 비교합니다.']],
     sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do']],
@@ -97,9 +100,13 @@ const pages = {
     description:'네트계 멜론 8kg, 토마토 5kg, 하우스감귤 3kg, 수박 통, 대추방울 3kg, 생대추 2kg, 송본 단감 10kg 상자 가격을 실중량 kg당으로 맞춰 시세와 비교하는 거래 용어입니다.',
     lead:'과채 상자 이름과 kg당은 다른 정보입니다. 8kg·5kg·3kg·통 가격을 시세처럼 쓰기 전에 포장재를 뺀 내용 중량으로 나누고, 품목명·작형이 같은지 확인합니다.',
     sections:[
-      ['네트계 멜론 8kg·수박 통',['표시 8kg는 한 거래 단위의 이름입니다. 가격 비교에는 멜론만의 실중량을 사용합니다. 8kg 상자와 파렛트, 참외를 한 단가로 묶지 않습니다.','수박 한 통 가격은 개당입니다. 과실 무게를 재기 전에 kg당 시세와 같다고 보지 않고, 꼭지절단 행과 일반 통을 나눕니다.'],['서울가락 네트계 멜론 8kg kg당 보기','https://boribay.com/guides/garak-melon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=netted_melon_8kg']],
-      ['토마토 5kg·대추방울 3kg',['일반 토마토 5kg와 완숙·찰토마토, 방울토마토는 품목·품종이 다릅니다.','대추방울 3kg 가격을 완숙 토마토 5kg 행과 바로 비교하지 않습니다. 열과를 뺀 뒤에 kg당을 다시 계산합니다.'],['서울가락 토마토 5kg kg당 보기','https://boribay.com/guides/garak-tomato-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=tomato_5kg']],
-      ['하우스감귤 3kg·생대추 2kg·송본 10kg',['하우스감귤 3kg·5kg·6kg와 몇 개입 선물을 한 단가로 묶지 않습니다. 수입 오렌지 시세를 감귤 시세로 쓰지 않습니다.','생대추와 건대추·사과대추, 송본 단감과 떫은감·곶감 원료를 나눕니다. 쥬키니 10kg와 애호박·단호박, 빨강 파프리카와 피망도 작형·색 행이 다릅니다.'],['서울가락 하우스감귤 3kg kg당 보기','https://boribay.com/guides/garak-citrus-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=house_citrus_3kg']]
+      ['네트계 멜론 8kg',['표시 8kg는 한 거래 단위의 이름입니다. 가격 비교에는 멜론만의 실중량을 사용합니다. 8kg 상자와 파렛트, 참외를 한 단가로 묶지 않습니다.'],['서울가락 네트계 멜론 8kg kg당 보기','https://boribay.com/guides/garak-melon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=netted_melon_8kg']],
+      ['수박 통',['수박 한 통 가격은 개당입니다. 과실 무게를 재기 전에 kg당 시세와 같다고 보지 않고, 꼭지절단 행과 일반 통을 나눕니다.'],['서울가락 수박 통·상자 kg당 보기','https://boribay.com/guides/garak-watermelon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=watermelon_piece']],
+      ['토마토 5kg',['일반 토마토 5kg와 완숙·찰토마토, 방울토마토는 품목·품종이 다릅니다. 열과를 뺀 뒤에 kg당을 다시 계산합니다.'],['서울가락 토마토 5kg kg당 보기','https://boribay.com/guides/garak-tomato-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=tomato_5kg']],
+      ['대추방울 3kg',['대추방울 3kg 가격을 완숙 토마토 5kg 행과 바로 비교하지 않습니다.'],['서울가락 대추방울 3kg kg당 보기','https://boribay.com/guides/garak-cherry-tomato-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=cherry_tomato_3kg']],
+      ['하우스감귤 3kg',['하우스감귤 3kg·5kg·6kg와 몇 개입 선물을 한 단가로 묶지 않습니다. 수입 오렌지 시세를 감귤 시세로 쓰지 않습니다.'],['서울가락 하우스감귤 3kg kg당 보기','https://boribay.com/guides/garak-citrus-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=house_citrus_3kg']],
+      ['생대추 2kg',['생대추와 건대추·사과대추를 한 숫자로 두지 않습니다.'],['서울가락 생대추 2kg kg당 보기','https://boribay.com/guides/garak-jujube-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=jujube_2kg']],
+      ['송본 단감 10kg',['송본 단감과 떫은감·곶감 원료를 나눕니다. 쥬키니 10kg와 애호박·단호박, 빨강 파프리카와 피망도 작형·색 행이 다릅니다.'],['서울가락 송본 단감 10kg kg당 보기','https://boribay.com/guides/garak-persimmon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=persimmon_10kg']]
     ],
     faq:[['8kg 상자면 무조건 8로 나누면 되나요?','표시 중량이 내용물 실중량인지 먼저 확인합니다. 포장재 포함 총중량으로 나누면 kg당이 낮아져 시세와 어긋납니다.'],['수박 한 통 가격을 kg당 표와 바로 비교해도 되나요?','통 무게를 잰 뒤에만 비교합니다. 꼭지절단·소형 수박 행과 일반 통을 한 숫자로 두지 않습니다.']],
     sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do']],
@@ -128,7 +135,7 @@ const pages = {
     description:'감자, 양파, 쌀, 사과, 복숭아 등 농산물 직거래에서 품종·산지·수확일·등급·실중량·보관·배송을 확인하는 공통 순서입니다.',
     lead:'품목마다 세부 기준은 다르지만 거래 전에 확인할 뼈대는 같습니다. 품종과 산지에서 시작해 수확·선별·중량·보관·배송·분쟁 기준까지 순서대로 묻습니다.',
     sections:[['품목과 생산 정보',['정확한 품목·품종·생산지와 생산자·판매자 관계를 확인합니다.','수확일, 재배 방식, 선별일과 현재 보관 상태를 묻습니다.']],['상품과 가격 정보',['등급·크기·개수·실중량을 같은 단위로 비교합니다.','배송비·포장비·수수료를 포함한 kg당 또는 개당 가격을 계산합니다.']],['인도와 문제 처리',['발송 예정일, 운송 방식, 신선도 유지 포장과 수령 직후 확인 방법을 정합니다.','파손·부패·중량 부족 시 사진 기준과 환불·재배송 조건을 합의합니다.']]],
-    sources:[['국립농산물품질관리원','https://www.naqs.go.kr/'],['KAMIS 농산물유통정보','https://www.kamis.or.kr/']],related:[['감자 특품 기준','potato-special-grade'],['농산물 등급표 읽는 법','produce-grading'],['농산물 보관·출하 기본','storage-shipping']],boribay:'https://boribay.com/guides/agricultural-direct-market-guide?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=produce_items',boribayText:'농산물 직거래장터 이용 원리 보기'
+    sources:[['국립농산물품질관리원','https://www.naqs.go.kr/'],['KAMIS 농산물유통정보','https://www.kamis.or.kr/']],related:[['감자 특품 기준','potato-special-grade'],['농산물 등급표 읽는 법','produce-grading'],['농산물 보관·출하 기본','storage-shipping']],boribay:'https://boribay.com/guides/produce-price-calculator?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=produce_items',boribayText:'품목 실중량으로 kg당 가격 계산하기'
   },
   'cattle-traceability': {
     title:'한우 거래 전 이력번호와 개체정보 확인', category:'농축산물',
