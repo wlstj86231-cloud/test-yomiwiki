@@ -3,7 +3,7 @@ const knowledge = {
     title:'가락시장 시세와 가격 계산 용어', subtitle:'경락가 · 단량 · 실중량 · 결제액 구분', article:'trade-terms',
     rows:[['book-open','가격 구분',['경락가·평균가격·판매자가 정한 직거래 가격은 서로 다른 정보입니다.','기준일·시장·품목·품종·등급·단위를 함께 읽습니다.']],['scale','중량 구분',['단량은 한 거래 단위에 들어 있는 양입니다.','kg당 가격 비교에는 포장재를 제외한 농산물 내용량을 사용합니다.']],['calculator','비용 구분',['상품금액과 배송비를 구분하고 배송비가 상자별인지 주문 전체인지 확인합니다.','구매자 결제액만으로 판매자 정산액이나 순이익을 알 수 없습니다.']]],
     related:['감자 특품 기준','농기계 거래 용어','영농폐기물 용어'],
-    link:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=auction_price_terms',linkText:'조건을 맞춰 가락시장 시세표 보기'
+    link:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=auction_price_terms',linkText:'오늘 서울가락 kg당 가중평균 표 보기'
   },
   '농기계 거래 용어': {
     title:'농기계 판매·운송 용어', subtitle:'장비 정보 · 포함 범위 · 상하차 구분', article:'farm-machinery',
