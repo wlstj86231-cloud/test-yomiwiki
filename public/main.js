@@ -2,8 +2,14 @@ const knowledge = {
   '가락시장 시세 용어': {
     title:'가락시장 시세와 가격 계산 용어', subtitle:'경락가 · 단량 · 실중량 · 결제액 구분', article:'trade-terms',
     rows:[['book-open','가격 구분',['경락가·평균가격·판매자가 정한 직거래 가격은 서로 다른 정보입니다.','기준일·시장·품목·품종·등급·단위를 함께 읽습니다.']],['scale','중량 구분',['단량은 한 거래 단위에 들어 있는 양입니다.','kg당 가격 비교에는 포장재를 제외한 농산물 내용량을 사용합니다.']],['calculator','비용 구분',['상품금액과 배송비를 구분하고 배송비가 상자별인지 주문 전체인지 확인합니다.','구매자 결제액만으로 판매자 정산액이나 순이익을 알 수 없습니다.']]],
-    related:['감자 특품 기준','농기계 거래 용어','영농폐기물 용어'],
+    related:['포장 단위 그물망','감자 특품 기준','농기계 거래 용어'],
     link:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=auction_price_terms',linkText:'오늘 서울가락 kg당 가중평균 표 보기'
+  },
+  '포장 단위 그물망': {
+    title:'그물망·단·상자를 kg으로 맞추는 법', subtitle:'배추 10kg · 대파 단 · 양파 15kg · 김장무 20kg', article:'pack-unit-terms',
+    rows:[['package','망·단 이름',['표시 중량은 거래 단위 이름입니다. 비교에는 내용물 실중량을 씁니다.','배추 10kg 그물망과 양파 15kg 망을 같은 단가로 묶지 않습니다.']],['scale','kg당 환산',['망 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','단 수는 무게가 확인되기 전까지 kg당 시세와 같다고 보지 않습니다.']],['sprout','품목 구분',['대파와 쪽파, 김장무 시세와 심는 시기를 한 가격으로 읽지 않습니다.','홍로 10kg는 품종명과 상자 실중량을 나눠 봅니다.']]],
+    related:['가락시장 시세 용어','양파 저장 온도','감자 특품 기준'],
+    link:'https://boribay.com/guides/garak-cabbage-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=pack_unit_kg',linkText:'배추 10kg 그물망 kg당 표 보기'
   },
   '농기계 거래 용어': {
     title:'농기계 판매·운송 용어', subtitle:'장비 정보 · 포함 범위 · 상하차 구분', article:'farm-machinery',
@@ -75,6 +81,7 @@ const contextLink=document.querySelector('#boribay-context-link');
 function selectKnowledge(query){
   const normalized=(query||'').trim();
   let key=normalized?Object.keys(knowledge).find(k=>normalized.includes(k)||k.includes(normalized)):'감자 특품 기준';
+  if(!key&&/그물망|배추 10kg|양파 15kg|김장무 20kg|대파.*(단|망)|포장 단위/.test(normalized))key='포장 단위 그물망';
   if(!key&&/폐기물|폐비닐|농약.*(병|용기|봉지)|집하장|폐농자재/.test(normalized))key='영농폐기물 용어';
   if(!key&&/가락|경락|시세|단량|실중량|kg당|가격.*계산/.test(normalized))key='가락시장 시세 용어';
   if(!key&&/운송|탁송|상차|하차|작업기|PTO|농기계.*판매/i.test(normalized))key='농기계 거래 용어';

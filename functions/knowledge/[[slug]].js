@@ -58,7 +58,23 @@ const pages = {
       ['상차도·도착도·하자 고지',['상차도·도착도라는 말만으로 운임·상하차 비용과 인도 책임이 모두 정해졌다고 보지 않습니다. 누가 어느 장소까지 무엇을 부담하는지 문장으로 합의합니다.','예약금·계약금·잔금의 지급 시점과 취소 조건을 적습니다. 농기계 하자 고지는 알려진 결함과 수리 필요 사항을 구체적으로 기록합니다.']]
     ],
     faq:[['가락시장 오늘 시세는 어디서 보나요?','서울가락 잠정·확정 경락가를 거래량 가중 kg당으로 보려면 보리장터 서울가락 표를 엽니다. 최고가 한 건을 시세로 쓰지 말고, 원자료는 공식 가격정보에서도 확인합니다.'],['10kg 상자가 5kg 상자보다 항상 저렴한가요?','상자 가격만으로 판단할 수 없습니다. 같은 품질 조건에서 내용량과 실제 적용 배송비를 확인해 kg당 가격을 비교합니다.']],
-    sources:[['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do'],['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614']],related:[['농산물 등급표 읽는 법','produce-grading'],['농기계 거래 기본','farm-machinery'],['농산물 품목별 확인','produce-items']],boribay:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=trade_terms',boribayText:'서울가락 오늘 경락가 kg당 표 보기'
+    sources:[['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do'],['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614']],    related:[['농산물 등급표 읽는 법','produce-grading'],['포장 단위 그물망·단·상자','pack-unit-terms'],['농산물 품목별 확인','produce-items']],boribay:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=trade_terms',boribayText:'서울가락 오늘 경락가 kg당 표 보기'
+  },
+  'pack-unit-terms': {
+    title:'농산물 포장 단위: 그물망·단·20kg 상자를 kg으로 읽는 법', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'배추 10kg 그물망, 대파 단·망, 양파 15kg 망, 김장무 20kg 상자, 홍로 10kg 상자를 실중량 kg당으로 맞춰 시세와 비교하는 거래 용어입니다.',
+    lead:'포장 단위 이름과 kg당은 다른 정보입니다. 망·단·상자 가격을 시세처럼 쓰기 전에 포장재를 뺀 내용 중량으로 나누고, 품목명이 같은지 확인합니다.',
+    sections:[
+      ['배추 10kg 그물망',['그물망 표시 10kg는 한 거래 단위의 이름입니다. 가격 비교에는 배추만의 실중량을 사용하고 포장재 무게를 넣지 않습니다.','김장 포기 수·결구 크기·겉잎 제거 여부가 다르면 같은 10kg 망으로 묶지 않습니다. 가락 표는 kg당이므로 망 가격을 나눈 뒤에 대조합니다.'],['서울가락 배추 10kg 그물망 kg당 보기','https://boribay.com/guides/garak-cabbage-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=baechu_net_kg']],
+      ['대파 단·망과 쪽파',['대파 한 단의 무게는 묶음마다 다를 수 있습니다. 단 수만 보고 kg당 시세와 같다고 보지 않습니다.','쪽파는 파종 작형이고 대파는 출하·도매 품목입니다. 이름만 비슷한 작물을 한 가격으로 읽지 않습니다.'],['서울가락 대파 kg·망 단위 보기','https://boribay.com/guides/garak-daepa-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=daepa_bundle_kg']],
+      ['양파 15kg 망·김장무 20kg·홍로 10kg',['양파 15kg 그물망은 저장양파와 햇양파·품종을 같은 행으로 묶지 않습니다. 부패·발근 구를 뺀 판매 가능 중량으로 다시 나누면 kg당이 달라집니다.','김장무 20kg 상자는 심는 시기 안내와 다른 정보입니다. 상자 표시가 무 실중량인지 총중량인지 확인합니다.','홍로 10kg 상자는 품종명 홍로와 햇사과 판매 문구, 개수·실중량을 나눠 본 뒤 kg당으로 비교합니다.'],['서울가락 양파 15kg 망 kg당 보기','https://boribay.com/guides/garak-onion-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=onion_mesh_kg']]
+    ],
+    faq:[['10kg 망이면 무조건 kg당으로 나누면 되나요?','표시 중량이 내용물 실중량인지 먼저 확인합니다. 포장재 포함 총중량으로 나누면 kg당이 낮아져 시세와 어긋납니다.'],['단 가격을 망 가격과 바로 비교해도 되나요?','단과 망의 실제 내용 kg이 다를 수 있습니다. 둘 다 kg당으로 맞춘 뒤에만 비교합니다.']],
+    sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do']],
+    related:[['거래 용어 빠른 사전','trade-terms'],['농산물 등급표 읽는 법','produce-grading'],['농산물 품목별 확인','produce-items']],
+    boribay:'https://boribay.com/guides/garak-cabbage-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=pack_unit_terms',
+    boribayText:'배추 10kg 그물망을 kg당으로 맞춰 보기',
+    boribayDescription:'망·단·상자 이름을 kg당으로 바꿨다면 서울가락 해당 품목 표와 같은 단위로 대조하세요.'
   },
   'farm-waste-terms': {
     title:'영농폐기물 용어: 폐비닐·농약 빈 용기·공동집하장 구분', category:'농자재 · 분리배출', published:'2026-09-16', modified:'2026-09-16',

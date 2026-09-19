@@ -1,5 +1,6 @@
-const slugs=['potato-special-grade','produce-grading','storage-shipping','tractor-hours','farm-machinery','trade-terms','produce-items','cattle-traceability','rice-drying','fertilizer-use','farm-waste-terms'];
+const slugs=['potato-special-grade','produce-grading','storage-shipping','tractor-hours','farm-machinery','trade-terms','pack-unit-terms','produce-items','cattle-traceability','rice-drying','fertilizer-use','farm-waste-terms'];
 const lastmodFor = (path) => {
+  if (path === 'knowledge/pack-unit-terms') return '2026-09-20';
   if (path === 'knowledge/trade-terms') return '2026-09-19';
   if (path === '' || path === 'knowledge/farm-machinery' || path === 'knowledge/farm-waste-terms') return '2026-09-16';
   return '2026-08-09';
