@@ -8,8 +8,20 @@ const knowledge = {
   '포장 단위 그물망': {
     title:'그물망·단·상자를 kg으로 맞추는 법', subtitle:'배추 10kg · 대파 단 · 양파 15kg · 김장무 20kg', article:'pack-unit-terms',
     rows:[['package','망·단 이름',['표시 중량은 거래 단위 이름입니다. 비교에는 내용물 실중량을 씁니다.','배추 10kg 그물망과 양파 15kg 망을 같은 단가로 묶지 않습니다.']],['scale','kg당 환산',['망 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','단 수는 무게가 확인되기 전까지 kg당 시세와 같다고 보지 않습니다.']],['sprout','품목 구분',['대파와 쪽파, 김장무 시세와 심는 시기를 한 가격으로 읽지 않습니다.','홍로 10kg는 품종명과 상자 실중량을 나눠 봅니다.']]],
-    related:['가락시장 시세 용어','양파 저장 온도','감자 특품 기준'],
+    related:['제철 과일 상자','가락시장 시세 용어','감자 특품 기준'],
     link:'https://boribay.com/guides/garak-cabbage-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=pack_unit_kg',linkText:'배추 10kg 그물망 kg당 표 보기'
+  },
+  '제철 과일 상자': {
+    title:'제철 과일 상자를 kg으로 맞추는 법', subtitle:'샤인마스캇 4kg · 신고 7.5kg · 홍로 10kg · 추희 5kg', article:'fruit-box-terms',
+    rows:[['grape','포도·배',['4kg·7.5kg는 상자 이름입니다. 비교에는 실중량을 씁니다.','샤인마스캇과 캠벨, 신고와 화산을 한 단가로 묶지 않습니다.']],['scale','kg당 환산',['상자 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','선물 개수 가격은 개당이라 kg당과 바로 비교하지 않습니다.']],['apple','품종 구분',['햇사과 문구와 품종명 홍로를 나눕니다.','추희와 후무사, 복숭아 숙도 표현을 경락가 한 숫자로 쓰지 않습니다.']]],
+    related:['가을 과채 상자','포장 단위 그물망','감자 특품 기준'],
+    link:'https://boribay.com/guides/garak-grape-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=fruit_box_kg',linkText:'샤인마스캇 4kg kg당 표 보기'
+  },
+  '가을 과채 상자': {
+    title:'가을 과채 상자를 kg으로 맞추는 법', subtitle:'네트계 8kg · 토마토 5kg · 하우스감귤 3kg · 수박 통', article:'produce-box-terms',
+    rows:[['salad','멜론·수박',['8kg 상자와 한 통 가격은 이름입니다. 비교에는 실중량을 씁니다.','참외와 멜론, 꼭지절단 수박과 일반 통을 한 단가로 묶지 않습니다.']],['scale','kg당 환산',['상자·통 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','몇 개입 선물 가격은 개당이라 kg당과 바로 비교하지 않습니다.']],['apple','작형 구분',['일반 토마토와 대추방울, 하우스감귤과 수입 오렌지를 나눕니다.','생대추와 건대추, 송본 단감과 떫은감·곶감 원료를 한 숫자로 쓰지 않습니다.']]],
+    related:['제철 과일 상자','포장 단위 그물망','가락시장 시세 용어'],
+    link:'https://boribay.com/guides/garak-melon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=produce_box_kg',linkText:'네트계 멜론 8kg kg당 표 보기'
   },
   '농기계 거래 용어': {
     title:'농기계 판매·운송 용어', subtitle:'장비 정보 · 포함 범위 · 상하차 구분', article:'farm-machinery',
@@ -81,6 +93,8 @@ const contextLink=document.querySelector('#boribay-context-link');
 function selectKnowledge(query){
   const normalized=(query||'').trim();
   let key=normalized?Object.keys(knowledge).find(k=>normalized.includes(k)||k.includes(normalized)):'감자 특품 기준';
+  if(!key&&/샤인마스캇|신고배|홍로 10kg|추희|제철 과일 상자|4kg 상자/.test(normalized))key='제철 과일 상자';
+  if(!key&&/네트계|멜론 8kg|하우스감귤|수박 통|대추방울|생대추|송본|가을 과채/.test(normalized))key='가을 과채 상자';
   if(!key&&/그물망|배추 10kg|양파 15kg|김장무 20kg|대파.*(단|망)|포장 단위/.test(normalized))key='포장 단위 그물망';
   if(!key&&/폐기물|폐비닐|농약.*(병|용기|봉지)|집하장|폐농자재/.test(normalized))key='영농폐기물 용어';
   if(!key&&/가락|경락|시세|단량|실중량|kg당|가격.*계산/.test(normalized))key='가락시장 시세 용어';

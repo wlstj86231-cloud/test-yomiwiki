@@ -76,6 +76,38 @@ const pages = {
     boribayText:'배추 10kg 그물망을 kg당으로 맞춰 보기',
     boribayDescription:'망·단·상자 이름을 kg당으로 바꿨다면 서울가락 해당 품목 표와 같은 단위로 대조하세요.'
   },
+  'fruit-box-terms': {
+    title:'제철 과일 상자: 4kg·7.5kg·10kg·5kg을 kg으로 읽는 법', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'샤인마스캇 4kg, 신고배 7.5kg, 홍로 10kg, 복숭아 4kg, 추희자두 5kg 상자 가격을 실중량 kg당으로 맞춰 시세와 비교하는 거래 용어입니다.',
+    lead:'과일 상자 이름과 kg당은 다른 정보입니다. 4kg·7.5kg·10kg·5kg 가격을 시세처럼 쓰기 전에 포장재를 뺀 내용 중량으로 나누고, 품종명이 같은지 확인합니다.',
+    sections:[
+      ['샤인마스캇 4kg',['표시 4kg는 한 거래 단위의 이름입니다. 가격 비교에는 포도만의 실중량을 사용합니다.','캠벨·마스캇베리에이 행을 샤인마스캇 시세로 쓰지 않습니다. 알 빠짐 송이를 뺀 뒤에 kg당을 다시 계산합니다.'],['서울가락 샤인마스캇 4kg kg당 보기','https://boribay.com/guides/garak-grape-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=shine_muscat_4kg']],
+      ['신고배 7.5kg',['7.5kg 상자와 15kg 상자·파렛트는 같은 행이 아닐 수 있습니다.','몇 과 세트 가격은 개당입니다. 개수를 kg으로 바꾸기 전에 과실 크기 구성이 같은지 확인합니다.'],['서울가락 신고배 7.5kg kg당 보기','https://boribay.com/guides/garak-pear-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=niitaka_pear_75kg']],
+      ['홍로 10kg·복숭아 4kg·추희 5kg',['햇사과는 판매 문구이고 홍로는 품종명입니다. 10kg와 5kg를 같은 단가로 묶지 않습니다.','복숭아 숙도 표현은 경락가 표에 없습니다. 추희와 후무사·김천 산지 안내를 한 시세로 읽지 않습니다.'],['서울가락 홍로 10kg kg당 보기','https://boribay.com/guides/garak-apple-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=hongro_10kg']]
+    ],
+    faq:[['4kg 상자면 무조건 4로 나누면 되나요?','표시 중량이 내용물 실중량인지 먼저 확인합니다. 포장재 포함 총중량으로 나누면 kg당이 낮아져 시세와 어긋납니다.'],['선물 개수 가격을 kg당과 바로 비교해도 되나요?','개당과 kg당은 다른 단위입니다. 과실 무게 구성을 맞춘 뒤에만 비교합니다.']],
+    sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do']],
+    related:[['가을 과채 상자','produce-box-terms'],['포장 단위 그물망·단·상자','pack-unit-terms'],['거래 용어 빠른 사전','trade-terms']],
+    boribay:'https://boribay.com/guides/garak-grape-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=fruit_box_terms',
+    boribayText:'샤인마스캇 4kg를 kg당으로 맞춰 보기',
+    boribayDescription:'상자 이름을 kg당으로 바꿨다면 서울가락 해당 과일 표와 같은 단위로 대조하세요.'
+  },
+  'produce-box-terms': {
+    title:'가을 과채 상자: 8kg·5kg·3kg·통을 kg으로 읽는 법', category:'거래용어', published:'2026-09-20', modified:'2026-09-20',
+    description:'네트계 멜론 8kg, 토마토 5kg, 하우스감귤 3kg, 수박 통, 대추방울 3kg, 생대추 2kg, 송본 단감 10kg 상자 가격을 실중량 kg당으로 맞춰 시세와 비교하는 거래 용어입니다.',
+    lead:'과채 상자 이름과 kg당은 다른 정보입니다. 8kg·5kg·3kg·통 가격을 시세처럼 쓰기 전에 포장재를 뺀 내용 중량으로 나누고, 품목명·작형이 같은지 확인합니다.',
+    sections:[
+      ['네트계 멜론 8kg·수박 통',['표시 8kg는 한 거래 단위의 이름입니다. 가격 비교에는 멜론만의 실중량을 사용합니다. 8kg 상자와 파렛트, 참외를 한 단가로 묶지 않습니다.','수박 한 통 가격은 개당입니다. 과실 무게를 재기 전에 kg당 시세와 같다고 보지 않고, 꼭지절단 행과 일반 통을 나눕니다.'],['서울가락 네트계 멜론 8kg kg당 보기','https://boribay.com/guides/garak-melon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=netted_melon_8kg']],
+      ['토마토 5kg·대추방울 3kg',['일반 토마토 5kg와 완숙·찰토마토, 방울토마토는 품목·품종이 다릅니다.','대추방울 3kg 가격을 완숙 토마토 5kg 행과 바로 비교하지 않습니다. 열과를 뺀 뒤에 kg당을 다시 계산합니다.'],['서울가락 토마토 5kg kg당 보기','https://boribay.com/guides/garak-tomato-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=tomato_5kg']],
+      ['하우스감귤 3kg·생대추 2kg·송본 10kg',['하우스감귤 3kg·5kg·6kg와 몇 개입 선물을 한 단가로 묶지 않습니다. 수입 오렌지 시세를 감귤 시세로 쓰지 않습니다.','생대추와 건대추·사과대추, 송본 단감과 떫은감·곶감 원료를 나눕니다. 쥬키니 10kg와 애호박·단호박, 빨강 파프리카와 피망도 작형·색 행이 다릅니다.'],['서울가락 하우스감귤 3kg kg당 보기','https://boribay.com/guides/garak-citrus-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=house_citrus_3kg']]
+    ],
+    faq:[['8kg 상자면 무조건 8로 나누면 되나요?','표시 중량이 내용물 실중량인지 먼저 확인합니다. 포장재 포함 총중량으로 나누면 kg당이 낮아져 시세와 어긋납니다.'],['수박 한 통 가격을 kg당 표와 바로 비교해도 되나요?','통 무게를 잰 뒤에만 비교합니다. 꼭지절단·소형 수박 행과 일반 통을 한 숫자로 두지 않습니다.']],
+    sources:[['농산물 표준규격제도','https://www.naqs.go.kr/hp/contents/contentsTab.do?menuId=MN30614'],['서울특별시농수산식품공사 주요 품목 가격 항목','https://www.data.go.kr/data/15004517/openapi.do']],
+    related:[['제철 과일 상자','fruit-box-terms'],['포장 단위 그물망·단·상자','pack-unit-terms'],['거래 용어 빠른 사전','trade-terms']],
+    boribay:'https://boribay.com/guides/garak-melon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_article&utm_content=produce_box_terms',
+    boribayText:'네트계 멜론 8kg를 kg당으로 맞춰 보기',
+    boribayDescription:'상자·통 이름을 kg당으로 바꿨다면 서울가락 해당 과채 표와 같은 단위로 대조하세요.'
+  },
   'farm-waste-terms': {
     title:'영농폐기물 용어: 폐비닐·농약 빈 용기·공동집하장 구분', category:'농자재 · 분리배출', published:'2026-09-16', modified:'2026-09-16',
     description:'영농폐기물 수거 안내의 폐비닐, 농약 빈 용기, 재질별 분리, 공동집하장과 수거보상금의 뜻을 구분하고 지역에 확인할 항목을 정리합니다.',
