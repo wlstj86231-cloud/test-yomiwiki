@@ -36,6 +36,15 @@ const tradeHtml = await trade.text();
 if (!tradeHtml.includes("utm_campaign=knowledge_article")) errors.push("trade-terms campaign rewritten");
 if (!tradeHtml.includes("garak-market-price-lookup")) errors.push("trade-terms Garak dest missing");
 
+const produceBox = await knowledge({ request: new Request("https://yomiwiki.com/knowledge/produce-box-terms"), params: { slug: "produce-box-terms" } });
+const produceBoxHtml = await produceBox.text();
+if (!produceBoxHtml.includes("utm_campaign=knowledge_article")) errors.push("produce-box-terms campaign rewritten");
+if (!produceBoxHtml.includes("garak-pumpkin-price-lookup")) errors.push("produce-box pumpkin dest missing");
+if (!produceBoxHtml.includes("garak-astringent-persimmon-price-lookup")) errors.push("produce-box astringent dest missing");
+if (!produceBoxHtml.includes("garak-paprika-price-lookup")) errors.push("produce-box paprika dest missing");
+if (produceBoxHtml.includes("utm_campaign=c2c_howto_202609")) errors.push("produce-box mixed C2C campaign");
+if (produceBoxHtml.includes("제휴하지 않습니다") === false) errors.push("produce-box missing no-affiliate notice");
+
 const sitemapRes = await sitemap();
 const sitemapXml = await sitemapRes.text();
 for (const [slug] of expected) {
