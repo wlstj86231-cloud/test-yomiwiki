@@ -2,6 +2,7 @@
   "name": "test-yomiwiki",
   "version": "2.5.0",
   "scripts": {
+    "build:mn": "node scripts/build-mn.mjs && node scripts/verify-mn.mjs",
     "dev": "wrangler pages dev public --d1=DB --r2=ASSETS_BUCKET",
     "deploy": "wrangler pages deploy public",
     "db:setup": "wrangler d1 execute yomi-db --remote --file=./schema.sql",
