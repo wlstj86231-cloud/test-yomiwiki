@@ -85,6 +85,7 @@ main{max-width:var(--max);margin:0 auto;padding:0 0 36px}
 .answer-points{margin:0;padding:15px 20px 14px 31px;color:#3f4642;font-size:13px;line-height:1.6}
 .answer-points li{padding-left:2px}
 .answer-next{margin:20px 24px 10px;min-height:60px;border:1px solid var(--yellow-300);border-radius:9px;background:linear-gradient(90deg,var(--yellow-50),#fff);display:flex;align-items:center;gap:14px;padding:12px 16px}
+.answer-next[hidden]{display:none}
 .answer-next>svg{width:25px;height:25px;color:var(--green-950)}
 .answer-next strong{font-size:14px;white-space:nowrap}
 .answer-next a{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--green-800);font-weight:800;font-size:15px;border-bottom:1px solid #9cb2a3}
