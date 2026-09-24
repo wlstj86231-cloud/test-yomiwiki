@@ -5,6 +5,12 @@ const knowledge = {
     related:['포장 단위 그물망','감자 특품 기준','농기계 거래 용어'],
     link:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=auction_price_terms',linkText:'오늘 서울가락 kg당 가중평균 표 보기'
   },
+  '표준규격품 포장표시': {
+    title:'표준규격품 포장표시와 판매글 대조', subtitle:'품목 · 산지 · 품종 · 등급 · 무게 · 생산자', article:'produce-label-check',
+    rows:[['package','적용 범위',['먼저 포장에 “표준규격품” 표시가 있는지 확인합니다.','표시가 없다는 이유만으로 일반 농산물의 품질이나 위법 여부를 단정하지 않습니다.']],['clipboard-check','여섯 칸 대조',['포장 사진과 판매글의 품목·산지·품종·등급·무게 또는 개수·생산자 정보를 한 칸씩 맞춥니다.','다른 칸이 있으면 이번에 출하할 물량의 라벨과 조건을 판매자에게 다시 확인합니다.']],['scale','가격 비교 전',['등급명만 같아도 품종·단량이 다르면 같은 kg당 가격으로 비교하지 않습니다.','표준규격품의 세부 표시사항과 예시는 공식 자료를 읽고 확인합니다.']]],
+    related:['가락시장 시세 용어','포장 단위 그물망','감자 특품 기준'],
+    link:'https://boribay.com/guides/produce-direct-shipping-buying-guide?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=produce_label_check',linkText:'산지직송 구매 조건 이어서 보기'
+  },
   '포장 단위 그물망': {
     title:'그물망·단·상자를 kg으로 맞추는 법', subtitle:'배추 10kg · 대파 단 · 양파 15kg · 김장무 20kg', article:'pack-unit-terms',
     rows:[['package','망·단 이름',['표시 중량은 거래 단위 이름입니다. 비교에는 내용물 실중량을 씁니다.','배추 10kg 그물망과 양파 15kg 망을 같은 단가로 묶지 않습니다.']],['scale','kg당 환산',['망 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','단 수는 무게가 확인되기 전까지 kg당 시세와 같다고 보지 않습니다.']],['sprout','품목 구분',['대파와 쪽파, 김장무 시세와 심는 시기를 한 가격으로 읽지 않습니다.','홍로 10kg는 품종명과 상자 실중량을 나눠 봅니다.']]],
@@ -95,6 +101,7 @@ function selectKnowledge(query){
   let key=normalized?Object.keys(knowledge).find(k=>normalized.includes(k)||k.includes(normalized)):'감자 특품 기준';
   if(!key&&/샤인마스캇|신고배|홍로 10kg|추희|제철 과일 상자|4kg 상자/.test(normalized))key='제철 과일 상자';
   if(!key&&/네트계|멜론 8kg|하우스감귤|수박 통|대추방울|생대추|송본|가을 과채/.test(normalized))key='가을 과채 상자';
+  if(!key&&/표준규격품|포장표시|라벨.*(품종|등급)|품종.*라벨/.test(normalized))key='표준규격품 포장표시';
   if(!key&&/그물망|배추 10kg|양파 15kg|김장무 20kg|대파.*(단|망)|포장 단위/.test(normalized))key='포장 단위 그물망';
   if(!key&&/폐기물|폐비닐|농약.*(병|용기|봉지)|집하장|폐농자재/.test(normalized))key='영농폐기물 용어';
   if(!key&&/가락|경락|시세|단량|실중량|kg당|가격.*계산/.test(normalized))key='가락시장 시세 용어';

@@ -36,6 +36,13 @@ const tradeHtml = await trade.text();
 if (!tradeHtml.includes("utm_campaign=knowledge_article")) errors.push("trade-terms campaign rewritten");
 if (!tradeHtml.includes("garak-market-price-lookup")) errors.push("trade-terms Garak dest missing");
 
+const label = await knowledge({ request: new Request("https://yomiwiki.com/knowledge/produce-label-check"), params: { slug: "produce-label-check" } });
+const labelHtml = await label.text();
+if (label.status !== 200 || !labelHtml.includes('<link rel="canonical" href="https://yomiwiki.com/knowledge/produce-label-check">')) errors.push("label-check status or canonical");
+if (!labelHtml.includes("자료 확인일 2026-09-24") || !labelHtml.includes("menuId=MN40333")) errors.push("label-check source record");
+if (!labelHtml.includes("표준규격품 표시가 없으면 바로 불량 상품인가요?")) errors.push("label-check scope caveat");
+if ((labelHtml.match(/boribay.com\/guides\//g) || []).length !== 1 || !labelHtml.includes("produce-direct-shipping-buying-guide")) errors.push("label-check contextual destination");
+
 const produceBox = await knowledge({ request: new Request("https://yomiwiki.com/knowledge/produce-box-terms"), params: { slug: "produce-box-terms" } });
 const produceBoxHtml = await produceBox.text();
 if (!produceBoxHtml.includes("utm_campaign=knowledge_article")) errors.push("produce-box-terms campaign rewritten");
@@ -51,17 +58,20 @@ for (const [slug] of expected) {
   if (!sitemapXml.includes(`https://yomiwiki.com/knowledge/${slug}`)) errors.push(`sitemap missing ${slug}`);
 }
 if (!sitemapXml.includes("knowledge/trade-terms")) errors.push("sitemap dropped trade-terms");
+if (!sitemapXml.includes("knowledge/produce-label-check")) errors.push("sitemap missing label-check");
 
 const feedXml = await (await feed()).text();
 for (const [slug] of expected) {
   if (!feedXml.includes(`/knowledge/${slug}`)) errors.push(`feed missing ${slug}`);
 }
+if (!feedXml.includes("/knowledge/produce-label-check")) errors.push("feed missing label-check");
 
 const home = await fs.readFile(path.resolve(import.meta.dirname, "../public/index.html"), "utf8");
 const homeHeader = home.slice(home.indexOf("<header"), home.indexOf("</header>") + 9);
 if (homeHeader.includes("보리장터")) errors.push("home header has 보리장터");
 if (!home.includes("/knowledge/pack-unit-terms")) errors.push("home pack-unit card missing");
 if (!home.includes("/knowledge/trade-terms")) errors.push("home trade-terms card missing");
+if (!home.includes("/knowledge/produce-label-check")) errors.push("home label-check link missing");
 
 if (errors.length) {
   console.error(errors.join("\n"));
