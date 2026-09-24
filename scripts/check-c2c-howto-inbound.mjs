@@ -28,7 +28,7 @@ for (const [slug, dest, h1] of expected) {
   if ((html.match(/boribay.com\/guides\//g) || []).length !== 1) errors.push(`${slug}: expected 1 boribay guide href`);
   if (html.includes("garak-market-price-lookup") || html.includes("garak-cabbage-price-lookup")) errors.push(`${slug}: Garak dest`);
   if (html.includes("occultworldcup") || html.includes("reportools") || html.includes("goatool") || html.includes("scamreader")) errors.push(`${slug}: satellite-to-satellite`);
-  if (html.includes("제휴하지 않습니다") === false) errors.push(`${slug}: missing no-affiliate notice`);
+  if (html.includes("제휴하지 않습니다") || html.includes("같은 운영자")) errors.push(`${slug}: operator statement present`);
 }
 
 const trade = await knowledge({ request: new Request("https://yomiwiki.com/knowledge/trade-terms"), params: { slug: "trade-terms" } });
@@ -43,7 +43,7 @@ if (!produceBoxHtml.includes("garak-pumpkin-price-lookup")) errors.push("produce
 if (!produceBoxHtml.includes("garak-astringent-persimmon-price-lookup")) errors.push("produce-box astringent dest missing");
 if (!produceBoxHtml.includes("garak-paprika-price-lookup")) errors.push("produce-box paprika dest missing");
 if (produceBoxHtml.includes("utm_campaign=c2c_howto_202609")) errors.push("produce-box mixed C2C campaign");
-if (produceBoxHtml.includes("제휴하지 않습니다") === false) errors.push("produce-box missing no-affiliate notice");
+if (produceBoxHtml.includes("제휴하지 않습니다") || produceBoxHtml.includes("같은 운영자")) errors.push("produce-box operator statement present");
 
 const sitemapRes = await sitemap();
 const sitemapXml = await sitemapRes.text();

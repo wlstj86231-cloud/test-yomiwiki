@@ -15,7 +15,7 @@ for (const [file, url] of pages) {
   assert.match(html, /<html lang="mn">/);
   assert.ok(html.includes(`<link rel="canonical" href="${url}">`), `canonical missing: ${url}`);
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1, `one heading expected: ${file}`);
-  assert.ok(html.includes('нэг эзэмшигчийн сайтууд'), `owner disclosure missing: ${file}`);
+  assert.ok(!html.includes('нэг эзэмшигчийн сайтууд'), `owner statement present: ${file}`);
   assert.ok(!/<a\b[^>]*href="https?:\/\/boribay\.com/i.test(html), `premature Boribay link: ${file}`);
   assert.ok(sitemap.includes(`<loc>${url}</loc>`), `sitemap missing: ${url}`);
   const json = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/)?.[1];
@@ -23,4 +23,4 @@ for (const [file, url] of pages) {
   if (file !== 'index.html') assert.ok((html.match(/class="sources"/g) ?? []).length === 1 && (html.match(/rel="noopener noreferrer"/g) ?? []).length >= 2, `official sources missing: ${file}`);
 }
 assert.ok((await fs.readFile(path.resolve(root, '..', 'index.html'), 'utf8')).includes('href="/mn/"'), 'Korean homepage must link to Mongolian hub');
-console.log('PASS: YomiWiki /mn/ hub, 2 sourced resources, canonical, disclosure, sitemap, and home link');
+console.log('PASS: YomiWiki /mn/ hub, 2 sourced resources, canonical, sitemap, and home link');
