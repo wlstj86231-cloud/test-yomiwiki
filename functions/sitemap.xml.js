@@ -1,5 +1,6 @@
 const slugs=['potato-special-grade','produce-grading','produce-label-check','storage-shipping','tractor-hours','farm-machinery','trade-terms','pack-unit-terms','fruit-box-terms','produce-box-terms','produce-items','cattle-traceability','rice-drying','fertilizer-use','farm-waste-terms','listing-field-terms','machinery-listing-terms','region-listing-terms','nearby-machinery-terms','meetup-parcel-terms','bulk-buyer-terms','c2c-vs-mall-terms','listing-date-terms'];
 const lastmodFor = (path) => {
+  if (path === 'mn/storage-glossary' || path === 'mn/seed-labels') return '2026-09-25';
   if (path.startsWith('mn/')) return '2026-09-24';
   if (path === 'knowledge/produce-label-check') return '2026-09-24';
   if (path === 'knowledge/listing-field-terms' || path === 'knowledge/machinery-listing-terms' || path === 'knowledge/region-listing-terms' || path === 'knowledge/nearby-machinery-terms' || path === 'knowledge/meetup-parcel-terms' || path === 'knowledge/bulk-buyer-terms' || path === 'knowledge/c2c-vs-mall-terms' || path === 'knowledge/listing-date-terms') return '2026-09-20';
