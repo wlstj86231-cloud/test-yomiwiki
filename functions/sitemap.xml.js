@@ -2,7 +2,7 @@ const slugs=['potato-special-grade','produce-grading','produce-label-check','sto
 const lastmodFor = (path) => {
   if (path === 'mn/storage-glossary' || path === 'mn/seed-labels') return '2026-09-25';
   if (path.startsWith('mn/')) return '2026-09-24';
-  if (path === 'knowledge/produce-label-check') return '2026-09-24';
+  if (path === 'knowledge/produce-label-check' || path === 'about' || path === 'editorial-policy' || path === 'review-readiness' || path === 'contact') return '2026-10-15';
   if (path === 'knowledge/listing-field-terms' || path === 'knowledge/machinery-listing-terms' || path === 'knowledge/region-listing-terms' || path === 'knowledge/nearby-machinery-terms' || path === 'knowledge/meetup-parcel-terms' || path === 'knowledge/bulk-buyer-terms' || path === 'knowledge/c2c-vs-mall-terms' || path === 'knowledge/listing-date-terms') return '2026-09-20';
   if (path === 'knowledge/fruit-box-terms' || path === 'knowledge/pack-unit-terms' || path === 'knowledge/produce-box-terms') return '2026-09-20';
   if (path === 'knowledge/trade-terms') return '2026-09-19';
@@ -11,7 +11,7 @@ const lastmodFor = (path) => {
 };
 
 export async function onRequestGet(){
-  const paths=['',...slugs.map(slug=>`knowledge/${slug}`),'mn/','mn/storage-glossary','mn/seed-labels','about','editorial-policy','privacy','contact'];
+  const paths=['',...slugs.map(slug=>`knowledge/${slug}`),'mn/','mn/storage-glossary','mn/seed-labels','about','editorial-policy','review-readiness','privacy','contact'];
   const body=`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map(path=>`  <url><loc>https://yomiwiki.com/${path}</loc><lastmod>${lastmodFor(path)}</lastmod><changefreq>${path?'monthly':'weekly'}</changefreq><priority>${!path?'1.0':path.startsWith('knowledge/')?'0.8':'0.4'}</priority></url>`).join('\n')}\n</urlset>`;
   return new Response(body,{headers:{'Content-Type':'application/xml;charset=UTF-8','Cache-Control':'public,max-age=1800'}});
 }
