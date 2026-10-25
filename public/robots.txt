@@ -5,3 +5,4 @@ Disallow: /admin
 Disallow: /w/
 
 Sitemap: https://yomiwiki.com/sitemap.xml
+#DaumWebMasterTool:8d4ac298f1698d76ea0aa6df0f789b8d758cf8e0b5d33f5c70ba3cda267feb94:dSlZXvWuL7UAVoESNn1QCg==
