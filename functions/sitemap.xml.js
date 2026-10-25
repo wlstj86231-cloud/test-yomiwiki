@@ -2,7 +2,8 @@ const slugs=['potato-special-grade','produce-grading','produce-label-check','sto
 const lastmodFor = (path) => {
   if (path === 'mn/storage-glossary' || path === 'mn/seed-labels') return '2026-09-25';
   if (path.startsWith('mn/')) return '2026-09-24';
-  if (path === 'knowledge/produce-label-check' || path === 'about' || path === 'editorial-policy' || path === 'review-readiness' || path === 'contact') return '2026-10-15';
+  if (path === 'about') return '2026-10-26';
+  if (path === 'knowledge/produce-label-check' || path === 'editorial-policy' || path === 'review-readiness' || path === 'contact') return '2026-10-15';
   if (path === 'knowledge/listing-field-terms' || path === 'knowledge/machinery-listing-terms' || path === 'knowledge/region-listing-terms' || path === 'knowledge/nearby-machinery-terms' || path === 'knowledge/meetup-parcel-terms' || path === 'knowledge/bulk-buyer-terms' || path === 'knowledge/c2c-vs-mall-terms' || path === 'knowledge/listing-date-terms') return '2026-09-20';
   if (path === 'knowledge/fruit-box-terms' || path === 'knowledge/pack-unit-terms' || path === 'knowledge/produce-box-terms') return '2026-09-20';
   if (path === 'knowledge/trade-terms') return '2026-09-19';
