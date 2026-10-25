@@ -34,7 +34,8 @@ for (const [slug, dest, h1] of expected) {
 const trade = await knowledge({ request: new Request("https://yomiwiki.com/knowledge/trade-terms"), params: { slug: "trade-terms" } });
 const tradeHtml = await trade.text();
 if (!tradeHtml.includes("utm_campaign=knowledge_article")) errors.push("trade-terms campaign rewritten");
-if (!tradeHtml.includes("garak-market-price-lookup")) errors.push("trade-terms Garak dest missing");
+if (!tradeHtml.includes("agricultural-wholesale-market-guide")) errors.push("trade-terms wholesale guide dest missing");
+if (/garak-[a-z-]+-price-lookup/.test(tradeHtml)) errors.push("trade-terms retired Garak dest");
 
 const label = await knowledge({ request: new Request("https://yomiwiki.com/knowledge/produce-label-check"), params: { slug: "produce-label-check" } });
 const labelHtml = await label.text();
@@ -46,9 +47,8 @@ if ((labelHtml.match(/boribay.com\/guides\//g) || []).length !== 1 || !labelHtml
 const produceBox = await knowledge({ request: new Request("https://yomiwiki.com/knowledge/produce-box-terms"), params: { slug: "produce-box-terms" } });
 const produceBoxHtml = await produceBox.text();
 if (!produceBoxHtml.includes("utm_campaign=knowledge_article")) errors.push("produce-box-terms campaign rewritten");
-if (!produceBoxHtml.includes("garak-pumpkin-price-lookup")) errors.push("produce-box pumpkin dest missing");
-if (!produceBoxHtml.includes("garak-astringent-persimmon-price-lookup")) errors.push("produce-box astringent dest missing");
-if (!produceBoxHtml.includes("garak-paprika-price-lookup")) errors.push("produce-box paprika dest missing");
+if ((produceBoxHtml.match(/boribay\.com\/guides\/agricultural-price-lookup/g) || []).length !== 1) errors.push("produce-box price lookup dest");
+if (/garak-[a-z-]+-price-lookup/.test(produceBoxHtml)) errors.push("produce-box retired Garak dest");
 if (produceBoxHtml.includes("utm_campaign=c2c_howto_202609")) errors.push("produce-box mixed C2C campaign");
 if (produceBoxHtml.includes("제휴하지 않습니다") || produceBoxHtml.includes("같은 운영자")) errors.push("produce-box operator statement present");
 

@@ -3,7 +3,7 @@ const knowledge = {
     title:'가락시장 시세와 가격 계산 용어', subtitle:'경락가 · 단량 · 실중량 · 결제액 구분', article:'trade-terms',
     rows:[['book-open','가격 구분',['경락가·평균가격·판매자가 정한 직거래 가격은 서로 다른 정보입니다.','기준일·시장·품목·품종·등급·단위를 함께 읽습니다.']],['scale','중량 구분',['단량은 한 거래 단위에 들어 있는 양입니다.','kg당 가격 비교에는 포장재를 제외한 농산물 내용량을 사용합니다.']],['calculator','비용 구분',['상품금액과 배송비를 구분하고 배송비가 상자별인지 주문 전체인지 확인합니다.','구매자 결제액만으로 판매자 정산액이나 순이익을 알 수 없습니다.']]],
     related:['포장 단위 그물망','감자 특품 기준','농기계 거래 용어'],
-    link:'https://boribay.com/guides/garak-market-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=auction_price_terms',linkText:'오늘 서울가락 kg당 가중평균 표 보기'
+    link:'https://boribay.com/guides/agricultural-wholesale-market-guide?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=auction_price_terms',linkText:'도매시장 경락 결과 조회하는 법 보기'
   },
   '표준규격품 포장표시': {
     title:'표준규격품 포장표시와 판매글 대조', subtitle:'품목 · 산지 · 품종 · 등급 · 무게 · 생산자', article:'produce-label-check',
@@ -15,19 +15,19 @@ const knowledge = {
     title:'그물망·단·상자를 kg으로 맞추는 법', subtitle:'배추 10kg · 대파 단 · 양파 15kg · 김장무 20kg', article:'pack-unit-terms',
     rows:[['package','망·단 이름',['표시 중량은 거래 단위 이름입니다. 비교에는 내용물 실중량을 씁니다.','배추 10kg 그물망과 양파 15kg 망을 같은 단가로 묶지 않습니다.']],['scale','kg당 환산',['망 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','단 수는 무게가 확인되기 전까지 kg당 시세와 같다고 보지 않습니다.']],['sprout','품목 구분',['대파와 쪽파, 김장무 시세와 심는 시기를 한 가격으로 읽지 않습니다.','홍로 10kg는 품종명과 상자 실중량을 나눠 봅니다.']]],
     related:['제철 과일 상자','가락시장 시세 용어','감자 특품 기준'],
-    link:'https://boribay.com/guides/garak-cabbage-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=pack_unit_kg',linkText:'배추 10kg 그물망 kg당 표 보기'
+    link:'https://boribay.com/guides/agricultural-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=pack_unit_kg',linkText:'품목·등급·단위로 공식 가격 조회하는 법 보기'
   },
   '제철 과일 상자': {
     title:'제철 과일 상자를 kg으로 맞추는 법', subtitle:'샤인마스캇 4kg · 신고 7.5kg · 홍로 10kg · 추희 5kg', article:'fruit-box-terms',
     rows:[['grape','포도·배',['4kg·7.5kg는 상자 이름입니다. 비교에는 실중량을 씁니다.','샤인마스캇과 캠벨, 신고와 화산을 한 단가로 묶지 않습니다.']],['scale','kg당 환산',['상자 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','선물 개수 가격은 개당이라 kg당과 바로 비교하지 않습니다.']],['apple','품종 구분',['햇사과 문구와 품종명 홍로를 나눕니다.','추희와 후무사, 복숭아 숙도 표현을 경락가 한 숫자로 쓰지 않습니다.']]],
     related:['가을 과채 상자','포장 단위 그물망','감자 특품 기준'],
-    link:'https://boribay.com/guides/garak-grape-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=fruit_box_kg',linkText:'샤인마스캇 4kg kg당 표 보기'
+    link:'https://boribay.com/guides/agricultural-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=fruit_box_kg',linkText:'품목·등급·단위로 공식 가격 조회하는 법 보기'
   },
   '가을 과채 상자': {
     title:'가을 과채 상자를 kg으로 맞추는 법', subtitle:'네트계 8kg · 토마토 5kg · 하우스감귤 3kg · 수박 통', article:'produce-box-terms',
     rows:[['salad','멜론·수박',['8kg 상자와 한 통 가격은 이름입니다. 비교에는 실중량을 씁니다.','참외와 멜론, 꼭지절단 수박과 일반 통을 한 단가로 묶지 않습니다.']],['scale','kg당 환산',['상자·통 가격을 실중량으로 나눈 값이 비교용 kg당입니다.','몇 개입 선물 가격은 개당이라 kg당과 바로 비교하지 않습니다.']],['apple','작형 구분',['일반 토마토와 대추방울, 하우스감귤과 수입 오렌지를 나눕니다.','생대추와 건대추, 송본 단감과 떫은감·곶감 원료를 한 숫자로 쓰지 않습니다.']]],
     related:['제철 과일 상자','포장 단위 그물망','가락시장 시세 용어'],
-    link:'https://boribay.com/guides/garak-melon-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=produce_box_kg',linkText:'네트계 멜론 8kg kg당 표 보기'
+    link:'https://boribay.com/guides/agricultural-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=produce_box_kg',linkText:'품목·등급·단위로 공식 가격 조회하는 법 보기'
   },
   '농기계 거래 용어': {
     title:'농기계 판매·운송 용어', subtitle:'장비 정보 · 포함 범위 · 상하차 구분', article:'farm-machinery',
@@ -62,8 +62,8 @@ const knowledge = {
       ['clipboard-check','거래 전 확인',['수확일·건조 기간·저장 방식·싹 발생 여부를 확인합니다.','중량뿐 아니라 부패·압상·발근 비율을 함께 확인합니다.']]
     ],
     related:['양파 선별 기준','양파 망 포장 규격','저온 저장고 결로','양파 수확 시기','농산물 감모 계산'],
-    link:'https://boribay.com/guides/garak-onion-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=onion_storage',
-    linkText:'양파 품종·규격별 참고가격 확인하기'
+    link:'https://boribay.com/guides/agricultural-price-lookup?utm_source=yomiwiki.com&utm_medium=owned_referral&utm_campaign=knowledge_desk&utm_content=onion_storage',
+    linkText:'품목·등급·단위로 공식 가격 조회하는 법 보기'
   },
   '중고 트랙터 사용시간': {
     title:'중고 트랙터 사용시간 확인', subtitle:'계기판보다 정비 이력과 마모를 함께 확인',
