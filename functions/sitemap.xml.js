@@ -5,7 +5,7 @@ const staticPages = [
   ['', '2026-10-26', 'weekly', '1.0'],
   ['knowledge', '2026-10-26', 'weekly', '0.9'],
   ['glossary', '2026-10-26', 'weekly', '0.9'],
-  ...['about', 'contact', 'editorial-policy', 'review-readiness', 'privacy', 'terms', 'disclaimer'].map(p => [p, '2026-10-26', 'monthly', '0.4'])
+  ...['about', 'contact', 'editorial-policy', 'corrections', 'privacy', 'terms', 'disclaimer'].map(p => [p, '2026-10-26', 'monthly', '0.4'])
 ];
 
 export async function onRequestGet() {

@@ -23,7 +23,7 @@ const ORG = {
 };
 const WEBSITE = {
   '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE, url: `${ORIGIN}/`, inLanguage: 'ko-KR',
-  description: '농산물 등급·표시사항·kg 환산·보관·출하·도매시장 경매·중고 농기계 점검·직거래 용어를 공식 기준으로 설명하는 사전',
+  description: '농산물 등급·표시사항·친환경 인증·kg 환산·보관·출하·도매시장 경매·중고 농기계 점검·직거래 용어를 공식 기준으로 설명하는 사전',
   publisher: { '@id': ORG_ID },
   potentialAction: { '@type': 'SearchAction', target: `${ORIGIN}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' }
 };
@@ -54,8 +54,8 @@ export const SISTERS = {
 // Seven core areas plus supplies. Order is the browse order everywhere.
 export const AREAS = [
   { key: 'grading', name: '등급·선별', desc: '특·상·보통, 고르기·결점, 선별 기준을 읽는 법' },
-  { key: 'labeling', name: '표시사항·이력', desc: '표준규격품·원산지·양곡 표시와 축산물 이력번호' },
-  { key: 'packing', name: '포장 단위·kg 환산', desc: '망·단·상자 가격을 실중량 kg당으로 바꾸기' },
+  { key: 'labeling', name: '표시사항·이력', desc: '표준규격품·원산지·양곡·친환경 인증 표시와 축산물 이력번호' },
+  { key: 'packing', name: '포장 단위·kg 환산', desc: '망·단·상자·근 가격을 실중량 kg당으로 바꾸기와 계근 저울' },
   { key: 'storage', name: '보관·출하', desc: '품온·결로·예건, 벼 건조, 출하 기록' },
   { key: 'wholesale', name: '경매·도매 용어', desc: '경락가, 중도매인, 위탁수수료, 표준정산서' },
   { key: 'machinery', name: '중고 농기계 점검·용어', desc: '명판·시간계·PTO와 기종별 실물 점검' },
@@ -78,7 +78,7 @@ function header(current) {
 
 // The operator line and policy links appear on every page. Sister sites are listed on /about only.
 export function footer() {
-  return `<footer class="site-footer"><div class="footer-inner"><div><strong>${SITE}</strong><p>농산물·농기계 거래에서 쓰는 말을 공식 기준과 현장 확인 순서로 풀어 쓴 사전입니다. 운영사 제이 미디어는 <a href="${bori('/', 'footer')}">보리장터</a>도 운영합니다.</p><p class="operator">운영: ${OPERATOR.name}(${OPERATOR.nameEn}) · 대표 ${OPERATOR.ceo} · 사업자등록번호 ${OPERATOR.bizNo} · 고객센터 <a href="tel:${OPERATOR.phone}">${OPERATOR.phone}</a> · ${mailLink()}</p></div><nav aria-label="운영 정보"><a href="/about">소개</a><a href="/contact">문의</a><a href="/editorial-policy">편집 원칙</a><a href="/review-readiness">정정·수정 기록</a><a href="/privacy">개인정보처리방침</a><a href="/terms">이용약관</a><a href="/disclaimer">면책</a><a href="/mn/" lang="mn">Монгол</a><a href="/feed.xml">RSS</a></nav></div></footer>`;
+  return `<footer class="site-footer"><div class="footer-inner"><div><strong>${SITE}</strong><p>농산물·농기계 거래에서 쓰는 말을 공식 기준과 현장 확인 순서로 풀어 쓴 사전입니다. 운영사 제이 미디어는 <a href="${bori('/', 'footer')}">보리장터</a>도 운영합니다.</p><p class="operator">운영: ${OPERATOR.name}(${OPERATOR.nameEn}) · 대표 ${OPERATOR.ceo} · 사업자등록번호 ${OPERATOR.bizNo} · 고객센터 <a href="tel:${OPERATOR.phone}">${OPERATOR.phone}</a> · ${mailLink()}</p></div><nav aria-label="운영 정보"><a href="/about">소개</a><a href="/contact">문의</a><a href="/editorial-policy">편집 원칙</a><a href="/corrections">정정·수정 기록</a><a href="/privacy">개인정보처리방침</a><a href="/terms">이용약관</a><a href="/disclaimer">면책</a><a href="/mn/" lang="mn">Монгол</a><a href="/feed.xml">RSS</a></nav></div></footer>`;
 }
 
 // Visible meta block: who maintains the page, real dates, number of sources.

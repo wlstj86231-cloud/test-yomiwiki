@@ -6,6 +6,7 @@ import { onRequestGet as feed } from "../functions/feed.xml.js";
 import { onRequestGet as home } from "../functions/index.js";
 import { onRequestGet as glossary } from "../functions/glossary.js";
 import { onRequestGet as searchPage } from "../functions/search.js";
+import { onRequestGet as oldCorrections } from "../functions/review-readiness.js";
 import { renderPolicy } from "../functions/_lib/policy.js";
 import { entries, MOVED } from "../functions/_lib/entries.js";
 import { ORG_ID } from "../functions/_lib/site.js";
@@ -104,7 +105,7 @@ for (const old of Object.keys(MOVED)) {
   if (feedXml.includes(`/knowledge/${old}<`)) errors.push(`feed lists merged ${old}`);
 }
 if (sitemapXml.includes("/mn/") || sitemapXml.includes("/search")) errors.push("sitemap lists noindex pages");
-for (const p of ["about", "contact", "editorial-policy", "review-readiness", "privacy", "terms", "disclaimer"]) if (!sitemapXml.includes(`<loc>https://yomiwiki.com/${p}</loc>`)) errors.push(`sitemap missing ${p}`);
+for (const p of ["about", "contact", "editorial-policy", "corrections", "privacy", "terms", "disclaimer"]) if (!sitemapXml.includes(`<loc>https://yomiwiki.com/${p}</loc>`)) errors.push(`sitemap missing ${p}`);
 
 // 5. Home: verification, analytics, AdSense, links.
 const homeHtml = await (await home({ request: new Request("https://yomiwiki.com/") })).text();
@@ -123,12 +124,22 @@ const searchHtml = await (await searchPage({ request: new Request("https://yomiw
 if (searchHtml.includes("adsbygoogle") || !searchHtml.includes('content="noindex,follow"')) errors.push("/search must be noindex without ads");
 const nf = await get("no-such-page");
 if (nf.status !== 404 || (await nf.text()).includes("adsbygoogle")) errors.push("404 status/ads");
+if (sitemapXml.includes("/review-readiness")) errors.push("sitemap lists the old corrections address");
+{
+  const r = await oldCorrections({ request: new Request("https://yomiwiki.com/review-readiness") });
+  if (r.status !== 301 || r.headers.get("Location") !== "https://yomiwiki.com/corrections") errors.push("/review-readiness must 301 to /corrections");
+  const fsMod = await import("node:fs");
+  const pathMod = await import("node:path");
+  const staticNotFound = fsMod.readFileSync(pathMod.resolve(import.meta.dirname, "../public/404.html"), "utf8");
+  if (/adsbygoogle|google-adsense-account/.test(staticNotFound)) errors.push("public/404.html must not carry AdSense code or meta");
+  if (!staticNotFound.includes(OPERATOR_LINE)) errors.push("public/404.html footer operator line missing");
+}
 
 const policyNeeds = {
   about: ["사업자등록번호", "456-33-01705", "jnewmedia.com/company", "Google AdSense", "유료 게재", "scamreader.com", "AI 도구"],
   contact: ["010-2846-2011", "open.kakao.com/o/scuvl1wi", "open.kakao.com/o/p6HiJ9Pi", "consultingjinjeong@gmail.com", "의료원로 80-8", "영업일 기준"],
   "editorial-policy": ["AI 도구", "제이 미디어 편집팀", "감수", "이해관계", "가상 예시"],
-  "review-readiness": ["정정 처리 절차", "2026-10-26", "2026-08-09"],
+  corrections: ["정정 처리 절차", "2026-10-26", "2026-08-09", "/review-readiness"],
   privacy: ["https://adssettings.google.com", "https://policies.google.com/technologies/ads", "제3자 공급업체", "Google Analytics", "localStorage", "시행일"],
   terms: ["시행일", "저작권"],
   disclaimer: ["국립농산물품질관리원", "경찰청"]
