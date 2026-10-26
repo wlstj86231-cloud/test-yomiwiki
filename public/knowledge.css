@@ -44,6 +44,10 @@ main{max-width:var(--max);margin:0 auto;padding:18px 16px 56px}
 .hero .kicker,.kicker{color:var(--green2);font-weight:800;font-size:15px;margin:0 0 6px}
 .hero h1{font-size:34px;margin:0 0 10px;color:var(--green)}
 .hero-desc{margin:0;max-width:720px;font-size:18px}
+.hero-tool{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:720px;margin:16px 0 0;padding:14px 16px;min-height:56px;border:2px solid var(--yellow);border-radius:var(--radius);background:var(--yellow-soft);color:var(--ink);text-decoration:none}
+.hero-tool strong{display:block;color:var(--green);font-size:18px}
+.hero-tool span{display:block;font-size:16px;color:var(--text)}
+.hero-tool b{flex:none;color:var(--green);font-size:22px}
 .home-section{margin-top:40px}
 .section-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:14px}
 .section-head h2{font-size:24px;margin:0}

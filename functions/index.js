@@ -15,7 +15,7 @@ export async function onRequestGet({ request }) {
   if (q !== null) return Response.redirect(`${url.origin}/search?q=${encodeURIComponent(q.slice(0, 60))}`, 302);
 
   const recent = [...entries].filter(e => e.published === '2026-10-26');
-  const body = `<section class="hero"><p class="kicker">현장에서 쓰는 거래 사전</p><h1>${SITE}</h1><p class="hero-desc">농산물·농기계 거래에서 쓰는 말을 공식 기준과 현장 확인 순서로 풀어 쓴 사전입니다. 등급·표시·kg 환산부터 도매시장 경매, 중고 농기계 점검, 직거래 결제 용어까지 찾을 수 있습니다.</p>${searchForm({ id: 'home-q', big: true })}<p class="examples"><span>예시</span>${EXAMPLES.map(x => `<a href="/search?q=${encodeURIComponent(x)}">${esc(x)}</a>`).join('')}</p></section>
+  const body = `<section class="hero"><p class="kicker">현장에서 쓰는 거래 사전</p><h1>${SITE}</h1><p class="hero-desc">농산물·농기계 거래에서 쓰는 말을 공식 기준과 현장 확인 순서로 풀어 쓴 사전입니다. 등급·표시·kg 환산부터 도매시장 경매, 중고 농기계 점검, 직거래 결제 용어까지 찾을 수 있습니다.</p>${searchForm({ id: 'home-q', big: true })}<p class="examples"><span>예시</span>${EXAMPLES.map(x => `<a href="/search?q=${encodeURIComponent(x)}">${esc(x)}</a>`).join('')}</p><a class="hero-tool" href="/knowledge/kg-conversion#calc"><div><strong>kg당 가격 계산기</strong><span>상자·망·단 가격을 포장재를 뺀 1kg당 가격으로 바꿔 비교</span></div><b aria-hidden="true">→</b></a></section>
 <section class="home-section" aria-labelledby="areas-title"><div class="section-head"><h2 id="areas-title">분야별로 찾아보기</h2><a href="/knowledge">전체 문서 ${entries.length}개 →</a></div><div class="area-blocks">${AREAS.map(a => {
     const list = entries.filter(e => e.area === a.key);
     const n = terms.filter(t => t.area === a.key).length;

@@ -3,6 +3,20 @@ import { entries } from './entries.js';
 import { terms } from './glossary.js';
 
 export const norm = s => String(s ?? '').normalize('NFC').toLowerCase().replace(/[\s·・,.\/()\[\]\-“”"'‘’?!~:;]+/g, '');
+
+// Spellings farmers often type, mapped to the spelling used in the dictionary (matching only; the query shown is unchanged).
+const FIXES = [
+  [/트[렉랙]타|트렉터|트랙다|추렉터/g, '트랙터'],
+  [/이양기/g, '이앙기'],
+  [/싸[래레]기/g, '싸라기'],
+  [/로타리|로[타터]베이터/g, '로터리'],
+  [/아워메[타터]/g, '아워미터'],
+  [/에스크로우/g, '에스크로'],
+  [/(키로|킬로)(그램)?|㎏/gi, 'kg']
+];
+const fix = s => FIXES.reduce((x, [re, to]) => x.replace(re, to), String(s ?? '').normalize('NFC'));
+// Short aliases (2 chars) only count at the start of a word, so “하자” does not match inside “출하자”.
+const within = (t, k) => k.length >= 3 ? t.includes(k) : k.length === 2 && t.startsWith(k);
 const SUFFIX = /(이란무엇인가요|이란무엇|이란|란무엇|란|이뭐야|뭐예요|뭐야|무엇|뜻|의미|기준|방법|하는법|읽는법|알려줘|은|는|이|가|을|를|의|에서|에|도|으로|로)$/;
 
 export function tokens(q) {
@@ -37,19 +51,20 @@ function scoreDoc(d, qn, toks) {
     if (d.title === qn || d.full === qn || d.kws.includes(qn)) s = 120;
     else if (qn.length >= 2 && (d.title.includes(qn) || d.full.includes(qn))) s = 80;
     else if (d.title.length >= 2 && qn.includes(d.title)) s = 65;
-    else { const k = d.kws.find(k => qn.includes(k) || (qn.length >= 2 && k.includes(qn))); if (k) s = 55; }
+    else { const k = d.kws.find(k => (qn.includes(k) && (k.length >= 3 || toks.some(t => within(t, k)))) || (qn.length >= 2 && k.includes(qn))); if (k) s = 55; }
   } else {
     if (qn.length >= 2 && d.title.includes(qn)) s = 70;
     else if (d.kws.includes(qn)) s = 70;
     else if (qn.length >= 2 && d.kws.some(k => k.includes(qn))) s = 45;
-    else if (d.kws.some(k => k.length >= 2 && qn.includes(k))) s = 35;
+    else if (d.kws.some(k => k.length >= 2 && qn.includes(k) && (k.length >= 3 || toks.some(t => within(t, k))))) s = 35;
   }
   let matched = 0, tokenScore = 0;
   for (const t of toks) {
     let hit = 0;
     if (d.title.includes(t)) hit = 12;
-    else if (d.kws.some(k => k.includes(t) || t.includes(k) && k.length >= 2)) hit = 8;
-    else if (d.body.includes(t)) hit = 3;
+    else if (d.kws.some(k => k.includes(t) || within(t, k))) hit = 8;
+    // A longer word found only in an entry's body still counts, so “영양제병” finds the waste entry.
+    else if (d.body.includes(t)) hit = d.type === 'entry' && t.length >= 3 ? 8 : 3;
     if (hit) matched++;
     tokenScore += hit;
   }
@@ -62,9 +77,10 @@ function scoreDoc(d, qn, toks) {
 
 export function search(raw) {
   const q = String(raw ?? '').trim().slice(0, 60);
-  const qn = norm(q);
+  const qf = fix(q);
+  const qn = norm(qf);
   if (!qn) return { q, terms: [], entries: [], suggestions: [] };
-  const toks = tokens(q);
+  const toks = tokens(qf);
   const rank = docs => docs.map(d => ({ d, s: scoreDoc(d, qn, toks) })).filter(x => x.s >= 8).sort((a, b) => b.s - a.s);
   const t = rank(termDocs).slice(0, 6).map(x => x.d.ref);
   const e = rank(entryDocs).slice(0, 8).map(x => x.d.ref);
