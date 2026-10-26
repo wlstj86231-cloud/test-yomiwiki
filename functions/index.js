@@ -1,4 +1,4 @@
-import { layout, html, esc, searchForm, AREAS, ORIGIN, SITE, bori } from './_lib/site.js';
+import { layout, html, esc, searchForm, pageSchema, AREAS, SITE, bori } from './_lib/site.js';
 import { entries } from './_lib/entries.js';
 import { terms, termById } from './_lib/glossary.js';
 
@@ -23,10 +23,10 @@ export async function onRequestGet({ request }) {
   }).join('')}</div></section>
 <section class="home-section" aria-labelledby="terms-title"><div class="section-head"><h2 id="terms-title">자주 찾는 용어</h2><a href="/glossary">용어 사전 ${terms.length}개 전체 →</a></div><dl class="popular-terms">${POPULAR.map(id => termById[id]).filter(Boolean).map(t => `<div><dt><a href="/glossary#${t.id}">${esc(t.term)}</a></dt><dd>${esc(t.def.split('. ')[0].replace(/\.$/, ''))}.</dd></div>`).join('')}</dl></section>
 ${recent.length ? `<section class="home-section" aria-labelledby="new-title"><div class="section-head"><h2 id="new-title">새로 추가한 문서</h2></div><ul class="doc-list">${recent.map(e => `<li><a href="/knowledge/${e.slug}"><strong>${esc(e.title)}</strong><span>${esc(e.description)}</span></a></li>`).join('')}</ul></section>` : ''}
-<section class="home-section how" aria-labelledby="how-title"><h2 id="how-title">이 사전을 만드는 방식</h2><ul><li><strong>공식 원문이 기준입니다.</strong> 국가법령정보센터의 법령, 국립농산물품질관리원·농촌진흥청·한국환경공단 등 기관 자료를 먼저 확인하고 문서마다 출처를 링크합니다.</li><li><strong>확인한 날짜를 적습니다.</strong> 원문을 확인한 문서에는 자료 확인일을 표시합니다. 기준은 바뀔 수 있으니 거래 전 원문을 다시 확인하세요.</li><li><strong>문서 끝에는 현장 확인 목록이 있습니다.</strong> 뜻을 읽은 뒤 거래 전에 무엇을 묻고 볼지 바로 짚을 수 있습니다.</li><li><strong>틀린 곳은 고칩니다.</strong> 오류나 빠진 용어는 <a href="/contact">문의·정정 요청</a>으로 알려주세요.</li></ul></section>
+<section class="home-section how" aria-labelledby="how-title"><h2 id="how-title">이 사전을 만드는 방식</h2><ul><li><strong>공식 원문이 기준입니다.</strong> 국가법령정보센터의 법령, 국립농산물품질관리원·농촌진흥청·한국환경공단 등 기관 자료를 먼저 확인하고, 문서마다 출처를 기관·주소·확인일과 함께 적습니다.</li><li><strong>날짜를 숨기지 않습니다.</strong> 문서마다 게시일과 최종 확인일을 표시합니다. 기준은 바뀔 수 있으니 거래 전 원문을 다시 확인하세요.</li><li><strong>문서 끝에는 현장 확인 목록과 “범위와 한계”가 있습니다.</strong> 무엇을 확인하고, 어떤 판단은 어느 기관에 물어야 하는지 함께 적습니다.</li><li><strong>누가 만드나요.</strong> 보리장터 운영사 제이 미디어의 편집팀이 작성·관리합니다. 초안 작성과 자료 대조에 AI 도구를 활용하며, 게시 내용의 책임은 운영사에 있습니다. <a href="/editorial-policy">편집 원칙</a> · <a href="/about">소개</a></li><li><strong>틀린 곳은 고칩니다.</strong> 오류나 빠진 용어는 <a href="/contact">문의·정정 요청</a>으로 알려주세요. 고친 내용은 <a href="/review-readiness">수정 기록</a>에 남깁니다.</li></ul></section>
 <section class="home-section bori-line" aria-labelledby="bori-title"><h2 id="bori-title">거래 준비가 끝났다면</h2><p>같은 동네 농산물·농기계 글과 농기계 운송 업체는 보리장터에서 볼 수 있습니다. 보리장터는 농산물 거래사전을 운영하는 J MEDIA의 거래 서비스입니다.</p><p class="bori-links"><a href="${bori('/?category=PRODUCE', 'home-produce')}">농산물 글 보기</a><a href="${bori('/?category=MACHINERY', 'home-machinery')}">중고 농기계 글 보기</a><a href="${bori('/?category=TRANSPORT', 'home-transport')}">농기계 운송 업체 보기</a></p></section>`;
 
-  const schema = { '@context': 'https://schema.org', '@type': 'WebSite', name: SITE, alternateName: '농산물·농기계 거래 지식사전', url: `${ORIGIN}/`, description: '농산물 등급·표시사항·kg 환산·보관·출하·도매시장 경매·중고 농기계 점검·직거래 용어를 공식 기준으로 설명하는 사전', inLanguage: 'ko-KR', publisher: { '@type': 'Organization', name: 'J MEDIA' }, potentialAction: { '@type': 'SearchAction', target: `${ORIGIN}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' } };
+  const schema = pageSchema({ path: '/', name: SITE, description: '농산물 등급·표시사항·kg 환산·보관·출하·도매시장 경매·중고 농기계 점검·직거래 용어를 공식 기준으로 설명하는 사전', modified: '2026-10-26' });
   return html(layout({
     fullTitle: `${SITE} | 농산물·농기계 거래 용어와 현장 확인 기준`,
     description: '농산물 등급·선별, 표시사항, 포장 단위·kg 환산, 보관·출하, 도매시장 경매 용어, 중고 농기계 점검, 직거래 결제 용어를 공식 기준과 현장 확인 목록으로 찾는 사전입니다.',

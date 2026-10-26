@@ -1,5 +1,5 @@
-import { layout, html, esc, crumbs, breadcrumbSchema, searchForm, AREAS, areaByKey, ORIGIN, SITE, bori } from '../_lib/site.js';
-import { entries, entryBySlug } from '../_lib/entries.js';
+import { layout, html, esc, crumbs, breadcrumbSchema, pageSchema, byline, orgRef, siteRef, searchForm, AREAS, areaByKey, ORIGIN, SITE, bori } from '../_lib/site.js';
+import { entries, entryBySlug, MOVED } from '../_lib/entries.js';
 import { terms } from '../_lib/glossary.js';
 
 const isInternal = href => href.startsWith('/');
@@ -36,32 +36,38 @@ function nextBox(e) {
   return items.length ? `<section class="next-box" aria-labelledby="next-title"><h2 id="next-title">확인을 마쳤다면 다음 단계</h2><ul>${items.join('')}</ul></section>` : '';
 }
 
+const host = url => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; } };
+
 function renderEntry(e) {
   const area = areaByKey[e.area];
   const path = `/knowledge/${e.slug}`;
-  const sectionHtml = e.sections.map((s, i) => `<section class="content-section" id="s${i + 1}"><h2><span class="num" aria-hidden="true">${i + 1}</span>${esc(s[0])}</h2><ul class="point-list">${s[1].map(item => `<li>${esc(item)}</li>`).join('')}</ul>${s[2] ? `<p class="context-link">${link(s[2])}</p>` : ''}</section>`).join('');
+  const checked = e.sourceChecked || '';
+  const sectionHtml = e.sections.map((s, i) => `<section class="content-section" id="${s[3] || `s${i + 1}`}"><h2><span class="num" aria-hidden="true">${i + 1}</span>${esc(s[0])}</h2><ul class="point-list">${s[1].map(item => `<li>${esc(item)}</li>`).join('')}</ul>${s[2] ? `<p class="context-link">${link(s[2])}</p>` : ''}</section>`).join('');
   const faqHtml = e.faq ? `<section class="content-section faq"><h2>자주 묻는 질문</h2><dl>${e.faq.map(([q, a]) => `<dt>${esc(q)}</dt><dd>${esc(a)}</dd>`).join('')}</dl></section>` : '';
   const checksHtml = `<section class="checks" id="checks" aria-labelledby="checks-title"><h2 id="checks-title">현장에서 이것만은 확인</h2><p>거래 전에 하나씩 짚어 보세요. 표시는 저장되지 않습니다.</p><ul>${e.checks.map((c, i) => `<li><input type="checkbox" id="ck${i}"><label for="ck${i}">${esc(c)}</label></li>`).join('')}</ul></section>`;
+  const limitsHtml = `<section class="limits" id="limits" aria-labelledby="limits-title"><h2 id="limits-title">범위와 한계</h2><p>${esc(e.limits)}</p></section>`;
   const entryTerms = terms.filter(t => t.link === e.slug);
   const termsHtml = entryTerms.length ? `<section class="term-chips" aria-labelledby="terms-title"><h2 id="terms-title">이 문서의 용어</h2><p>${entryTerms.map(t => `<a href="/glossary#${t.id}">${esc(t.term)}</a>`).join('')}</p></section>` : '';
   const related = e.related.map(s => entryBySlug[s]).filter(Boolean);
   const siblings = entries.filter(x => x.area === e.area && x.slug !== e.slug && !e.related.includes(x.slug));
-  const sourcesHtml = `<section class="source-box" aria-labelledby="src-title"><h2 id="src-title">확인한 공식 자료</h2>${e.sourceChecked ? `<p class="checked">자료 확인일 <time datetime="${e.sourceChecked}">${e.sourceChecked}</time> · 적용 범위와 개정 여부는 원문에서 다시 확인하세요.</p>` : ''}<ul>${e.sources.map(([label, url]) => `<li><a href="${esc(url)}" rel="noopener">${esc(label)}</a></li>`).join('')}</ul><p>공식 기준은 개정될 수 있습니다. 실제 거래·사용 전 최신 원문과 지역 담당기관 안내를 다시 확인하세요. 이 문서는 법률·세무·정비 전문가의 판단을 대신하지 않습니다.</p>${e.editorialRecord ? `<div class="editorial-record"><h3>작성 방법과 수정 기록</h3><p>자료 정리·수정 책임: <a href="/about">농산물 거래사전 운영자</a>. 공식 표시 항목과 운영자가 만든 거래 확인 질문을 구분해 정리했습니다. 본문의 배 상자 사례는 설명용 가상 예시이며 현장 조사나 품질 판정 결과가 아닙니다.</p><p><time datetime="2026-10-26">2026-10-26</time>: 국립농산물품질관리원 표시사항 원문을 다시 확인했고(내용 변경 없음), 현장 확인 목록과 원산지·양곡 표시 문서 연결을 추가했습니다.</p><p><time datetime="2026-10-15">2026-10-15</time>: 작성 책임·확인 범위·정정 경로를 보강했습니다.</p></div>` : ''}<p class="fix-link"><a href="/contact">이 문서의 오류·공식 기준 변경 알리기</a></p></section>`;
-  const body = `${crumbs([['홈', '/'], [area.name, `/knowledge#${area.key}`], [e.short, path]])}<article class="entry"><header class="article-head"><p class="kicker">${esc(area.name)}</p><h1>${esc(e.title)}</h1><p class="desc">${esc(e.description)}</p><p class="meta"><span>수정일 <time datetime="${e.modified}">${e.modified}</time></span>${e.sourceChecked ? `<span>자료 확인일 <time datetime="${e.sourceChecked}">${e.sourceChecked}</time></span>` : ''}<span><a href="/editorial-policy">편집 원칙</a></span></p></header><div class="article-grid"><div class="article-main"><section class="lead-box"><strong>먼저 알아두세요</strong><p>${esc(e.lead)}</p></section>${e.calc ? CALC : ''}${sectionHtml}${faqHtml}${checksHtml}${nextBox(e)}${termsHtml}${sourcesHtml}</div><aside class="rail" aria-label="관련 문서"><section><h2>함께 보면 좋은 문서</h2><ul>${related.map(r => `<li><a href="/knowledge/${r.slug}">${esc(r.short)}</a></li>`).join('')}</ul></section>${siblings.length ? `<section><h2>${esc(area.name)} 다른 문서</h2><ul>${siblings.map(r => `<li><a href="/knowledge/${r.slug}">${esc(r.short)}</a></li>`).join('')}</ul></section>` : ''}<section><h2>다른 말을 찾나요?</h2>${searchForm({ id: 'rail-q' })}<p><a href="/glossary">용어 사전 전체 보기 →</a></p></section></aside></div></article>`;
+  const historyHtml = e.history ? `<div class="editorial-record"><h3>이 문서의 수정 기록</h3>${e.history.map(([d, t]) => `<p><time datetime="${d}">${d}</time>: ${esc(t)}</p>`).join('')}<p><a href="/review-readiness">사이트 전체 수정 기록 보기</a></p></div>` : '';
+  const sourcesHtml = `<section class="source-box" id="sources" aria-labelledby="src-title"><h2 id="src-title">출처: 확인한 공식 자료 ${e.sources.length}개</h2>${checked ? `<p class="checked">자료 확인일 <time datetime="${checked}">${checked}</time> · 아래 원문과 본문의 숫자·조문·날짜를 대조했습니다.</p>` : ''}<ul>${e.sources.map(s => `<li><a href="${esc(s.url)}" rel="noopener">${esc(s.title)}</a><span class="src-meta">${esc(s.org)} · ${esc(host(s.url))}${checked ? ` · 확인일 ${checked}` : ''}</span></li>`).join('')}</ul><p>공식 기준은 개정될 수 있습니다. 실제 거래·사용 전 최신 원문과 지역 담당기관 안내를 다시 확인하세요. 이 문서는 법률·세무·정비 전문가의 판단을 대신하지 않습니다.</p>${historyHtml}<p class="fix-link"><a href="/contact">이 문서의 오류·공식 기준 변경 알리기</a></p></section>`;
+  const body = `${crumbs([['홈', '/'], [area.name, `/knowledge#${area.key}`], [e.short, path]])}<article class="entry"><header class="article-head"><p class="kicker">${esc(area.name)}</p><h1>${esc(e.title)}</h1><p class="desc">${esc(e.description)}</p>${byline({ published: e.published, checked, sources: e.sources.length })}</header><div class="article-grid"><div class="article-main"><section class="lead-box"><strong>먼저 알아두세요</strong><p>${esc(e.lead)}</p></section>${e.calc ? CALC : ''}${sectionHtml}${faqHtml}${checksHtml}${limitsHtml}${nextBox(e)}${termsHtml}${sourcesHtml}</div><aside class="rail" aria-label="관련 문서"><section><h2>함께 보면 좋은 문서</h2><ul>${related.map(r => `<li><a href="/knowledge/${r.slug}">${esc(r.short)}</a></li>`).join('')}</ul></section>${siblings.length ? `<section><h2>${esc(area.name)} 다른 문서</h2><ul>${siblings.map(r => `<li><a href="/knowledge/${r.slug}">${esc(r.short)}</a></li>`).join('')}</ul></section>` : ''}<section><h2>다른 말을 찾나요?</h2>${searchForm({ id: 'rail-q' })}<p><a href="/glossary">용어 사전 전체 보기 →</a></p></section></aside></div></article>`;
+  const url = `${ORIGIN}${path}`;
   const schema = [
-    { '@context': 'https://schema.org', '@type': 'Article', headline: e.title, description: e.description, datePublished: e.published || '2026-08-09', dateModified: e.modified, inLanguage: 'ko-KR', mainEntityOfPage: `${ORIGIN}${path}`, author: { '@type': 'Organization', name: SITE, url: `${ORIGIN}/about` }, publisher: { '@type': 'Organization', name: SITE, url: `${ORIGIN}/` }, isPartOf: { '@type': 'WebSite', name: SITE, url: `${ORIGIN}/` } },
+    { '@type': 'Article', '@id': `${url}#article`, headline: e.title, description: e.description, datePublished: e.published, dateModified: e.modified, inLanguage: 'ko-KR', mainEntityOfPage: url, url, author: orgRef, publisher: orgRef, isPartOf: siteRef, citation: e.sources.map(s => s.url) },
     breadcrumbSchema([['홈', '/'], [area.name, `/knowledge#${area.key}`], [e.short, path]])
   ];
   return html(layout({ title: e.title, description: e.description, path, schema, body, current: e.area, scripts: e.calc ? CALC_SCRIPT : '' }));
 }
 
 function renderIndex() {
-  const body = `${crumbs([['홈', '/'], ['전체 문서', '/knowledge']])}<header class="page-head"><h1>전체 문서</h1><p>농산물 거래사전의 문서 ${entries.length}개를 분야별로 모았습니다. 각 문서는 공식 자료를 바탕으로 뜻을 풀고, 끝에 현장에서 확인할 목록을 둡니다.</p>${searchForm({ id: 'index-q' })}</header>${AREAS.map(a => {
+  const body = `${crumbs([['홈', '/'], ['전체 문서', '/knowledge']])}<header class="page-head"><h1>전체 문서</h1><p>농산물 거래사전의 문서 ${entries.length}개를 분야별로 모았습니다. 각 문서는 공식 자료를 바탕으로 뜻을 풀고, 끝에 현장에서 확인할 목록, 범위와 한계, 출처와 확인일을 둡니다.</p>${byline({})}${searchForm({ id: 'index-q' })}</header>${AREAS.map(a => {
     const list = entries.filter(e => e.area === a.key);
     const n = terms.filter(t => t.area === a.key).length;
     return `<section class="area-block" id="${a.key}" aria-labelledby="h-${a.key}"><h2 id="h-${a.key}">${esc(a.name)}</h2><p class="area-desc">${esc(a.desc)}</p><ul class="doc-list">${list.map(e => `<li><a href="/knowledge/${e.slug}"><strong>${esc(e.short)}</strong><span>${esc(e.description)}</span></a></li>`).join('')}</ul>${n ? `<p class="area-terms"><a href="/glossary#area-${a.key}">${esc(a.name)} 용어 ${n}개 보기 →</a></p>` : ''}</section>`;
   }).join('')}`;
-  const schema = [{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: `전체 문서 | ${SITE}`, url: `${ORIGIN}/knowledge`, inLanguage: 'ko-KR', hasPart: entries.map(e => ({ '@type': 'Article', headline: e.title, url: `${ORIGIN}/knowledge/${e.slug}` })) }, breadcrumbSchema([['홈', '/'], ['전체 문서', '/knowledge']])];
+  const schema = [{ ...pageSchema({ type: 'CollectionPage', path: '/knowledge', name: `전체 문서 | ${SITE}`, description: `농산물 거래사전 문서 ${entries.length}개의 분야별 목록` }), hasPart: entries.map(e => ({ '@id': `${ORIGIN}/knowledge/${e.slug}#article` })) }, breadcrumbSchema([['홈', '/'], ['전체 문서', '/knowledge']])];
   return html(layout({ title: '전체 문서: 분야별 농산물·농기계 거래 기준', description: `등급·선별, 표시사항, kg 환산, 보관·출하, 경매·도매, 중고 농기계 점검, 직거래 용어까지 농산물 거래사전 문서 ${entries.length}개를 분야별로 모았습니다.`, path: '/knowledge', schema, body, current: 'knowledge', ads: false }));
 }
 
@@ -70,10 +76,12 @@ export function notFound(path = '') {
   return html(layout({ title: '문서를 찾을 수 없습니다', description: '요청한 문서를 찾을 수 없습니다.', path: path || '/knowledge', robots: 'noindex,follow', body, ads: false }), { status: 404, headers: { 'X-Robots-Tag': 'noindex,follow' } });
 }
 
-export async function onRequestGet({ params }) {
+export async function onRequestGet({ request, params }) {
   const raw = Array.isArray(params.slug) ? params.slug.join('/') : String(params.slug || '');
   const slug = raw.replace(/^\/+|\/+$/g, '');
   if (!slug) return renderIndex();
+  // Merged pages keep working: 301 to the section that now holds their content.
+  if (MOVED[slug]) return new Response(null, { status: 301, headers: { Location: `${request ? new URL(request.url).origin : ORIGIN}/knowledge/${MOVED[slug]}`, 'Cache-Control': 'public,max-age=3600' } });
   const entry = entryBySlug[slug];
   if (!entry) return notFound(`/knowledge/${encodeURIComponent(slug)}`);
   return renderEntry(entry);

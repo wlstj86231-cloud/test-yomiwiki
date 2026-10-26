@@ -4,6 +4,34 @@ export const SITE = '농산물 거래사전';
 export const ORIGIN = 'https://yomiwiki.com';
 export const CHECKED = '2026-10-26';
 
+// Operator facts, as published on boribay.com/about and jnewmedia.com (checked 2026-10-26). Add nothing that is not there.
+export const OPERATOR = {
+  name: '제이 미디어', nameEn: 'J MEDIA', ceo: '이정우', bizNo: '456-33-01705',
+  address: '전북특별자치도 군산시 의료원로 80-8, 301호(지곡동)',
+  phone: '010-2846-2011', email: 'consultingjinjeong@gmail.com',
+  kakaoGeneral: 'https://open.kakao.com/o/scuvl1wi', kakaoBoribay: 'https://open.kakao.com/o/p6HiJ9Pi',
+  site: 'https://jnewmedia.com/', company: 'https://jnewmedia.com/company/'
+};
+export const BYLINE = '제이 미디어 편집팀';
+export const ORG_ID = 'https://jnewmedia.com/#organization';
+export const WEBSITE_ID = `${ORIGIN}/#website`;
+const ORG = {
+  '@type': 'Organization', '@id': ORG_ID, name: OPERATOR.name, alternateName: [OPERATOR.nameEn, '제이미디어', '제이 미디어(Media)'],
+  url: OPERATOR.site, logo: 'https://jnewmedia.com/assets/mark.svg', email: OPERATOR.email, telephone: '+82-10-2846-2011',
+  address: { '@type': 'PostalAddress', streetAddress: '의료원로 80-8, 301호(지곡동)', addressLocality: '군산시', addressRegion: '전북특별자치도', addressCountry: 'KR' },
+  sameAs: ['https://www.instagram.com/boribaydotcom/', 'https://blog.naver.com/plannerset', 'https://jnewmedia.com/', 'https://boribay.com/']
+};
+const WEBSITE = {
+  '@type': 'WebSite', '@id': WEBSITE_ID, name: SITE, url: `${ORIGIN}/`, inLanguage: 'ko-KR',
+  description: '농산물 등급·표시사항·kg 환산·보관·출하·도매시장 경매·중고 농기계 점검·직거래 용어를 공식 기준으로 설명하는 사전',
+  publisher: { '@id': ORG_ID },
+  potentialAction: { '@type': 'SearchAction', target: `${ORIGIN}/search?q={search_term_string}`, 'query-input': 'required name=search_term_string' }
+};
+export const orgRef = { '@id': ORG_ID };
+export const siteRef = { '@id': WEBSITE_ID };
+// Cloudflare email obfuscation would turn the address into a /cdn-cgi link that fails without JavaScript; email_off keeps it a plain mailto.
+export const mailLink = (text = OPERATOR.email) => `<!--email_off--><a href="mailto:${OPERATOR.email}">${text}</a><!--/email_off-->`;
+
 const ADSENSE = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5877883031077615" crossorigin="anonymous"></script>';
 
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -48,21 +76,34 @@ function header(current) {
   return `<a class="skip" href="#main">본문 바로가기</a><header class="site-header"><div class="header-inner"><a class="brand" href="/">${MARK}<strong>${SITE}</strong></a><a class="header-search" href="/search">${ICON_SEARCH}<span>찾기</span></a></div><nav class="area-nav" aria-label="사전 분야"><div class="area-nav-inner">${nav.map(([href, label, key]) => `<a href="${href}"${current === key ? ` aria-current="${key === 'knowledge' || key === 'glossary' ? 'page' : 'true'}"` : ''}>${esc(label)}</a>`).join('')}</div></nav></header><script>(function(){var a=document.querySelector('.area-nav [aria-current]');if(a&&a.offsetLeft>a.parentNode.clientWidth-80)a.parentNode.scrollLeft=a.offsetLeft-16})()</script>`;
 }
 
-function footer() {
-  return `<footer class="site-footer"><div class="footer-inner"><div><strong>${SITE}</strong><p>농산물·농기계 거래에서 쓰는 말을 공식 기준과 현장 확인 순서로 풀어 쓴 사전입니다. 운영: J MEDIA(제이 미디어) · <a href="${bori('/', 'footer')}">보리장터</a> 운영사</p></div><nav aria-label="운영 정보"><a href="/about">소개</a><a href="/editorial-policy">편집 원칙</a><a href="/review-readiness">수정 기록</a><a href="/contact">문의·정정 요청</a><a href="/privacy">개인정보</a><a href="/terms">이용약관</a><a href="/disclaimer">면책</a><a href="/mn/" lang="mn">Монгол</a><a href="/feed.xml">RSS</a></nav></div></footer>`;
+// The operator line and policy links appear on every page. Sister sites are listed on /about only.
+export function footer() {
+  return `<footer class="site-footer"><div class="footer-inner"><div><strong>${SITE}</strong><p>농산물·농기계 거래에서 쓰는 말을 공식 기준과 현장 확인 순서로 풀어 쓴 사전입니다. 운영사 제이 미디어는 <a href="${bori('/', 'footer')}">보리장터</a>도 운영합니다.</p><p class="operator">운영: ${OPERATOR.name}(${OPERATOR.nameEn}) · 대표 ${OPERATOR.ceo} · 사업자등록번호 ${OPERATOR.bizNo} · 고객센터 <a href="tel:${OPERATOR.phone}">${OPERATOR.phone}</a> · ${mailLink()}</p></div><nav aria-label="운영 정보"><a href="/about">소개</a><a href="/contact">문의</a><a href="/editorial-policy">편집 원칙</a><a href="/review-readiness">정정·수정 기록</a><a href="/privacy">개인정보처리방침</a><a href="/terms">이용약관</a><a href="/disclaimer">면책</a><a href="/mn/" lang="mn">Монгол</a><a href="/feed.xml">RSS</a></nav></div></footer>`;
+}
+
+// Visible meta block: who maintains the page, real dates, number of sources.
+export function byline({ published, checked, sources }) {
+  return `<p class="meta byline"><span>작성·관리 <a href="/editorial-policy"><strong>${BYLINE}</strong></a> (운영 책임: 대표 ${OPERATOR.ceo})</span>${published ? `<span>게시일 <time datetime="${published}">${published}</time></span>` : ''}${checked ? `<span>최종 확인일 <time datetime="${checked}">${checked}</time></span>` : ''}${sources ? `<span><a href="#sources">출처 ${sources}개</a></span>` : ''}</p>`;
 }
 
 export function layout({ title, fullTitle, description, path, robots = 'index,follow', schema = [], ads = true, body, current = '', extraHead = '', bodyStart = '', scripts = '' }) {
   const canonical = `${ORIGIN}${path}`;
   const docTitle = fullTitle || `${title} | ${SITE}`;
-  const schemas = (Array.isArray(schema) ? schema : [schema]).filter(Boolean).map(jsonLd).join('');
+  // One graph per page: the Organization and WebSite nodes plus the page's own nodes, linked by @id.
+  const nodes = (Array.isArray(schema) ? schema : [schema]).filter(Boolean).map(({ '@context': _, ...n }) => n);
+  const schemas = `<!--email_off-->${jsonLd({ '@context': 'https://schema.org', '@graph': [ORG, WEBSITE, ...nodes] })}<!--/email_off-->`;
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(docTitle)}</title><meta name="description" content="${esc(description)}"><meta name="robots" content="${robots}"><link rel="canonical" href="${canonical}"><meta property="og:title" content="${esc(docTitle)}"><meta property="og:description" content="${esc(description)}"><meta property="og:type" content="${path.startsWith('/knowledge/') ? 'article' : 'website'}"><meta property="og:url" content="${canonical}"><meta property="og:site_name" content="${SITE}"><meta name="theme-color" content="#104b2d"><link rel="icon" href="/mn/favicon.svg" type="image/svg+xml"><link rel="alternate" type="application/rss+xml" title="${SITE} 새 문서" href="${ORIGIN}/feed.xml"><style>${CSS}</style>${extraHead}${schemas}${ads ? ADSENSE : ''}</head><body>${bodyStart}${header(current)}<main id="main">${body}</main>${footer()}${scripts}</body></html>`;
 }
 
 export const html = (body, init = {}) => new Response(body, { status: init.status || 200, headers: { 'Content-Type': 'text/html;charset=UTF-8', 'Cache-Control': 'public,max-age=0,must-revalidate', ...(init.headers || {}) } });
 
 export function breadcrumbSchema(items) {
-  return { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map(([name, path], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${ORIGIN}${path}` })) };
+  return { '@type': 'BreadcrumbList', itemListElement: items.map(([name, path], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${ORIGIN}${path}` })) };
+}
+
+// A plain WebPage-type node for non-article pages (about, contact, policies, lists).
+export function pageSchema({ type = 'WebPage', path, name, description, published, modified }) {
+  return { '@type': type, '@id': `${ORIGIN}${path}#webpage`, url: `${ORIGIN}${path}`, name, description, inLanguage: 'ko-KR', isPartOf: siteRef, publisher: orgRef, author: orgRef, ...(published ? { datePublished: published } : {}), ...(modified ? { dateModified: modified } : {}) };
 }
 
 export function crumbs(items) {
