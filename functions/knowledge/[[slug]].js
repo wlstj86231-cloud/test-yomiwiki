@@ -307,7 +307,7 @@ const icon=name=>`<i data-lucide="${name}" aria-hidden="true"></i>`;
 export async function onRequestGet({request,params}){
   const slug=String(params.slug||'').replace(/^\/+|\/+$/g,'');
   const page=pages[slug];
-  if(!page)return new Response('<!doctype html><html lang="ko"><meta charset="utf-8"><title>문서를 찾을 수 없습니다 | 요미위키</title><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5877883031077615" crossorigin="anonymous"></script><body><main><h1>문서를 찾을 수 없습니다.</h1><p><a href="/">요미위키 검색으로 돌아가기</a></p></main></body></html>',{status:404,headers:{'Content-Type':'text/html;charset=UTF-8','X-Robots-Tag':'noindex,follow'}});
+  if(!page)return new Response('<!doctype html><html lang="ko"><meta charset="utf-8"><title>문서를 찾을 수 없습니다 | 요미위키</title><body><main><h1>문서를 찾을 수 없습니다.</h1><p><a href="/">요미위키 검색으로 돌아가기</a></p></main></body></html>',{status:404,headers:{'Content-Type':'text/html;charset=UTF-8','X-Robots-Tag':'noindex,follow'}});
   const canonical=`https://yomiwiki.com/knowledge/${slug}`;
   const sectionHtml=page.sections.map((section,index)=>`<section class="content-section"><h2><span>${index+1}</span>${escapeHtml(section[0])}</h2><ul class="check-list">${section[1].map(item=>`<li>${icon('circle-check-big')}<span>${escapeHtml(item)}</span></li>`).join('')}</ul>${section[2]?`<p class="context-reference"><a href="${escapeHtml(section[2][1])}">${escapeHtml(section[2][0])} ${icon('arrow-right')}</a></p>`:''}</section>`).join('');
   const faqHtml=page.faq?`<section class="content-section"><h2>자주 묻는 질문</h2><dl class="faq-list">${page.faq.map(([question,answer])=>`<dt>${escapeHtml(question)}</dt><dd>${escapeHtml(answer)}</dd>`).join('')}</dl></section>`:'';
