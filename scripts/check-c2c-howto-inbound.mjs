@@ -76,6 +76,14 @@ if (homeHeader.includes("보리장터")) errors.push("home header has 보리장�
 for (const slug of ["pack-unit-terms", "trade-terms", "produce-label-check", "kg-conversion", "wholesale-market-terms"]) if (!homeHtml.includes(`/knowledge/${slug}`)) errors.push(`home link missing ${slug}`);
 if (!homeHtml.includes('name="google-site-verification"') || !homeHtml.includes("GTM-M3HSKLDR") || !homeHtml.includes("ca-pub-5877883031077615")) errors.push("home verification/analytics/adsense tags missing");
 
+{
+  const fsMod = await import("node:fs");
+  const pathMod = await import("node:path");
+  const css = fsMod.readFileSync(pathMod.resolve(import.meta.dirname, "../public/knowledge.css"), "utf8").replace(/\r\n/g, "\n").replace(/\/\*[\s\S]*?\*\//g, "").replace(/\n\s*/g, "").trim();
+  const { CSS } = await import("../functions/_lib/css.js");
+  if (css !== CSS) errors.push("functions/_lib/css.js is out of sync: run node scripts/sync-css.mjs");
+}
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);

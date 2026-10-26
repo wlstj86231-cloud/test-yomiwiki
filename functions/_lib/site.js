@@ -1,7 +1,7 @@
 // Shared layout and constants for 농산물 거래사전 (yomiwiki.com).
+import { CSS } from './css.js';
 export const SITE = '농산물 거래사전';
 export const ORIGIN = 'https://yomiwiki.com';
-export const CSS_VERSION = '4.0.0';
 export const CHECKED = '2026-10-26';
 
 const ADSENSE = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5877883031077615" crossorigin="anonymous"></script>';
@@ -56,7 +56,7 @@ export function layout({ title, fullTitle, description, path, robots = 'index,fo
   const canonical = `${ORIGIN}${path}`;
   const docTitle = fullTitle || `${title} | ${SITE}`;
   const schemas = (Array.isArray(schema) ? schema : [schema]).filter(Boolean).map(jsonLd).join('');
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(docTitle)}</title><meta name="description" content="${esc(description)}"><meta name="robots" content="${robots}"><link rel="canonical" href="${canonical}"><meta property="og:title" content="${esc(docTitle)}"><meta property="og:description" content="${esc(description)}"><meta property="og:type" content="${path.startsWith('/knowledge/') ? 'article' : 'website'}"><meta property="og:url" content="${canonical}"><meta property="og:site_name" content="${SITE}"><meta name="theme-color" content="#104b2d"><link rel="icon" href="/mn/favicon.svg" type="image/svg+xml"><link rel="alternate" type="application/rss+xml" title="${SITE} 새 문서" href="${ORIGIN}/feed.xml"><link rel="stylesheet" href="/knowledge.css?v=${CSS_VERSION}">${extraHead}${schemas}${ads ? ADSENSE : ''}</head><body>${bodyStart}${header(current)}<main id="main">${body}</main>${footer()}${scripts}</body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(docTitle)}</title><meta name="description" content="${esc(description)}"><meta name="robots" content="${robots}"><link rel="canonical" href="${canonical}"><meta property="og:title" content="${esc(docTitle)}"><meta property="og:description" content="${esc(description)}"><meta property="og:type" content="${path.startsWith('/knowledge/') ? 'article' : 'website'}"><meta property="og:url" content="${canonical}"><meta property="og:site_name" content="${SITE}"><meta name="theme-color" content="#104b2d"><link rel="icon" href="/mn/favicon.svg" type="image/svg+xml"><link rel="alternate" type="application/rss+xml" title="${SITE} 새 문서" href="${ORIGIN}/feed.xml"><style>${CSS}</style>${extraHead}${schemas}${ads ? ADSENSE : ''}</head><body>${bodyStart}${header(current)}<main id="main">${body}</main>${footer()}${scripts}</body></html>`;
 }
 
 export const html = (body, init = {}) => new Response(body, { status: init.status || 200, headers: { 'Content-Type': 'text/html;charset=UTF-8', 'Cache-Control': 'public,max-age=0,must-revalidate', ...(init.headers || {}) } });
