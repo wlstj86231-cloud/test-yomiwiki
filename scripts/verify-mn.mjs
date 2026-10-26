@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { onRequestGet } from '../functions/sitemap.xml.js';
+import { onRequestGet as home } from '../functions/index.js';
 
 const root = path.resolve(import.meta.dirname, '..', 'public', 'mn');
 const pages = [
@@ -25,5 +26,5 @@ for (const [file, url, destination] of pages) {
   if (destination) assert.equal(JSON.parse(json).dateModified, '2026-09-25');
   if (file !== 'index.html') assert.ok((html.match(/class="sources"/g) ?? []).length === 1 && (html.match(/rel="noopener noreferrer"/g) ?? []).length >= 2, `official sources missing: ${file}`);
 }
-assert.ok((await fs.readFile(path.resolve(root, '..', 'index.html'), 'utf8')).includes('href="/mn/"'), 'Korean homepage must link to Mongolian hub');
+assert.ok((await (await home({ request: new Request('https://yomiwiki.com/') })).text()).includes('href="/mn/"'), 'Korean homepage must link to Mongolian hub');
 console.log('PASS: YomiWiki /mn/ hub, 2 sourced resources, canonical, sitemap, and home link');

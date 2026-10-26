@@ -1,6 +1,9 @@
-export async function onRequestGet({request,params}){
-  const path=Array.isArray(params.path)?params.path.join('/'):String(params.path||'');
-  const url=new URL(request.url);
-  if(path==='Main_Page')return Response.redirect(`${url.origin}/`,301);
-  return new Response(`<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="robots" content="noindex,follow"><title>이전 문서 종료 | 농산물 거래사전</title><body style="font-family:sans-serif;max-width:720px;margin:80px auto;padding:20px"><h1>이전 문서는 운영을 종료했습니다.</h1><p>농산물 거래사전은 농산물·농축산물·농기계 거래 지식사전으로 새롭게 운영됩니다.</p><p><a href="/">새 농산물 거래사전에서 현장 기준 검색하기</a></p></body></html>`,{status:410,headers:{'Content-Type':'text/html;charset=UTF-8','X-Robots-Tag':'noindex,follow'}});
+import { layout, html, searchForm } from '../_lib/site.js';
+
+export async function onRequestGet({ request, params }) {
+  const path = Array.isArray(params.path) ? params.path.join('/') : String(params.path || '');
+  const url = new URL(request.url);
+  if (path === 'Main_Page') return Response.redirect(`${url.origin}/`, 301);
+  const body = `<header class="page-head"><h1>이전 문서는 운영을 종료했습니다</h1><p>이 주소의 예전 문서는 더 이상 제공하지 않습니다. 농산물 거래사전은 농산물·농기계 거래 용어와 현장 확인 기준을 다루는 사전입니다.</p>${searchForm({ id: 'w-q' })}<p><a href="/knowledge">분야별 문서 보기</a> · <a href="/glossary">용어 사전 보기</a></p></header>`;
+  return html(layout({ title: '이전 문서 종료', description: '이전 문서는 운영을 종료했습니다.', path: `/w/${encodeURI(path)}`, robots: 'noindex,follow', body, ads: false }), { status: 410, headers: { 'X-Robots-Tag': 'noindex,follow' } });
 }
