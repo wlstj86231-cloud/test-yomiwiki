@@ -7,8 +7,8 @@ import { onRequestGet as home } from '../functions/index.js';
 const root = path.resolve(import.meta.dirname, '..', 'public', 'mn');
 const pages = [
   ['index.html', 'https://yomiwiki.com/mn/', null],
-  ['storage-glossary.html', 'https://yomiwiki.com/mn/storage-glossary', 'https://boribay.com/mn/knowledge/nogoonii-zoor-tohiruulah'],
-  ['seed-labels.html', 'https://yomiwiki.com/mn/seed-labels', 'https://boribay.com/mn/knowledge/ur-songoh'],
+  ['storage-glossary.html', 'https://yomiwiki.com/mn/storage-glossary', 'https://boribay.com/mn/knowledge/nogoonii-zoor-tohiruulah?utm_source=yomiwiki.com&amp;utm_medium=referral&amp;utm_campaign=support&amp;utm_content=mn-storage-glossary'],
+  ['seed-labels.html', 'https://yomiwiki.com/mn/seed-labels', 'https://boribay.com/mn/knowledge/ur-songoh?utm_source=yomiwiki.com&amp;utm_medium=referral&amp;utm_campaign=support&amp;utm_content=mn-seed-labels'],
 ];
 const sitemap = await (await onRequestGet()).text();
 for (const [file, url, destination] of pages) {
