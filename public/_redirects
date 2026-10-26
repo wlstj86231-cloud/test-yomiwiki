@@ -1,2 +1,10 @@
-# Redirect admin routes to SPA shell
-/admin /index.html 200
+# Retired static pages from the previous site version
+/index.html / 301
+/about.html /about 301
+/contact.html /contact 301
+/disclaimer.html /disclaimer 301
+/editorial-policy.html /editorial-policy 301
+/privacy.html /privacy 301
+/review-readiness.html /review-readiness 301
+/terms.html /terms 301
+/admin / 301
