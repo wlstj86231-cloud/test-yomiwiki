@@ -139,7 +139,7 @@ form.addEventListener('submit',event=>{event.preventDefault();const query=input.
 document.querySelectorAll('[data-query]').forEach(button=>button.addEventListener('click',()=>{input.value=button.dataset.query;render(button.dataset.query,true)}));
 related.addEventListener('click',event=>{const button=event.target.closest('[data-related]');if(!button)return;input.value=button.dataset.related;render(button.dataset.related,true)});
 document.querySelector('#menu-button').addEventListener('click',event=>{const nav=document.querySelector('.primary-nav');const open=nav.classList.toggle('open');event.currentTarget.setAttribute('aria-expanded',String(open))});
-document.querySelector('#bookmark-page').addEventListener('click',()=>alert('브라우저의 즐겨찾기 기능(Ctrl+D)을 이용해 요미위키를 저장해 주세요.'));
+document.querySelector('#bookmark-page').addEventListener('click',()=>alert('브라우저의 즐겨찾기 기능(Ctrl+D)을 이용해 농산물 거래사전을 저장해 주세요.'));
 document.querySelectorAll('a[href*="boribay.com"]').forEach(link=>link.addEventListener('click',()=>{if(window.gtag)gtag('event','owned_referral_click',{destination:link.href,source_domain:'yomiwiki.com'})}));
 
 const initialQuery=new URLSearchParams(location.search).get('q')||'감자 특품 기준';
