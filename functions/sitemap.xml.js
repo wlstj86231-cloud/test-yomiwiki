@@ -1,17 +1,11 @@
 import { entries } from './_lib/entries.js';
 
+// Indexable pages only. Search, error pages, retired URLs, merged-page redirects and the Mongolian pages (noindex) stay out.
 const staticPages = [
   ['', '2026-10-26', 'weekly', '1.0'],
   ['knowledge', '2026-10-26', 'weekly', '0.9'],
   ['glossary', '2026-10-26', 'weekly', '0.9'],
-  ['mn/', '2026-09-24', 'monthly', '0.4'],
-  ['mn/storage-glossary', '2026-09-25', 'monthly', '0.4'],
-  ['mn/seed-labels', '2026-09-25', 'monthly', '0.4'],
-  ['about', '2026-10-26', 'monthly', '0.4'],
-  ['editorial-policy', '2026-10-26', 'monthly', '0.4'],
-  ['review-readiness', '2026-10-26', 'monthly', '0.4'],
-  ['privacy', '2026-08-09', 'monthly', '0.4'],
-  ['contact', '2026-10-26', 'monthly', '0.4']
+  ...['about', 'contact', 'editorial-policy', 'review-readiness', 'privacy', 'terms', 'disclaimer'].map(p => [p, '2026-10-26', 'monthly', '0.4'])
 ];
 
 export async function onRequestGet() {

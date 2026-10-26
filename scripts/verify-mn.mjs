@@ -19,12 +19,15 @@ for (const [file, url, destination] of pages) {
   assert.ok(!html.includes('нэг эзэмшигчийн сайтууд'), `owner statement present: ${file}`);
   const boribayLinks = [...html.matchAll(/<a\b[^>]*href="(https:\/\/boribay\.com\/mn\/knowledge\/[^\"]+)"/g)].map(match => match[1]);
   assert.deepEqual(boribayLinks, destination ? [destination] : [], `unexpected Boribay link: ${file}`);
-  assert.ok(sitemap.includes(`<loc>${url}</loc>`), `sitemap missing: ${url}`);
-  if (destination) assert.ok(sitemap.includes(`<loc>${url}</loc><lastmod>2026-09-25</lastmod>`), `sitemap date missing: ${url}`);
+  // Mongolian is not an AdSense-supported language: no ads, noindex, not in the sitemap, but still served.
+  assert.ok(html.includes('<meta name="robots" content="noindex,follow">'), `noindex missing: ${file}`);
+  assert.ok(!html.includes('adsbygoogle'), `AdSense present: ${file}`);
+  assert.ok(!sitemap.includes(`<loc>${url}</loc>`), `Mongolian page must not be in sitemap: ${url}`);
+  assert.ok(html.includes('사업자등록번호 456-33-01705'), `operator line missing: ${file}`);
   const json = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/)?.[1];
   assert.equal(JSON.parse(json).inLanguage, 'mn-MN');
   if (destination) assert.equal(JSON.parse(json).dateModified, '2026-09-25');
   if (file !== 'index.html') assert.ok((html.match(/class="sources"/g) ?? []).length === 1 && (html.match(/rel="noopener noreferrer"/g) ?? []).length >= 2, `official sources missing: ${file}`);
 }
 assert.ok((await (await home({ request: new Request('https://yomiwiki.com/') })).text()).includes('href="/mn/"'), 'Korean homepage must link to Mongolian hub');
-console.log('PASS: YomiWiki /mn/ hub, 2 sourced resources, canonical, sitemap, and home link');
+console.log('PASS: YomiWiki /mn/ hub and 2 sourced resources: canonical, noindex, no ads, out of sitemap, home link');
